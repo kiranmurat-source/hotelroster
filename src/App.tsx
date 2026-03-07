@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ForecastProvider } from "@/contexts/ForecastContext";
 import Dashboard from "./pages/Dashboard";
 import RosterPage from "./pages/RosterPage";
 import StaffPage from "./pages/StaffPage";
@@ -16,19 +17,21 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/roster" element={<RosterPage />} />
-          <Route path="/staff" element={<StaffPage />} />
-          <Route path="/extra-hours" element={<ExtraHoursPage />} />
-          <Route path="/extra-staff" element={<ExtraStaffPage />} />
-          <Route path="/forecast" element={<ForecastPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <ForecastProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/roster" element={<RosterPage />} />
+            <Route path="/staff" element={<StaffPage />} />
+            <Route path="/extra-hours" element={<ExtraHoursPage />} />
+            <Route path="/extra-staff" element={<ExtraStaffPage />} />
+            <Route path="/forecast" element={<ForecastPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </ForecastProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

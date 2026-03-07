@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { staffMembers, shiftAssignments as mockAssignments } from "@/lib/mock-data";
 import { ShiftAssignment, ShiftType } from "@/lib/types";
 import { parseExcelRoster, generateSampleRoster, ParsedRoster } from "@/lib/parse-roster";
+import { useForecast } from "@/contexts/ForecastContext";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const shiftConfig: Record<ShiftType, { bg: string; text: string; icon: typeof Sun }> = {
   Morning: { bg: "bg-success/15", text: "text-success", icon: Sun },
@@ -40,8 +42,18 @@ const RosterPage = () => {
   const [uploadedRoster, setUploadedRoster] = useState<ParsedRoster | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  const { forecast } = useForecast();
+
   // Use uploaded data if available, otherwise mock
   const activeAssignments: ShiftAssignment[] = uploadedRoster?.assignments ?? mockAssignments;
+
+  // Build a date→forecast lookup
+  const forecastByDate = useMemo(() => {
+    if (!forecast) return {};
+    const map: Record<string, { occupancyRate: number; events: string[] }> = {};
+    forecast.days.forEach((d) => { map[d.date] = { occupancyRate: d.occupancyRate, events: d.events }; });
+    return map;
+  }, [forecast]);
 
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfWeek(year, month);
@@ -236,8 +248,12 @@ const RosterPage = () => {
                   const isSunday = (firstDay + i) % 7 === 6;
                   const isSaturday = (firstDay + i) % 7 === 5;
                   const isWeekend = isSunday || isSaturday;
+                  const fc = forecastByDate[dateStr];
+                  const isHighOcc = fc && fc.occupancyRate >= 90;
+                  const isMedOcc = fc && fc.occupancyRate >= 75 && fc.occupancyRate < 90;
+                  const hasEvents = fc && fc.events.length > 0;
 
-                  return (
+                  const calButton = (
                     <button
                       key={day}
                       onClick={() => setSelectedDate(dateStr)}
@@ -247,8 +263,22 @@ const RosterPage = () => {
                         isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 ring-2 ring-primary ring-offset-2 ring-offset-background",
                         isToday(day) && !isSelected && "font-bold ring-1 ring-accent",
                         isWeekend && !isSelected && "text-muted-foreground",
+                        !isSelected && isHighOcc && "bg-destructive/10 ring-1 ring-destructive/40",
+                        !isSelected && isMedOcc && !isHighOcc && "bg-warning/10 ring-1 ring-warning/40",
                       )}
                     >
+                      {/* Occupancy indicator */}
+                      {fc && !isSelected && (
+                        <span className={cn(
+                          "absolute top-0.5 right-0.5 text-[9px] font-bold",
+                          isHighOcc ? "text-destructive" : isMedOcc ? "text-warning" : "text-muted-foreground"
+                        )}>
+                          {fc.occupancyRate}%
+                        </span>
+                      )}
+                      {hasEvents && !isSelected && (
+                        <Sparkles className="absolute top-0.5 left-0.5 h-2.5 w-2.5 text-accent" />
+                      )}
                       <span className={cn("text-sm", isSelected ? "font-bold" : "font-medium")}>{day}</span>
                       {hasData && !isSelected && (
                         <div className="flex gap-0.5 mt-0.5">
@@ -259,6 +289,20 @@ const RosterPage = () => {
                       )}
                     </button>
                   );
+
+                  if (fc) {
+                    return (
+                      <Tooltip key={day}>
+                        <TooltipTrigger asChild>{calButton}</TooltipTrigger>
+                        <TooltipContent side="top" className="text-xs">
+                          <p className="font-semibold">{fc.occupancyRate}% occupancy</p>
+                          {fc.events.length > 0 && <p className="text-muted-foreground">{fc.events.join(", ")}</p>}
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  }
+
+                  return calButton;
                 })}
               </div>
 
@@ -269,6 +313,19 @@ const RosterPage = () => {
                     <span className="text-muted-foreground">{shift}</span>
                   </div>
                 ))}
+                {forecast && (
+                  <>
+                    <span className="text-muted-foreground/40">|</span>
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <span className="h-2.5 w-2.5 rounded-sm bg-destructive/30 ring-1 ring-destructive/40" />
+                      <span className="text-muted-foreground">High occ. (90%+)</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <Sparkles className="h-2.5 w-2.5 text-accent" />
+                      <span className="text-muted-foreground">Event</span>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -282,6 +339,27 @@ const RosterPage = () => {
                     {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
                   </h3>
                   <p className="text-xs text-muted-foreground mb-4">{selectedAssignments.length} staff assigned</p>
+
+                  {/* Forecast banner */}
+                  {selectedDate && forecastByDate[selectedDate] && (() => {
+                    const fc = forecastByDate[selectedDate];
+                    const isHigh = fc.occupancyRate >= 90;
+                    const isMed = fc.occupancyRate >= 75;
+                    return (
+                      <div className={cn(
+                        "rounded-md px-3 py-2 mb-4 flex items-start gap-2 text-xs",
+                        isHigh ? "bg-destructive/10 text-destructive" : isMed ? "bg-warning/10 text-warning" : "bg-success/10 text-success"
+                      )}>
+                        <Flame className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="font-semibold">{fc.occupancyRate}% occupancy forecasted</p>
+                          {fc.events.length > 0 && (
+                            <p className="opacity-80 mt-0.5">{fc.events.join(" · ")}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {selectedAssignments.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-8 text-center">No shifts scheduled for this date</p>

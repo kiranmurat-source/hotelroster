@@ -2,8 +2,8 @@ import { useState, useCallback } from "react";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { WeeklyForecast } from "@/lib/forecast-types";
 import { parseExcelForecast, generateSampleExcel } from "@/lib/parse-forecast";
+import { useForecast } from "@/contexts/ForecastContext";
 import { cn } from "@/lib/utils";
 import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import {
 } from "recharts";
 
 const ForecastPage = () => {
-  const [forecast, setForecast] = useState<WeeklyForecast | null>(null);
+  const { forecast, setForecast } = useForecast();
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFile = useCallback(async (file: File) => {
