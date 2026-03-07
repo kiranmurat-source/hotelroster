@@ -1,6 +1,7 @@
 import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole, AppRole } from "@/hooks/useUserRole";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -9,20 +10,44 @@ import {
   UserPlus,
   BarChart3,
   LogOut,
+  Shield,
 } from "lucide-react";
 
-const navItems = [
+interface NavItem {
+  to: string;
+  label: string;
+  icon: React.ElementType;
+  minRole?: "manager" | "admin";
+}
+
+const navItems: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/roster", label: "Roster", icon: CalendarDays },
   { to: "/forecast", label: "Forecast", icon: BarChart3 },
-  { to: "/staff", label: "Staff", icon: Users },
+  { to: "/staff", label: "Staff", icon: Users, minRole: "manager" },
   { to: "/extra-hours", label: "Extra Hours", icon: Clock },
   { to: "/extra-staff", label: "Extra Staff", icon: UserPlus },
 ];
 
+const roleBadgeColors: Record<AppRole, string> = {
+  admin: "bg-destructive/20 text-destructive",
+  manager: "bg-accent/20 text-accent",
+  staff: "bg-muted text-muted-foreground",
+};
+
 const AppSidebar = () => {
   const location = useLocation();
   const { signOut, user } = useAuth();
+  const { roles, isAdmin, isManager } = useUserRole();
+
+  const visibleItems = navItems.filter((item) => {
+    if (!item.minRole) return true;
+    if (item.minRole === "admin") return isAdmin;
+    if (item.minRole === "manager") return isManager;
+    return true;
+  });
+
+  const displayRole = isAdmin ? "admin" : isManager ? "manager" : "staff";
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-primary min-h-screen p-4 gap-1">
@@ -33,7 +58,7 @@ const AppSidebar = () => {
         <p className="text-xs text-primary-foreground/60 mt-1">Staff Management</p>
       </div>
       <nav className="flex flex-col gap-1 flex-1">
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const isActive = location.pathname === item.to;
           return (
             <RouterNavLink
@@ -54,9 +79,15 @@ const AppSidebar = () => {
       </nav>
       <div className="mt-auto border-t border-primary-foreground/10 pt-3">
         {user && (
-          <p className="px-3 text-xs text-primary-foreground/50 truncate mb-2">
-            {user.email}
-          </p>
+          <div className="px-3 mb-2">
+            <p className="text-xs text-primary-foreground/50 truncate">
+              {user.email}
+            </p>
+            <span className={cn("inline-flex items-center gap-1 mt-1 text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full", roleBadgeColors[displayRole])}>
+              <Shield className="h-2.5 w-2.5" />
+              {displayRole}
+            </span>
+          </div>
         )}
         <button
           onClick={signOut}
