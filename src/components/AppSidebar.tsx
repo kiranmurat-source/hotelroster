@@ -1,6 +1,7 @@
 import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole, AppRole } from "@/hooks/useUserRole";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -9,20 +10,44 @@ import {
   UserPlus,
   BarChart3,
   LogOut,
+  Shield,
 } from "lucide-react";
 
-const navItems = [
+interface NavItem {
+  to: string;
+  label: string;
+  icon: React.ElementType;
+  minRole?: "manager" | "admin";
+}
+
+const navItems: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/roster", label: "Roster", icon: CalendarDays },
   { to: "/forecast", label: "Forecast", icon: BarChart3 },
-  { to: "/staff", label: "Staff", icon: Users },
+  { to: "/staff", label: "Staff", icon: Users, minRole: "manager" },
   { to: "/extra-hours", label: "Extra Hours", icon: Clock },
   { to: "/extra-staff", label: "Extra Staff", icon: UserPlus },
 ];
 
+const roleBadgeColors: Record<AppRole, string> = {
+  admin: "bg-destructive/20 text-destructive",
+  manager: "bg-accent/20 text-accent",
+  staff: "bg-muted text-muted-foreground",
+};
+
 const AppSidebar = () => {
   const location = useLocation();
   const { signOut, user } = useAuth();
+  const { roles, isAdmin, isManager } = useUserRole();
+
+  const visibleItems = navItems.filter((item) => {
+    if (!item.minRole) return true;
+    if (item.minRole === "admin") return isAdmin;
+    if (item.minRole === "manager") return isManager;
+    return true;
+  });
+
+  const displayRole = isAdmin ? "admin" : isManager ? "manager" : "staff";
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-primary min-h-screen p-4 gap-1">
