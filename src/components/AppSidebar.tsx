@@ -79,9 +79,15 @@ const AppSidebar = () => {
       </nav>
       <div className="mt-auto border-t border-primary-foreground/10 pt-3">
         {user && (
-          <p className="px-3 text-xs text-primary-foreground/50 truncate mb-2">
-            {user.email}
-          </p>
+          <div className="px-3 mb-2">
+            <p className="text-xs text-primary-foreground/50 truncate">
+              {user.email}
+            </p>
+            <span className={cn("inline-flex items-center gap-1 mt-1 text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full", roleBadgeColors[displayRole])}>
+              <Shield className="h-2.5 w-2.5" />
+              {displayRole}
+            </span>
+          </div>
         )}
         <button
           onClick={signOut}
