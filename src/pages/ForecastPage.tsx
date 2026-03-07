@@ -12,7 +12,7 @@ import {
 } from "recharts";
 
 const ForecastPage = () => {
-  const [forecast, setForecast] = useState<WeeklyForecast | null>(null);
+  const { forecast, setForecast } = useForecast();
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFile = useCallback(async (file: File) => {
