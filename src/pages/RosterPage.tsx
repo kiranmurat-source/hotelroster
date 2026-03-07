@@ -248,8 +248,12 @@ const RosterPage = () => {
                   const isSunday = (firstDay + i) % 7 === 6;
                   const isSaturday = (firstDay + i) % 7 === 5;
                   const isWeekend = isSunday || isSaturday;
+                  const fc = forecastByDate[dateStr];
+                  const isHighOcc = fc && fc.occupancyRate >= 90;
+                  const isMedOcc = fc && fc.occupancyRate >= 75 && fc.occupancyRate < 90;
+                  const hasEvents = fc && fc.events.length > 0;
 
-                  return (
+                  const calButton = (
                     <button
                       key={day}
                       onClick={() => setSelectedDate(dateStr)}
@@ -259,8 +263,22 @@ const RosterPage = () => {
                         isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 ring-2 ring-primary ring-offset-2 ring-offset-background",
                         isToday(day) && !isSelected && "font-bold ring-1 ring-accent",
                         isWeekend && !isSelected && "text-muted-foreground",
+                        !isSelected && isHighOcc && "bg-destructive/10 ring-1 ring-destructive/40",
+                        !isSelected && isMedOcc && !isHighOcc && "bg-warning/10 ring-1 ring-warning/40",
                       )}
                     >
+                      {/* Occupancy indicator */}
+                      {fc && !isSelected && (
+                        <span className={cn(
+                          "absolute top-0.5 right-0.5 text-[9px] font-bold",
+                          isHighOcc ? "text-destructive" : isMedOcc ? "text-warning" : "text-muted-foreground"
+                        )}>
+                          {fc.occupancyRate}%
+                        </span>
+                      )}
+                      {hasEvents && !isSelected && (
+                        <Sparkles className="absolute top-0.5 left-0.5 h-2.5 w-2.5 text-accent" />
+                      )}
                       <span className={cn("text-sm", isSelected ? "font-bold" : "font-medium")}>{day}</span>
                       {hasData && !isSelected && (
                         <div className="flex gap-0.5 mt-0.5">
@@ -271,6 +289,20 @@ const RosterPage = () => {
                       )}
                     </button>
                   );
+
+                  if (fc) {
+                    return (
+                      <Tooltip key={day}>
+                        <TooltipTrigger asChild>{calButton}</TooltipTrigger>
+                        <TooltipContent side="top" className="text-xs">
+                          <p className="font-semibold">{fc.occupancyRate}% occupancy</p>
+                          {fc.events.length > 0 && <p className="text-muted-foreground">{fc.events.join(", ")}</p>}
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  }
+
+                  return calButton;
                 })}
               </div>
 
