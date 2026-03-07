@@ -42,8 +42,18 @@ const RosterPage = () => {
   const [uploadedRoster, setUploadedRoster] = useState<ParsedRoster | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  const { forecast } = useForecast();
+
   // Use uploaded data if available, otherwise mock
   const activeAssignments: ShiftAssignment[] = uploadedRoster?.assignments ?? mockAssignments;
+
+  // Build a date→forecast lookup
+  const forecastByDate = useMemo(() => {
+    if (!forecast) return {};
+    const map: Record<string, { occupancyRate: number; events: string[] }> = {};
+    forecast.days.forEach((d) => { map[d.date] = { occupancyRate: d.occupancyRate, events: d.events }; });
+    return map;
+  }, [forecast]);
 
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfWeek(year, month);
