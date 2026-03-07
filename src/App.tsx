@@ -8,6 +8,7 @@ import RosterPage from "./pages/RosterPage";
 import StaffPage from "./pages/StaffPage";
 import ExtraHoursPage from "./pages/ExtraHoursPage";
 import ExtraStaffPage from "./pages/ExtraStaffPage";
+import ForecastPage from "./pages/ForecastPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
