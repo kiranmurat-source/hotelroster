@@ -327,6 +327,27 @@ const RosterPage = () => {
                   </h3>
                   <p className="text-xs text-muted-foreground mb-4">{selectedAssignments.length} staff assigned</p>
 
+                  {/* Forecast banner */}
+                  {selectedDate && forecastByDate[selectedDate] && (() => {
+                    const fc = forecastByDate[selectedDate];
+                    const isHigh = fc.occupancyRate >= 90;
+                    const isMed = fc.occupancyRate >= 75;
+                    return (
+                      <div className={cn(
+                        "rounded-md px-3 py-2 mb-4 flex items-start gap-2 text-xs",
+                        isHigh ? "bg-destructive/10 text-destructive" : isMed ? "bg-warning/10 text-warning" : "bg-success/10 text-success"
+                      )}>
+                        <Flame className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="font-semibold">{fc.occupancyRate}% occupancy forecasted</p>
+                          {fc.events.length > 0 && (
+                            <p className="opacity-80 mt-0.5">{fc.events.join(" · ")}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {selectedAssignments.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-8 text-center">No shifts scheduled for this date</p>
                   ) : (
