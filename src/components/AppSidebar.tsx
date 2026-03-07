@@ -58,7 +58,7 @@ const AppSidebar = () => {
         <p className="text-xs text-primary-foreground/60 mt-1">Staff Management</p>
       </div>
       <nav className="flex flex-col gap-1 flex-1">
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const isActive = location.pathname === item.to;
           return (
             <RouterNavLink
