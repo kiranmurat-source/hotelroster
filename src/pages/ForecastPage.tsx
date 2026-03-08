@@ -16,9 +16,14 @@ import {
 } from "recharts";
 
 const ForecastPage = () => {
+  const navigate = useNavigate();
   const { forecast, setForecast } = useForecast();
   const [isDragging, setIsDragging] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+
+  const handleDayDoubleClick = useCallback((dateStr: string) => {
+    navigate(`/roster?date=${dateStr}`);
+  }, [navigate]);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
