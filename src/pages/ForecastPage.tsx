@@ -182,7 +182,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{peakDay?.dayLabel}</p>
-                    <p className="text-xs text-muted-foreground">Peak Day ({peakDay?.occupancyRate}%)</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.peakDay")} ({peakDay?.occupancyRate}%)</p>
                   </div>
                 </CardContent>
               </Card>
