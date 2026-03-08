@@ -6,7 +6,6 @@ import { Department } from "@/lib/types";
 interface UserProfile {
   display_name: string | null;
   department: string | null;
-  role: string | null;
   avatar_url: string | null;
 }
 
@@ -25,7 +24,7 @@ export const useUserProfile = () => {
     const fetchProfile = async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("display_name, department, role, avatar_url")
+        .select("display_name, department, avatar_url")
         .eq("user_id", user.id)
         .single();
 
