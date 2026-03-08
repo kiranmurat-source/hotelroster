@@ -67,7 +67,7 @@ const ForecastPage = () => {
     a.download = "weekly-forecast-template.xlsx";
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Template downloaded");
+    toast.success(t("forecast.templateDownloaded"));
   };
 
   const getOccupancyColor = (rate: number) => {
