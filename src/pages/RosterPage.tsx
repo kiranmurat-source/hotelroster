@@ -11,6 +11,7 @@ import { useForecast } from "@/contexts/ForecastContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { cn } from "@/lib/utils";
+import { maskPhone } from "@/lib/privacy";
 import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles, Mail, Phone, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -531,7 +532,7 @@ const RosterPage = () => {
                               )}
                               {staff.phone && (
                                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Phone className="h-3 w-3 shrink-0" />{staff.phone}
+                                  <Phone className="h-3 w-3 shrink-0" />{isManager ? staff.phone : maskPhone(staff.phone)}
                                 </p>
                               )}
                             </div>
