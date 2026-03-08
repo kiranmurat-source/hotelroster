@@ -38,7 +38,7 @@ const ForecastPage = () => {
       setForecast(result);
       toast.success(t("forecast.loaded").replace("{count}", String(result.days.length)));
     } catch (err) {
-      toast.error("Failed to parse file. Check the format and try again.");
+      toast.error(t("forecast.parseFailed"));
       console.error(err);
     }
   }, []);
