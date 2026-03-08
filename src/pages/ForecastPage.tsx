@@ -171,7 +171,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{totalEvents}</p>
-                    <p className="text-xs text-muted-foreground">Events Scheduled</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.eventsScheduled")}</p>
                   </div>
                 </CardContent>
               </Card>
