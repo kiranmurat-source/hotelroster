@@ -335,6 +335,7 @@ const RosterPage = () => {
                           {hasData.Morning > 0 && <span className="h-1.5 w-1.5 rounded-full bg-success" />}
                           {hasData.Afternoon > 0 && <span className="h-1.5 w-1.5 rounded-full bg-accent" />}
                           {hasData.Night > 0 && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                          {hasData.Break > 0 && <span className="h-1.5 w-1.5 rounded-full bg-warning" />}
                         </div>
                       )}
                     </button>
