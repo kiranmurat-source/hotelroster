@@ -210,9 +210,9 @@ const ForecastPage = () => {
                           fontSize: "12px",
                         }}
                         formatter={(value: number, name: string) => {
-                          if (name === "occupancyRate") return [`${value}%`, "Occupancy"];
-                          if (name === "arrivals") return [value, "Arrivals"];
-                          if (name === "departures") return [value, "Departures"];
+                          if (name === "occupancyRate") return [`${value}%`, t("forecast.occupancy")];
+                          if (name === "arrivals") return [value, t("forecast.arrivals")];
+                          if (name === "departures") return [value, t("forecast.departures")];
                           return [value, name];
                         }}
                       />
