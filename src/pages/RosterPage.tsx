@@ -10,7 +10,7 @@ import { parseExcelRoster, generateSampleRoster, ParsedRoster } from "@/lib/pars
 import { useForecast } from "@/contexts/ForecastContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles, Mail, Phone } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles, Mail, Phone, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -19,6 +19,7 @@ const shiftConfig: Record<ShiftType, { bg: string; text: string; icon: typeof Su
   Afternoon: { bg: "bg-accent/15", text: "text-accent", icon: Sunset },
   Night: { bg: "bg-primary/20", text: "text-primary", icon: Moon },
   "Day Off": { bg: "bg-muted", text: "text-muted-foreground", icon: Coffee },
+  Break: { bg: "bg-warning/15", text: "text-warning", icon: Timer },
 };
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -68,6 +69,7 @@ const RosterPage = () => {
     Afternoon: t("roster.afternoon"),
     Night: t("roster.night"),
     "Day Off": t("roster.dayOff"),
+    Break: t("roster.break"),
   };
 
   const dateLocale = language === "tr" ? "tr-TR" : "en-US";
@@ -152,7 +154,7 @@ const RosterPage = () => {
       const dateStr = formatDate(year, month, d);
       const dayAssignments = activeAssignments.filter((a) => a.date === dateStr);
       if (dayAssignments.length > 0) {
-        counts[dateStr] = { Morning: 0, Afternoon: 0, Night: 0, "Day Off": 0 };
+        counts[dateStr] = { Morning: 0, Afternoon: 0, Night: 0, "Day Off": 0, Break: 0 };
         dayAssignments.forEach((a) => { counts[dateStr][a.shift]++; });
       }
     }
@@ -165,7 +167,7 @@ const RosterPage = () => {
 
   const groupedByShift = useMemo(() => {
     const groups: Record<ShiftType, typeof selectedAssignments> = {
-      Morning: [], Afternoon: [], Night: [], "Day Off": [],
+      Morning: [], Afternoon: [], Night: [], "Day Off": [], Break: [],
     };
     selectedAssignments.forEach((a) => { groups[a.shift].push(a); });
     return groups;
@@ -178,7 +180,7 @@ const RosterPage = () => {
 
   const modalGroupedByShift = useMemo(() => {
     const groups: Record<ShiftType, ShiftAssignment[]> = {
-      Morning: [], Afternoon: [], Night: [], "Day Off": [],
+      Morning: [], Afternoon: [], Night: [], "Day Off": [], Break: [],
     };
     modalAssignments.forEach((a) => { groups[a.shift].push(a); });
     return groups;
@@ -333,6 +335,7 @@ const RosterPage = () => {
                           {hasData.Morning > 0 && <span className="h-1.5 w-1.5 rounded-full bg-success" />}
                           {hasData.Afternoon > 0 && <span className="h-1.5 w-1.5 rounded-full bg-accent" />}
                           {hasData.Night > 0 && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                          {hasData.Break > 0 && <span className="h-1.5 w-1.5 rounded-full bg-warning" />}
                         </div>
                       )}
                     </button>
