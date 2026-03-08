@@ -10,7 +10,7 @@ import { parseExcelRoster, generateSampleRoster, ParsedRoster } from "@/lib/pars
 import { useForecast } from "@/contexts/ForecastContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles, Mail, Phone } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles, Mail, Phone, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -19,6 +19,7 @@ const shiftConfig: Record<ShiftType, { bg: string; text: string; icon: typeof Su
   Afternoon: { bg: "bg-accent/15", text: "text-accent", icon: Sunset },
   Night: { bg: "bg-primary/20", text: "text-primary", icon: Moon },
   "Day Off": { bg: "bg-muted", text: "text-muted-foreground", icon: Coffee },
+  Break: { bg: "bg-warning/15", text: "text-warning", icon: Timer },
 };
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
