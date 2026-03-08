@@ -82,6 +82,32 @@ const AdminPage = () => {
     }
   };
 
+  const handleUpdateDepartment = async (userId: string, newDept: string) => {
+    const { error } = await supabase.from("profiles").update({ department: newDept }).eq("user_id", userId);
+    if (error) {
+      toast({ title: t("admin.updateFailed") || "Update failed", description: error.message, variant: "destructive" });
+    } else {
+      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, department: newDept } : u)));
+      toast({ title: t("admin.updated") || "Updated" });
+    }
+  };
+
+  const handleUpdateRole = async (userId: string, newRole: string) => {
+    // Upsert into user_roles
+    const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
+    if (delErr) {
+      toast({ title: "Error", description: delErr.message, variant: "destructive" });
+      return;
+    }
+    const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole as any });
+    if (insErr) {
+      toast({ title: "Error", description: insErr.message, variant: "destructive" });
+      return;
+    }
+    setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u)));
+    toast({ title: t("admin.updated") || "Updated" });
+  };
+
   const roleBadgeVariant = (r: string) => {
     if (r === "admin") return "destructive";
     if (r === "manager") return "default";
