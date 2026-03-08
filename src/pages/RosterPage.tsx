@@ -370,7 +370,7 @@ const RosterPage = () => {
                     </div>
                     <div className="flex items-center gap-1.5 text-xs">
                       <Sparkles className="h-2.5 w-2.5 text-accent" />
-                      <span className="text-muted-foreground">Event</span>
+                      <span className="text-muted-foreground">{t("roster.event")}</span>
                     </div>
                   </>
                 )}
