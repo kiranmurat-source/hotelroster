@@ -154,7 +154,7 @@ const RosterPage = () => {
       const dateStr = formatDate(year, month, d);
       const dayAssignments = activeAssignments.filter((a) => a.date === dateStr);
       if (dayAssignments.length > 0) {
-        counts[dateStr] = { Morning: 0, Afternoon: 0, Night: 0, "Day Off": 0 };
+        counts[dateStr] = { Morning: 0, Afternoon: 0, Night: 0, "Day Off": 0, Break: 0 };
         dayAssignments.forEach((a) => { counts[dateStr][a.shift]++; });
       }
     }
