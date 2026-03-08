@@ -59,7 +59,7 @@ const LoginPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t("login.cardTitle")}</CardTitle>
+            <h2 className="text-2xl font-semibold leading-none tracking-tight">{t("login.cardTitle")}</h2>
             <CardDescription>{t("login.cardDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
