@@ -358,7 +358,7 @@ const RosterPage = () => {
                 {(Object.keys(shiftConfig) as ShiftType[]).map((shift) => (
                   <div key={shift} className="flex items-center gap-1.5 text-xs">
                     <span className={cn("h-2.5 w-2.5 rounded-full", shift === "Morning" ? "bg-success" : shift === "Afternoon" ? "bg-accent" : shift === "Night" ? "bg-primary" : "bg-muted-foreground/40")} />
-                    <span className="text-muted-foreground">{shift}</span>
+                    <span className="text-muted-foreground">{shiftLabels[shift]}</span>
                   </div>
                 ))}
                 {forecast && (
