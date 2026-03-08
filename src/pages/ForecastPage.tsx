@@ -17,6 +17,7 @@ import {
 const ForecastPage = () => {
   const { forecast, setForecast } = useForecast();
   const [isDragging, setIsDragging] = useState(false);
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
