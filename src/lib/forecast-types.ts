@@ -2,6 +2,8 @@ export interface ForecastDay {
   date: string;
   dayLabel: string;
   occupancyRate: number;
+  arrivals: number;
+  departures: number;
   roomNights: number;
   totalRooms: number;
   events: string[];

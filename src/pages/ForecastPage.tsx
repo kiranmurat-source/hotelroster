@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { parseExcelForecast, generateSampleExcel } from "@/lib/parse-forecast";
 import { useForecast } from "@/contexts/ForecastContext";
 import { cn } from "@/lib/utils";
-import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
@@ -245,6 +245,14 @@ const ForecastPage = () => {
                               }}
                             />
                           </div>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Arrivals</span>
+                          <span className="font-medium">{day.arrivals}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Departures</span>
+                          <span className="font-medium">{day.departures}</span>
                         </div>
                         <div className="flex justify-between text-xs">
                           <span className="text-muted-foreground">Room Nights</span>

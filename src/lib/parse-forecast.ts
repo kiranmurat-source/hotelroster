@@ -34,6 +34,8 @@ export function parseExcelForecast(data: ArrayBuffer): WeeklyForecast {
   const sample = rows[0];
   const dateCol = findCol(sample, ["date", "day"]);
   const occCol = findCol(sample, ["occupancy", "occ"]);
+  const arrivalCol = findCol(sample, ["arrival", "checkin", "arriving"]);
+  const departureCol = findCol(sample, ["departure", "checkout", "departing"]);
   const roomCol = findCol(sample, ["roomnight", "roomsbooked", "booking", "rooms"]);
   const totalCol = findCol(sample, ["totalroom", "capacity", "total"]);
   const eventCol = findCol(sample, ["event", "banquet", "function"]);
@@ -70,6 +72,8 @@ export function parseExcelForecast(data: ArrayBuffer): WeeklyForecast {
     }
 
     const occupancyRate = occCol ? Number(row[occCol]) || 0 : 0;
+    const arrivals = arrivalCol ? Number(row[arrivalCol]) || 0 : 0;
+    const departures = departureCol ? Number(row[departureCol]) || 0 : 0;
     const roomNights = roomCol ? Number(row[roomCol]) || 0 : 0;
     const totalRooms = totalCol ? Number(row[totalCol]) || 200 : 200;
 
@@ -79,7 +83,7 @@ export function parseExcelForecast(data: ArrayBuffer): WeeklyForecast {
       if (ev) events = ev.split(/[,;]/).map((e) => e.trim()).filter(Boolean);
     }
 
-    return { date: dateStr, dayLabel, occupancyRate, roomNights, totalRooms, events };
+    return { date: dateStr, dayLabel, occupancyRate, arrivals, departures, roomNights, totalRooms, events };
   });
 
   const startDate = days[0]?.date || "";
@@ -97,13 +101,13 @@ export function parseExcelForecast(data: ArrayBuffer): WeeklyForecast {
 /** Generate a sample Excel file for download */
 export function generateSampleExcel(): ArrayBuffer {
   const data = [
-    { Date: "2026-03-09", "Occupancy %": 72, "Room Nights": 144, "Total Rooms": 200, Events: "" },
-    { Date: "2026-03-10", "Occupancy %": 78, "Room Nights": 156, "Total Rooms": 200, Events: "Corporate Seminar" },
-    { Date: "2026-03-11", "Occupancy %": 85, "Room Nights": 170, "Total Rooms": 200, Events: "Wedding Reception" },
-    { Date: "2026-03-12", "Occupancy %": 90, "Room Nights": 180, "Total Rooms": 200, Events: "Wedding Reception, Board Dinner" },
-    { Date: "2026-03-13", "Occupancy %": 95, "Room Nights": 190, "Total Rooms": 200, Events: "Conference Day 1" },
-    { Date: "2026-03-14", "Occupancy %": 98, "Room Nights": 196, "Total Rooms": 200, Events: "Conference Day 2, Gala Night" },
-    { Date: "2026-03-15", "Occupancy %": 82, "Room Nights": 164, "Total Rooms": 200, Events: "" },
+    { Date: "2026-03-09", "Occupancy %": 72, Arrival: 32, Departure: 45, "Room Nights": 144, "Total Rooms": 200, Events: "" },
+    { Date: "2026-03-10", "Occupancy %": 78, Arrival: 33, Departure: 65, "Room Nights": 156, "Total Rooms": 200, Events: "Corporate Seminar" },
+    { Date: "2026-03-11", "Occupancy %": 85, Arrival: 23, Departure: 23, "Room Nights": 170, "Total Rooms": 200, Events: "Wedding Reception" },
+    { Date: "2026-03-12", "Occupancy %": 90, Arrival: 11, Departure: 56, "Room Nights": 180, "Total Rooms": 200, Events: "Wedding Reception, Board Dinner" },
+    { Date: "2026-03-13", "Occupancy %": 95, Arrival: 55, Departure: 32, "Room Nights": 190, "Total Rooms": 200, Events: "Conference Day 1" },
+    { Date: "2026-03-14", "Occupancy %": 98, Arrival: 22, Departure: 55, "Room Nights": 196, "Total Rooms": 200, Events: "Conference Day 2, Gala Night" },
+    { Date: "2026-03-15", "Occupancy %": 82, Arrival: 11, Departure: 77, "Room Nights": 164, "Total Rooms": 200, Events: "" },
   ];
 
   const ws = XLSX.utils.json_to_sheet(data);
