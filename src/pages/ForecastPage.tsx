@@ -190,6 +190,7 @@ const ForecastPage = () => {
             <Card className="animate-fade-in">
               <CardHeader>
                 <CardTitle className="text-lg">Occupancy Forecast</CardTitle>
+                <p className="text-xs text-muted-foreground">Click a bar to view staff roster for that day</p>
               </CardHeader>
               <CardContent>
                 <div className="h-64">
