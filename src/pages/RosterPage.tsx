@@ -245,8 +245,8 @@ const RosterPage = () => {
           )}
         </div>
 
-        {/* Drop zone — shown when no data or as a compact banner */}
-        {!uploadedRoster && (
+        {/* Drop zone — shown when no data or as a compact banner (managers only) */}
+        {!uploadedRoster && isManager && (
           <Card className="animate-fade-in">
             <CardContent className="p-0">
               <label
