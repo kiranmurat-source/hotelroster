@@ -44,6 +44,7 @@ const RosterPage = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>("2026-03-09");
   const [uploadedRoster, setUploadedRoster] = useState<ParsedRoster | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [modalDate, setModalDate] = useState<string | null>(null);
 
   // Navigate to date from query param (e.g. from forecast page)
   useEffect(() => {
