@@ -218,9 +218,9 @@ const ForecastPage = () => {
                       />
                       <Legend
                         formatter={(value: string) => {
-                          if (value === "occupancyRate") return "Occupancy";
-                          if (value === "arrivals") return "Arrivals";
-                          if (value === "departures") return "Departures";
+                          if (value === "occupancyRate") return t("forecast.occupancy");
+                          if (value === "arrivals") return t("forecast.arrivals");
+                          if (value === "departures") return t("forecast.departures");
                           return value;
                         }}
                       />
