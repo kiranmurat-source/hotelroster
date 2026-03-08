@@ -107,7 +107,7 @@ const ForecastPage = () => {
             {forecast && (
               <Button variant="ghost" size="sm" onClick={() => setForecast(null)}>
                 <X className="h-4 w-4 mr-1.5" />
-                Clear
+                {t("forecast.clear")}
               </Button>
             )}
           </div>
