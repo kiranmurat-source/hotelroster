@@ -10,6 +10,7 @@ import {
   UserPlus,
   BarChart3,
   Shield,
+  FileText,
 } from "lucide-react";
 
 interface NavItem {
@@ -18,6 +19,7 @@ interface NavItem {
   shortLabelKey?: string;
   icon: React.ElementType;
   adminOnly?: boolean;
+  managerOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
