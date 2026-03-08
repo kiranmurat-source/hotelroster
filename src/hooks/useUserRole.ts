@@ -17,14 +17,19 @@ export const useUserRole = () => {
     }
 
     const fetchRoles = async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
+      // Use server-side SECURITY DEFINER function to verify roles
+      // This prevents client-side state manipulation attacks
+      const roleChecks = await Promise.all(
+        (["admin", "manager", "staff"] as AppRole[]).map(async (role) => {
+          const { data, error } = await supabase.rpc("has_role", {
+            _user_id: user.id,
+            _role: role,
+          });
+          return !error && data === true ? role : null;
+        })
+      );
 
-      if (!error && data) {
-        setRoles(data.map((r) => r.role as AppRole));
-      }
+      setRoles(roleChecks.filter((r): r is AppRole => r !== null));
       setLoading(false);
     };
 
