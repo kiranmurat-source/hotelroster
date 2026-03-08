@@ -221,7 +221,7 @@ const ForecastPage = () => {
                           return value;
                         }}
                       />
-                      <Bar yAxisId="left" dataKey="occupancyRate" radius={[6, 6, 0, 0]}>
+                      <Bar yAxisId="left" dataKey="occupancyRate" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(data: any) => { if (data?.date) handleDayDoubleClick(data.date); }}>
                         {forecast.days.map((day, i) => (
                           <Cell key={i} fill={getOccupancyColor(day.occupancyRate)} />
                         ))}
