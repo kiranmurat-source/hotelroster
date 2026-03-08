@@ -21,6 +21,7 @@ const ForecastPage = () => {
   const navigate = useNavigate();
   const { forecast, setForecast } = useForecast();
   const { t } = useLanguage();
+  const { isManager } = useUserRole();
   const [isDragging, setIsDragging] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
