@@ -102,7 +102,7 @@ const ForecastPage = () => {
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={downloadTemplate}>
               <Download className="h-4 w-4 mr-1.5" />
-              Download Template
+              {t("forecast.downloadTemplate")}
             </Button>
             {forecast && (
               <Button variant="ghost" size="sm" onClick={() => setForecast(null)}>
