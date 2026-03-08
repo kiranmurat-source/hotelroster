@@ -366,7 +366,7 @@ const RosterPage = () => {
                     <span className="text-muted-foreground/40">|</span>
                     <div className="flex items-center gap-1.5 text-xs">
                       <span className="h-2.5 w-2.5 rounded-sm bg-destructive/30 ring-1 ring-destructive/40" />
-                      <span className="text-muted-foreground">High occ. (90%+)</span>
+                      <span className="text-muted-foreground">{t("roster.highOcc")}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs">
                       <Sparkles className="h-2.5 w-2.5 text-accent" />
