@@ -211,11 +211,11 @@ const RosterPage = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Roster Calendar</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("roster.title")}</h1>
             <p className="text-muted-foreground">
               {uploadedRoster
-                ? `Uploaded roster — ${uploadedRoster.staffNames.length} staff, ${uploadedRoster.assignments.length} shifts`
-                : "View and manage staff schedules"}
+                ? t("roster.uploadedInfo").replace("{staff}", String(uploadedRoster.staffNames.length)).replace("{shifts}", String(uploadedRoster.assignments.length))
+                : t("roster.subtitle")}
             </p>
           </div>
           <div className="flex gap-2">
