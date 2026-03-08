@@ -265,7 +265,9 @@ const ForecastPage = () => {
                       return (
                         <div
                           key={day.date}
-                          className="border rounded-lg p-4 space-y-2 hover:shadow-sm transition-shadow"
+                          onDoubleClick={() => handleDayDoubleClick(day.date)}
+                          className="border rounded-lg p-4 space-y-2 hover:shadow-sm transition-shadow cursor-pointer"
+                          title="Double-click to view staff roster"
                         >
                           <div className="flex items-center justify-between">
                             <div>
