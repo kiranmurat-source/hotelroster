@@ -223,24 +223,26 @@ const RosterPage = () => {
                 : t("roster.subtitle")}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={downloadTemplate}>
-              <Download className="h-4 w-4 mr-1.5" />
-              {t("roster.template")}
-            </Button>
-            <label htmlFor="roster-upload">
-              <Button variant="outline" size="sm" asChild>
-                <span><Upload className="h-4 w-4 mr-1.5" />{t("roster.uploadRoster")}</span>
+          {isManager && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={downloadTemplate}>
+                <Download className="h-4 w-4 mr-1.5" />
+                {t("roster.template")}
               </Button>
-              <input id="roster-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
-            </label>
-            {uploadedRoster && (
-              <Button variant="ghost" size="sm" onClick={() => { setUploadedRoster(null); toast.info(t("roster.switchedBack")); }}>
-                <X className="h-4 w-4 mr-1.5" />
-                {t("roster.clear")}
-              </Button>
-            )}
-          </div>
+              <label htmlFor="roster-upload">
+                <Button variant="outline" size="sm" asChild>
+                  <span><Upload className="h-4 w-4 mr-1.5" />{t("roster.uploadRoster")}</span>
+                </Button>
+                <input id="roster-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
+              </label>
+              {uploadedRoster && (
+                <Button variant="ghost" size="sm" onClick={() => { setUploadedRoster(null); toast.info(t("roster.switchedBack")); }}>
+                  <X className="h-4 w-4 mr-1.5" />
+                  {t("roster.clear")}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Drop zone — shown when no data or as a compact banner */}
