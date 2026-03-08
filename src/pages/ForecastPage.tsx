@@ -247,6 +247,14 @@ const ForecastPage = () => {
                           </div>
                         </div>
                         <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Arrivals</span>
+                          <span className="font-medium">{day.arrivals}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Departures</span>
+                          <span className="font-medium">{day.departures}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
                           <span className="text-muted-foreground">Room Nights</span>
                           <span className="font-medium">{day.roomNights} / {day.totalRooms}</span>
                         </div>
