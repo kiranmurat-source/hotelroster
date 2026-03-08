@@ -167,7 +167,7 @@ const RosterPage = () => {
 
   const groupedByShift = useMemo(() => {
     const groups: Record<ShiftType, typeof selectedAssignments> = {
-      Morning: [], Afternoon: [], Night: [], "Day Off": [],
+      Morning: [], Afternoon: [], Night: [], "Day Off": [], Break: [],
     };
     selectedAssignments.forEach((a) => { groups[a.shift].push(a); });
     return groups;
