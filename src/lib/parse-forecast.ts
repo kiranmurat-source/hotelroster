@@ -72,6 +72,8 @@ export function parseExcelForecast(data: ArrayBuffer): WeeklyForecast {
     }
 
     const occupancyRate = occCol ? Number(row[occCol]) || 0 : 0;
+    const arrivals = arrivalCol ? Number(row[arrivalCol]) || 0 : 0;
+    const departures = departureCol ? Number(row[departureCol]) || 0 : 0;
     const roomNights = roomCol ? Number(row[roomCol]) || 0 : 0;
     const totalRooms = totalCol ? Number(row[totalCol]) || 200 : 200;
 
@@ -81,7 +83,7 @@ export function parseExcelForecast(data: ArrayBuffer): WeeklyForecast {
       if (ev) events = ev.split(/[,;]/).map((e) => e.trim()).filter(Boolean);
     }
 
-    return { date: dateStr, dayLabel, occupancyRate, roomNights, totalRooms, events };
+    return { date: dateStr, dayLabel, occupancyRate, arrivals, departures, roomNights, totalRooms, events };
   });
 
   const startDate = days[0]?.date || "";
