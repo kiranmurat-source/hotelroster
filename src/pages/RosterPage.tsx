@@ -221,7 +221,7 @@ const RosterPage = () => {
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={downloadTemplate}>
               <Download className="h-4 w-4 mr-1.5" />
-              Template
+              {t("roster.template")}
             </Button>
             <label htmlFor="roster-upload">
               <Button variant="outline" size="sm" asChild>
