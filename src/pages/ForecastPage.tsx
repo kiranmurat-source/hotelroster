@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { parseExcelForecast, generateSampleExcel } from "@/lib/parse-forecast";
 import { useForecast } from "@/contexts/ForecastContext";
 import { cn } from "@/lib/utils";
-import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut, LayoutGrid, Table as TableIcon } from "lucide-react";
+import {
+  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend,
@@ -14,6 +17,7 @@ import {
 const ForecastPage = () => {
   const { forecast, setForecast } = useForecast();
   const [isDragging, setIsDragging] = useState(false);
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
@@ -226,68 +230,137 @@ const ForecastPage = () => {
 
             {/* Daily breakdown */}
             <Card className="animate-fade-in">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-lg">Daily Breakdown</CardTitle>
+                <div className="flex gap-1 border rounded-lg p-0.5">
+                  <Button
+                    variant={viewMode === "cards" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={() => setViewMode("cards")}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "table" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={() => setViewMode("table")}
+                  >
+                    <TableIcon className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {forecast.days.map((day) => {
-                    const badge = getOccupancyBadge(day.occupancyRate);
-                    return (
-                      <div
-                        key={day.date}
-                        className="border rounded-lg p-4 space-y-2 hover:shadow-sm transition-shadow"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-sm">{day.dayLabel}</p>
-                            <p className="text-xs text-muted-foreground">{day.date}</p>
+                {viewMode === "cards" ? (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {forecast.days.map((day) => {
+                      const badge = getOccupancyBadge(day.occupancyRate);
+                      return (
+                        <div
+                          key={day.date}
+                          className="border rounded-lg p-4 space-y-2 hover:shadow-sm transition-shadow"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-sm">{day.dayLabel}</p>
+                              <p className="text-xs text-muted-foreground">{day.date}</p>
+                            </div>
+                            <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", badge.className)}>
+                              {badge.label}
+                            </span>
                           </div>
-                          <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", badge.className)}>
-                            {badge.label}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Occupancy</span>
+                              <span className="font-semibold">{day.occupancyRate}%</span>
+                            </div>
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all"
+                                style={{
+                                  width: `${day.occupancyRate}%`,
+                                  backgroundColor: getOccupancyColor(day.occupancyRate),
+                                }}
+                              />
+                            </div>
+                          </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Occupancy</span>
-                            <span className="font-semibold">{day.occupancyRate}%</span>
+                            <span className="text-muted-foreground">Arrivals</span>
+                            <span className="font-medium">{day.arrivals}</span>
                           </div>
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{
-                                width: `${day.occupancyRate}%`,
-                                backgroundColor: getOccupancyColor(day.occupancyRate),
-                              }}
-                            />
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Departures</span>
+                            <span className="font-medium">{day.departures}</span>
                           </div>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">Arrivals</span>
-                          <span className="font-medium">{day.arrivals}</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">Departures</span>
-                          <span className="font-medium">{day.departures}</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">Room Nights</span>
-                          <span className="font-medium">{day.roomNights} / {day.totalRooms}</span>
-                        </div>
-                        {day.events.length > 0 && (
-                          <div className="pt-1 border-t space-y-1">
-                            {day.events.map((ev, i) => (
-                              <div key={i} className="flex items-center gap-1.5 text-xs">
-                                <Sparkles className="h-3 w-3 text-accent shrink-0" />
-                                <span>{ev}</span>
-                              </div>
-                            ))}
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Room Nights</span>
+                            <span className="font-medium">{day.roomNights} / {day.totalRooms}</span>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                          {day.events.length > 0 && (
+                            <div className="pt-1 border-t space-y-1">
+                              {day.events.map((ev, i) => (
+                                <div key={i} className="flex items-center gap-1.5 text-xs">
+                                  <Sparkles className="h-3 w-3 text-accent shrink-0" />
+                                  <span>{ev}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Day</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Occupancy</TableHead>
+                        <TableHead className="text-right">Arrivals</TableHead>
+                        <TableHead className="text-right">Departures</TableHead>
+                        <TableHead className="text-right">Room Nights</TableHead>
+                        <TableHead className="text-right">Total Rooms</TableHead>
+                        <TableHead>Events</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {forecast.days.map((day) => {
+                        const badge = getOccupancyBadge(day.occupancyRate);
+                        return (
+                          <TableRow key={day.date}>
+                            <TableCell className="font-medium">{day.dayLabel}</TableCell>
+                            <TableCell className="text-muted-foreground">{day.date}</TableCell>
+                            <TableCell className="text-right">
+                              <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", badge.className)}>
+                                {day.occupancyRate}%
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">{day.arrivals}</TableCell>
+                            <TableCell className="text-right">{day.departures}</TableCell>
+                            <TableCell className="text-right">{day.roomNights}</TableCell>
+                            <TableCell className="text-right">{day.totalRooms}</TableCell>
+                            <TableCell>
+                              {day.events.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {day.events.map((ev, i) => (
+                                    <span key={i} className="inline-flex items-center gap-1 text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full">
+                                      <Sparkles className="h-3 w-3" />
+                                      {ev}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </>
