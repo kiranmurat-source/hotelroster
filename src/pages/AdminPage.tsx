@@ -11,7 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { UserPlus, Shield, Mail, Loader2 } from "lucide-react";
+import { UserPlus, Shield, Mail, Loader2, Save } from "lucide-react";
 
 const DEPARTMENTS = ["Front Desk", "Housekeeping", "F&B", "Kitchen", "Maintenance", "Security", "Spa", "Management"] as const;
 const ROLES = ["staff", "manager", "admin"] as const;
