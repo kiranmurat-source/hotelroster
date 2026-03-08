@@ -184,10 +184,11 @@ const ForecastPage = () => {
               <CardContent>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={forecast.days} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                    <ComposedChart data={forecast.days} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                       <XAxis dataKey="dayLabel" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                      <YAxis domain={[0, 100]} className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
+                      <YAxis yAxisId="left" domain={[0, 100]} className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
+                      <YAxis yAxisId="right" orientation="right" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "hsl(var(--card))",
@@ -195,14 +196,29 @@ const ForecastPage = () => {
                           borderRadius: "8px",
                           fontSize: "12px",
                         }}
-                        formatter={(value: number) => [`${value}%`, "Occupancy"]}
+                        formatter={(value: number, name: string) => {
+                          if (name === "occupancyRate") return [`${value}%`, "Occupancy"];
+                          if (name === "arrivals") return [value, "Arrivals"];
+                          if (name === "departures") return [value, "Departures"];
+                          return [value, name];
+                        }}
                       />
-                      <Bar dataKey="occupancyRate" radius={[6, 6, 0, 0]}>
+                      <Legend
+                        formatter={(value: string) => {
+                          if (value === "occupancyRate") return "Occupancy";
+                          if (value === "arrivals") return "Arrivals";
+                          if (value === "departures") return "Departures";
+                          return value;
+                        }}
+                      />
+                      <Bar yAxisId="left" dataKey="occupancyRate" radius={[6, 6, 0, 0]}>
                         {forecast.days.map((day, i) => (
                           <Cell key={i} fill={getOccupancyColor(day.occupancyRate)} />
                         ))}
                       </Bar>
-                    </BarChart>
+                      <Line yAxisId="right" type="monotone" dataKey="arrivals" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
+                      <Line yAxisId="right" type="monotone" dataKey="departures" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 4 }} strokeDasharray="5 5" />
+                    </ComposedChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
