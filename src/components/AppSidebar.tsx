@@ -13,6 +13,7 @@ import {
   BarChart3,
   LogOut,
   Shield,
+  FileText,
 } from "lucide-react";
 
 interface NavItem {
