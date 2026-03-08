@@ -400,7 +400,7 @@ const RosterPage = () => {
                       )}>
                         <Flame className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                         <div>
-                          <p className="font-semibold">{fc.occupancyRate}% occupancy forecasted</p>
+                          <p className="font-semibold">{t("roster.occupancyForecasted").replace("{rate}", String(fc.occupancyRate))}</p>
                           {fc.events.length > 0 && (
                             <p className="opacity-80 mt-0.5">{fc.events.join(" · ")}</p>
                           )}
