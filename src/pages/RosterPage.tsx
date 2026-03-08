@@ -464,9 +464,9 @@ const RosterPage = () => {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {modalDate && new Date(modalDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+              {modalDate && new Date(modalDate + "T00:00:00").toLocaleDateString(dateLocale, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">{modalAssignments.length} staff assigned</p>
+            <p className="text-sm text-muted-foreground">{t("roster.staffAssigned").replace("{count}", String(modalAssignments.length))}</p>
           </DialogHeader>
 
           {/* Forecast banner in modal */}
