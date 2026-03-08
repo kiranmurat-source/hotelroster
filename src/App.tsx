@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ForecastProvider } from "@/contexts/ForecastContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import RosterPage from "./pages/RosterPage";
@@ -21,25 +22,27 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <ForecastProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/roster" element={<ProtectedRoute><RosterPage /></ProtectedRoute>} />
-              <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
-              <Route path="/extra-hours" element={<ProtectedRoute><ExtraHoursPage /></ProtectedRoute>} />
-              <Route path="/extra-staff" element={<ProtectedRoute><ExtraStaffPage /></ProtectedRoute>} />
-              <Route path="/forecast" element={<ProtectedRoute><ForecastPage /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </ForecastProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <ForecastProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/roster" element={<ProtectedRoute><RosterPage /></ProtectedRoute>} />
+                <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
+                <Route path="/extra-hours" element={<ProtectedRoute><ExtraHoursPage /></ProtectedRoute>} />
+                <Route path="/extra-staff" element={<ProtectedRoute><ExtraStaffPage /></ProtectedRoute>} />
+                <Route path="/forecast" element={<ProtectedRoute><ForecastPage /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </ForecastProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

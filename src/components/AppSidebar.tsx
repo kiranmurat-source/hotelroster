@@ -2,6 +2,8 @@ import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole, AppRole } from "@/hooks/useUserRole";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageToggle from "@/components/LanguageToggle";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -15,19 +17,19 @@ import {
 
 interface NavItem {
   to: string;
-  label: string;
+  labelKey: string;
   icon: React.ElementType;
   minRole?: "manager" | "admin";
 }
 
 const navItems: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/roster", label: "Roster", icon: CalendarDays },
-  { to: "/forecast", label: "Forecast", icon: BarChart3 },
-  { to: "/staff", label: "Staff", icon: Users, minRole: "manager" },
-  { to: "/extra-hours", label: "Extra Hours", icon: Clock },
-  { to: "/extra-staff", label: "Extra Staff", icon: UserPlus },
-  { to: "/admin", label: "User Management", icon: Shield, minRole: "admin" },
+  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { to: "/roster", labelKey: "nav.roster", icon: CalendarDays },
+  { to: "/forecast", labelKey: "nav.forecast", icon: BarChart3 },
+  { to: "/staff", labelKey: "nav.staff", icon: Users, minRole: "manager" },
+  { to: "/extra-hours", labelKey: "nav.extraHours", icon: Clock },
+  { to: "/extra-staff", labelKey: "nav.extraStaff", icon: UserPlus },
+  { to: "/admin", labelKey: "nav.admin", icon: Shield, minRole: "admin" },
 ];
 
 const roleBadgeColors: Record<AppRole, string> = {
@@ -40,6 +42,7 @@ const AppSidebar = () => {
   const location = useLocation();
   const { signOut, user } = useAuth();
   const { roles, isAdmin, isManager } = useUserRole();
+  const { t } = useLanguage();
 
   const visibleItems = navItems.filter((item) => {
     if (!item.minRole) return true;
@@ -56,7 +59,7 @@ const AppSidebar = () => {
         <h1 className="text-xl font-bold text-primary-foreground tracking-tight">
           Hotel<span className="text-accent">Roster</span>
         </h1>
-        <p className="text-xs text-primary-foreground/60 mt-1">Staff Management</p>
+        <p className="text-xs text-primary-foreground/60 mt-1">{t("nav.staffMgmt")}</p>
       </div>
       <nav className="flex flex-col gap-1 flex-1">
         {visibleItems.map((item) => {
@@ -73,14 +76,17 @@ const AppSidebar = () => {
               )}
             >
               <item.icon className="h-4 w-4" />
-              {item.label}
+              {t(item.labelKey)}
             </RouterNavLink>
           );
         })}
       </nav>
-      <div className="mt-auto border-t border-primary-foreground/10 pt-3">
+      <div className="mt-auto border-t border-primary-foreground/10 pt-3 space-y-2">
+        <div className="px-3">
+          <LanguageToggle />
+        </div>
         {user && (
-          <div className="px-3 mb-2">
+          <div className="px-3">
             <p className="text-xs text-primary-foreground/50 truncate">
               {user.email}
             </p>
@@ -95,7 +101,7 @@ const AppSidebar = () => {
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-primary-foreground/70 hover:text-primary-foreground hover:bg-sidebar-accent/50 transition-colors w-full"
         >
           <LogOut className="h-4 w-4" />
-          Sign Out
+          {t("nav.signOut")}
         </button>
       </div>
     </aside>

@@ -8,6 +8,7 @@ import { staffMembers, shiftAssignments as mockAssignments } from "@/lib/mock-da
 import { ShiftAssignment, ShiftType } from "@/lib/types";
 import { parseExcelRoster, generateSampleRoster, ParsedRoster } from "@/lib/parse-roster";
 import { useForecast } from "@/contexts/ForecastContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles, Mail, Phone } from "lucide-react";
 import { toast } from "sonner";
@@ -60,6 +61,16 @@ const RosterPage = () => {
   }, [searchParams]);
 
   const { forecast } = useForecast();
+  const { t, language } = useLanguage();
+
+  const shiftLabels: Record<ShiftType, string> = {
+    Morning: t("roster.morning"),
+    Afternoon: t("roster.afternoon"),
+    Night: t("roster.night"),
+    "Day Off": t("roster.dayOff"),
+  };
+
+  const dateLocale = language === "tr" ? "tr-TR" : "en-US";
 
   // Use uploaded data if available, otherwise mock
   const activeAssignments: ShiftAssignment[] = uploadedRoster?.assignments ?? mockAssignments;
@@ -89,7 +100,7 @@ const RosterPage = () => {
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
-      toast.error("Please upload an Excel file (.xlsx, .xls) or CSV");
+      toast.error(t("forecast.invalidFile"));
       return;
     }
     try {
@@ -106,7 +117,7 @@ const RosterPage = () => {
       }
       toast.success(`Roster loaded — ${result.assignments.length} shifts, ${result.staffNames.length} staff${result.skipped > 0 ? `, ${result.skipped} rows skipped` : ""}`);
     } catch (err: any) {
-      toast.error(err?.message || "Failed to parse file. Check the format and try again.");
+      toast.error(err?.message || t("forecast.parseFailed"));
       console.error(err);
     }
   }, []);
@@ -200,28 +211,28 @@ const RosterPage = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Roster Calendar</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("roster.title")}</h1>
             <p className="text-muted-foreground">
               {uploadedRoster
-                ? `Uploaded roster — ${uploadedRoster.staffNames.length} staff, ${uploadedRoster.assignments.length} shifts`
-                : "View and manage staff schedules"}
+                ? t("roster.uploadedInfo").replace("{staff}", String(uploadedRoster.staffNames.length)).replace("{shifts}", String(uploadedRoster.assignments.length))
+                : t("roster.subtitle")}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={downloadTemplate}>
               <Download className="h-4 w-4 mr-1.5" />
-              Template
+              {t("roster.template")}
             </Button>
             <label htmlFor="roster-upload">
               <Button variant="outline" size="sm" asChild>
-                <span><Upload className="h-4 w-4 mr-1.5" />Upload Roster</span>
+                <span><Upload className="h-4 w-4 mr-1.5" />{t("roster.uploadRoster")}</span>
               </Button>
               <input id="roster-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
             </label>
             {uploadedRoster && (
-              <Button variant="ghost" size="sm" onClick={() => { setUploadedRoster(null); toast.info("Switched back to default roster"); }}>
+              <Button variant="ghost" size="sm" onClick={() => { setUploadedRoster(null); toast.info(t("roster.switchedBack")); }}>
                 <X className="h-4 w-4 mr-1.5" />
-                Clear
+                {t("roster.clear")}
               </Button>
             )}
           </div>
@@ -243,7 +254,7 @@ const RosterPage = () => {
               >
                 <FileSpreadsheet className="h-5 w-5 text-accent shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Drop a roster Excel file</span> or click to upload — showing demo data below
+                  <span className="font-medium text-foreground">{t("roster.dropFile")}</span> {t("roster.orClick")}
                 </p>
                 <input id="roster-upload-drop" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
               </label>
@@ -347,7 +358,7 @@ const RosterPage = () => {
                 {(Object.keys(shiftConfig) as ShiftType[]).map((shift) => (
                   <div key={shift} className="flex items-center gap-1.5 text-xs">
                     <span className={cn("h-2.5 w-2.5 rounded-full", shift === "Morning" ? "bg-success" : shift === "Afternoon" ? "bg-accent" : shift === "Night" ? "bg-primary" : "bg-muted-foreground/40")} />
-                    <span className="text-muted-foreground">{shift}</span>
+                    <span className="text-muted-foreground">{shiftLabels[shift]}</span>
                   </div>
                 ))}
                 {forecast && (
@@ -355,11 +366,11 @@ const RosterPage = () => {
                     <span className="text-muted-foreground/40">|</span>
                     <div className="flex items-center gap-1.5 text-xs">
                       <span className="h-2.5 w-2.5 rounded-sm bg-destructive/30 ring-1 ring-destructive/40" />
-                      <span className="text-muted-foreground">High occ. (90%+)</span>
+                      <span className="text-muted-foreground">{t("roster.highOcc")}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs">
                       <Sparkles className="h-2.5 w-2.5 text-accent" />
-                      <span className="text-muted-foreground">Event</span>
+                      <span className="text-muted-foreground">{t("roster.event")}</span>
                     </div>
                   </>
                 )}
@@ -373,9 +384,9 @@ const RosterPage = () => {
               {selectedDate ? (
                 <>
                   <h3 className="font-semibold text-lg mb-1">
-                    {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+                    {new Date(selectedDate + "T00:00:00").toLocaleDateString(dateLocale, { weekday: "long", month: "long", day: "numeric" })}
                   </h3>
-                  <p className="text-xs text-muted-foreground mb-4">{selectedAssignments.length} staff assigned</p>
+                  <p className="text-xs text-muted-foreground mb-4">{t("roster.staffAssigned").replace("{count}", String(selectedAssignments.length))}</p>
 
                   {/* Forecast banner */}
                   {selectedDate && forecastByDate[selectedDate] && (() => {
@@ -389,7 +400,7 @@ const RosterPage = () => {
                       )}>
                         <Flame className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                         <div>
-                          <p className="font-semibold">{fc.occupancyRate}% occupancy forecasted</p>
+                          <p className="font-semibold">{t("roster.occupancyForecasted").replace("{rate}", String(fc.occupancyRate))}</p>
                           {fc.events.length > 0 && (
                             <p className="opacity-80 mt-0.5">{fc.events.join(" · ")}</p>
                           )}
@@ -399,7 +410,7 @@ const RosterPage = () => {
                   })()}
 
                   {selectedAssignments.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-8 text-center">No shifts scheduled for this date</p>
+                    <p className="text-sm text-muted-foreground py-8 text-center">{t("roster.noShifts")}</p>
                   ) : (
                     <div className="space-y-4">
                       {(Object.keys(groupedByShift) as ShiftType[]).map((shift) => {
@@ -412,8 +423,8 @@ const RosterPage = () => {
                           <div key={shift}>
                             <div className={cn("flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md", config.bg)}>
                               <Icon className={cn("h-4 w-4", config.text)} />
-                              <span className={cn("text-sm font-semibold", config.text)}>{shift}</span>
-                              <span className={cn("text-xs ml-auto", config.text)}>{assignments.length} staff</span>
+                              <span className={cn("text-sm font-semibold", config.text)}>{shiftLabels[shift]}</span>
+                              <span className={cn("text-xs ml-auto", config.text)}>{assignments.length} {t("common.staff")}</span>
                             </div>
                             <div className="space-y-1 pl-1">
                               {assignments.map((a) => {
@@ -440,7 +451,7 @@ const RosterPage = () => {
                 </>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground text-sm">Select a date to view shift details</p>
+                  <p className="text-muted-foreground text-sm">{t("roster.selectDate")}</p>
                 </div>
               )}
             </CardContent>
@@ -453,9 +464,9 @@ const RosterPage = () => {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {modalDate && new Date(modalDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+              {modalDate && new Date(modalDate + "T00:00:00").toLocaleDateString(dateLocale, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">{modalAssignments.length} staff assigned</p>
+            <p className="text-sm text-muted-foreground">{t("roster.staffAssigned").replace("{count}", String(modalAssignments.length))}</p>
           </DialogHeader>
 
           {/* Forecast banner in modal */}
@@ -470,7 +481,7 @@ const RosterPage = () => {
               )}>
                 <Flame className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 <div>
-                  <p className="font-semibold">{fc.occupancyRate}% occupancy forecasted</p>
+                  <p className="font-semibold">{t("roster.occupancyForecasted").replace("{rate}", String(fc.occupancyRate))}</p>
                   {fc.events.length > 0 && <p className="opacity-80 mt-0.5">{fc.events.join(" · ")}</p>}
                 </div>
               </div>
@@ -478,7 +489,7 @@ const RosterPage = () => {
           })()}
 
           {modalAssignments.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No shifts scheduled for this date</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">{t("roster.noShifts")}</p>
           ) : (
             <div className="space-y-5">
               {(Object.keys(modalGroupedByShift) as ShiftType[]).map((shift) => {
@@ -491,8 +502,8 @@ const RosterPage = () => {
                   <div key={shift}>
                     <div className={cn("flex items-center gap-2 mb-3 px-2 py-1.5 rounded-md", config.bg)}>
                       <Icon className={cn("h-4 w-4", config.text)} />
-                      <span className={cn("text-sm font-semibold", config.text)}>{shift}</span>
-                      <span className={cn("text-xs ml-auto", config.text)}>{assignments.length} staff</span>
+                      <span className={cn("text-sm font-semibold", config.text)}>{shiftLabels[shift]}</span>
+                      <span className={cn("text-xs ml-auto", config.text)}>{assignments.length} {t("common.staff")}</span>
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {assignments.map((a) => {

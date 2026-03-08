@@ -2,14 +2,17 @@ import AppLayout from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { staffMembers } from "@/lib/mock-data";
 import { Mail, Phone } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const StaffPage = () => {
+  const { t } = useLanguage();
+
   return (
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Staff Directory</h1>
-          <p className="text-muted-foreground">{staffMembers.length} active employees</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("staff.title")}</h1>
+          <p className="text-muted-foreground">{t("staff.subtitle").replace("{count}", String(staffMembers.length))}</p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

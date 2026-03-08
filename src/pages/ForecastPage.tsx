@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import {
 const ForecastPage = () => {
   const navigate = useNavigate();
   const { forecast, setForecast } = useForecast();
+  const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
@@ -27,16 +29,16 @@ const ForecastPage = () => {
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
-      toast.error("Please upload an Excel file (.xlsx, .xls) or CSV");
+      toast.error(t("forecast.invalidFile"));
       return;
     }
     try {
       const buffer = await file.arrayBuffer();
       const result = parseExcelForecast(buffer);
       setForecast(result);
-      toast.success(`Forecast loaded — ${result.days.length} days`);
+      toast.success(t("forecast.loaded").replace("{count}", String(result.days.length)));
     } catch (err) {
-      toast.error("Failed to parse file. Check the format and try again.");
+      toast.error(t("forecast.parseFailed"));
       console.error(err);
     }
   }, []);
@@ -65,7 +67,7 @@ const ForecastPage = () => {
     a.download = "weekly-forecast-template.xlsx";
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Template downloaded");
+    toast.success(t("forecast.templateDownloaded"));
   };
 
   const getOccupancyColor = (rate: number) => {
@@ -75,9 +77,9 @@ const ForecastPage = () => {
   };
 
   const getOccupancyBadge = (rate: number) => {
-    if (rate >= 90) return { label: "Critical", className: "bg-destructive/15 text-destructive" };
-    if (rate >= 75) return { label: "High", className: "bg-warning/15 text-warning" };
-    return { label: "Normal", className: "bg-success/15 text-success" };
+    if (rate >= 90) return { label: t("forecast.critical"), className: "bg-destructive/15 text-destructive" };
+    if (rate >= 75) return { label: t("forecast.high"), className: "bg-warning/15 text-warning" };
+    return { label: t("forecast.normal"), className: "bg-success/15 text-success" };
   };
 
   const avgOccupancy = forecast
@@ -94,18 +96,18 @@ const ForecastPage = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Hotel Activity Forecast</h1>
-            <p className="text-muted-foreground">Upload your weekly forecast to view projected activity</p>
+            <h1 className="text-2xl font-bold tracking-tight">{t("forecast.title")}</h1>
+            <p className="text-muted-foreground">{t("forecast.subtitle")}</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={downloadTemplate}>
               <Download className="h-4 w-4 mr-1.5" />
-              Download Template
+              {t("forecast.downloadTemplate")}
             </Button>
             {forecast && (
               <Button variant="ghost" size="sm" onClick={() => setForecast(null)}>
                 <X className="h-4 w-4 mr-1.5" />
-                Clear
+                {t("forecast.clear")}
               </Button>
             )}
           </div>
@@ -127,10 +129,10 @@ const ForecastPage = () => {
                 <div className="h-14 w-14 rounded-full bg-accent/10 flex items-center justify-center mb-4">
                   <FileSpreadsheet className="h-7 w-7 text-accent" />
                 </div>
-                <p className="font-semibold text-sm mb-1">Drop your forecast file here</p>
-                <p className="text-xs text-muted-foreground mb-4">or click to browse — .xlsx, .xls, .csv</p>
+                <p className="font-semibold text-sm mb-1">{t("forecast.dropFile")}</p>
+                <p className="text-xs text-muted-foreground mb-4">{t("forecast.orBrowse")}</p>
                 <Button variant="outline" size="sm" asChild>
-                  <span><Upload className="h-4 w-4 mr-1.5" />Choose File</span>
+                  <span><Upload className="h-4 w-4 mr-1.5" />{t("forecast.chooseFile")}</span>
                 </Button>
                 <input id="file-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
               </label>
@@ -147,7 +149,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{avgOccupancy}%</p>
-                    <p className="text-xs text-muted-foreground">Avg. Occupancy</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.avgOccupancy")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -158,7 +160,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{totalBookings.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">Total Room Nights</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.totalRoomNights")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -169,7 +171,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{totalEvents}</p>
-                    <p className="text-xs text-muted-foreground">Events Scheduled</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.eventsScheduled")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -180,7 +182,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{peakDay?.dayLabel}</p>
-                    <p className="text-xs text-muted-foreground">Peak Day ({peakDay?.occupancyRate}%)</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.peakDay")} ({peakDay?.occupancyRate}%)</p>
                   </div>
                 </CardContent>
               </Card>
@@ -189,8 +191,8 @@ const ForecastPage = () => {
             {/* Occupancy chart */}
             <Card className="animate-fade-in">
               <CardHeader>
-                <CardTitle className="text-lg">Occupancy Forecast</CardTitle>
-                <p className="text-xs text-muted-foreground">Click a bar to view staff roster for that day</p>
+                <CardTitle className="text-lg">{t("forecast.occupancyForecast")}</CardTitle>
+                <p className="text-xs text-muted-foreground">{t("forecast.chartHint")}</p>
               </CardHeader>
               <CardContent>
                 <div className="h-64">
@@ -208,17 +210,17 @@ const ForecastPage = () => {
                           fontSize: "12px",
                         }}
                         formatter={(value: number, name: string) => {
-                          if (name === "occupancyRate") return [`${value}%`, "Occupancy"];
-                          if (name === "arrivals") return [value, "Arrivals"];
-                          if (name === "departures") return [value, "Departures"];
+                          if (name === "occupancyRate") return [`${value}%`, t("forecast.occupancy")];
+                          if (name === "arrivals") return [value, t("forecast.arrivals")];
+                          if (name === "departures") return [value, t("forecast.departures")];
                           return [value, name];
                         }}
                       />
                       <Legend
                         formatter={(value: string) => {
-                          if (value === "occupancyRate") return "Occupancy";
-                          if (value === "arrivals") return "Arrivals";
-                          if (value === "departures") return "Departures";
+                          if (value === "occupancyRate") return t("forecast.occupancy");
+                          if (value === "arrivals") return t("forecast.arrivals");
+                          if (value === "departures") return t("forecast.departures");
                           return value;
                         }}
                       />
@@ -238,7 +240,7 @@ const ForecastPage = () => {
             {/* Daily breakdown */}
             <Card className="animate-fade-in">
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-lg">Daily Breakdown</CardTitle>
+                <CardTitle className="text-lg">{t("forecast.dailyBreakdown")}</CardTitle>
                 <div className="flex gap-1 border rounded-lg p-0.5">
                   <Button
                     variant={viewMode === "cards" ? "secondary" : "ghost"}
@@ -268,7 +270,7 @@ const ForecastPage = () => {
                           key={day.date}
                           onDoubleClick={() => handleDayDoubleClick(day.date)}
                           className="border rounded-lg p-4 space-y-2 hover:shadow-sm transition-shadow cursor-pointer"
-                          title="Double-click to view staff roster"
+                          title={t("forecast.doubleClickHint")}
                         >
                           <div className="flex items-center justify-between">
                             <div>
@@ -281,7 +283,7 @@ const ForecastPage = () => {
                           </div>
                           <div className="space-y-1">
                             <div className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">Occupancy</span>
+                              <span className="text-muted-foreground">{t("forecast.occupancy")}</span>
                               <span className="font-semibold">{day.occupancyRate}%</span>
                             </div>
                             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -295,15 +297,15 @@ const ForecastPage = () => {
                             </div>
                           </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Arrivals</span>
+                            <span className="text-muted-foreground">{t("forecast.arrivals")}</span>
                             <span className="font-medium">{day.arrivals}</span>
                           </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Departures</span>
+                            <span className="text-muted-foreground">{t("forecast.departures")}</span>
                             <span className="font-medium">{day.departures}</span>
                           </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Room Nights</span>
+                            <span className="text-muted-foreground">{t("forecast.roomNights")}</span>
                             <span className="font-medium">{day.roomNights} / {day.totalRooms}</span>
                           </div>
                           {day.events.length > 0 && (
@@ -324,21 +326,21 @@ const ForecastPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Day</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Occupancy</TableHead>
-                        <TableHead className="text-right">Arrivals</TableHead>
-                        <TableHead className="text-right">Departures</TableHead>
-                        <TableHead className="text-right">Room Nights</TableHead>
-                        <TableHead className="text-right">Total Rooms</TableHead>
-                        <TableHead>Events</TableHead>
+                        <TableHead>{t("forecast.day")}</TableHead>
+                        <TableHead>{t("forecast.date")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.occupancy")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.arrivals")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.departures")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.roomNights")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.totalRooms")}</TableHead>
+                        <TableHead>{t("forecast.events")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {forecast.days.map((day) => {
                         const badge = getOccupancyBadge(day.occupancyRate);
                         return (
-                          <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title="Double-click to view staff roster">
+                          <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title={t("forecast.doubleClickHint")}>
                             <TableCell className="font-medium">{day.dayLabel}</TableCell>
                             <TableCell className="text-muted-foreground">{day.date}</TableCell>
                             <TableCell className="text-right">
