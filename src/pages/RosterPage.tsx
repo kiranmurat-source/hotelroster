@@ -117,7 +117,7 @@ const RosterPage = () => {
       }
       toast.success(`Roster loaded — ${result.assignments.length} shifts, ${result.staffNames.length} staff${result.skipped > 0 ? `, ${result.skipped} rows skipped` : ""}`);
     } catch (err: any) {
-      toast.error(err?.message || "Failed to parse file. Check the format and try again.");
+      toast.error(err?.message || t("forecast.parseFailed"));
       console.error(err);
     }
   }, []);
