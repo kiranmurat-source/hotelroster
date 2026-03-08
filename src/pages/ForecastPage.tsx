@@ -96,8 +96,8 @@ const ForecastPage = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Hotel Activity Forecast</h1>
-            <p className="text-muted-foreground">Upload your weekly forecast to view projected activity</p>
+            <h1 className="text-2xl font-bold tracking-tight">{t("forecast.title")}</h1>
+            <p className="text-muted-foreground">{t("forecast.subtitle")}</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={downloadTemplate}>
