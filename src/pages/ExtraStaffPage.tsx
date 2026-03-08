@@ -12,12 +12,18 @@ import { ExtraStaffRequest, Department, ShiftType, ApprovalStatus } from "@/lib/
 import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const departments: Department[] = ["Front Desk", "Housekeeping", "F&B", "Kitchen", "Maintenance", "Security", "Spa", "Management"];
 const shifts: ShiftType[] = ["Morning", "Afternoon", "Night"];
 
 const ExtraStaffPage = () => {
   const { t } = useLanguage();
+  const { isManager, isAdmin } = useUserRole();
+  const { userDepartment } = useUserProfile();
+  const canApprove = isManager || isAdmin;
+
   const [requests, setRequests] = useState<ExtraStaffRequest[]>(initialRequests);
   const [department, setDepartment] = useState<Department | "">("");
   const [date, setDate] = useState("");
@@ -33,6 +39,11 @@ const ExtraStaffPage = () => {
     "Day Off": t("roster.dayOff"),
     Break: t("roster.break"),
   };
+
+  // Staff only sees their department's requests; managers/admins see all
+  const filteredRequests = canApprove
+    ? requests
+    : requests.filter((r) => !userDepartment || r.department === userDepartment);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +68,10 @@ const ExtraStaffPage = () => {
   };
 
   const updateStatus = (id: string, status: ApprovalStatus) => {
+    if (!canApprove) {
+      toast.error(t("permissions.cannotApprove"));
+      return;
+    }
     setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
     toast.success(`${t("common." + status)}`);
   };
@@ -78,7 +93,11 @@ const ExtraStaffPage = () => {
                   <Label>{t("extraStaff.department")}</Label>
                   <Select value={department} onValueChange={(v) => setDepartment(v as Department)}>
                     <SelectTrigger><SelectValue placeholder={t("extraStaff.selectDept")} /></SelectTrigger>
-                    <SelectContent>{departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                    <SelectContent>
+                      {(canApprove ? departments : departments.filter((d) => !userDepartment || d === userDepartment)).map((d) => (
+                        <SelectItem key={d} value={d}>{d}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
@@ -112,7 +131,10 @@ const ExtraStaffPage = () => {
           <Card className="lg:col-span-2 animate-fade-in">
             <CardHeader><CardTitle className="text-lg">{t("extraStaff.allRequests")}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {requests.map((req) => (
+              {filteredRequests.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">{t("permissions.noRequests")}</p>
+              )}
+              {filteredRequests.map((req) => (
                 <div key={req.id} className="flex items-center justify-between py-3 border-b last:border-0">
                   <div className="space-y-1">
                     <p className="font-medium text-sm">{req.department} — {shiftLabels[req.shift]}</p>
@@ -121,7 +143,7 @@ const ExtraStaffPage = () => {
                   </div>
                   <div className="flex items-center gap-2 shrink-0 ml-4">
                     <StatusBadge status={req.status} />
-                    {req.status === "pending" && (
+                    {req.status === "pending" && canApprove && (
                       <>
                         <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:text-success" onClick={() => updateStatus(req.id, "approved")}>
                           <Check className="h-4 w-4" />
