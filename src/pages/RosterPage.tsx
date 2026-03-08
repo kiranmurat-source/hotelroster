@@ -447,6 +447,86 @@ const RosterPage = () => {
           </Card>
         </div>
       </div>
+
+      {/* Staff detail modal */}
+      <Dialog open={!!modalDate} onOpenChange={(open) => { if (!open) setModalDate(null); }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {modalDate && new Date(modalDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">{modalAssignments.length} staff assigned</p>
+          </DialogHeader>
+
+          {/* Forecast banner in modal */}
+          {modalDate && forecastByDate[modalDate] && (() => {
+            const fc = forecastByDate[modalDate];
+            const isHigh = fc.occupancyRate >= 90;
+            const isMed = fc.occupancyRate >= 75;
+            return (
+              <div className={cn(
+                "rounded-md px-3 py-2 flex items-start gap-2 text-xs",
+                isHigh ? "bg-destructive/10 text-destructive" : isMed ? "bg-warning/10 text-warning" : "bg-success/10 text-success"
+              )}>
+                <Flame className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-semibold">{fc.occupancyRate}% occupancy forecasted</p>
+                  {fc.events.length > 0 && <p className="opacity-80 mt-0.5">{fc.events.join(" · ")}</p>}
+                </div>
+              </div>
+            );
+          })()}
+
+          {modalAssignments.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">No shifts scheduled for this date</p>
+          ) : (
+            <div className="space-y-5">
+              {(Object.keys(modalGroupedByShift) as ShiftType[]).map((shift) => {
+                const assignments = modalGroupedByShift[shift];
+                if (assignments.length === 0) return null;
+                const config = shiftConfig[shift];
+                const Icon = config.icon;
+
+                return (
+                  <div key={shift}>
+                    <div className={cn("flex items-center gap-2 mb-3 px-2 py-1.5 rounded-md", config.bg)}>
+                      <Icon className={cn("h-4 w-4", config.text)} />
+                      <span className={cn("text-sm font-semibold", config.text)}>{shift}</span>
+                      <span className={cn("text-xs ml-auto", config.text)}>{assignments.length} staff</span>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {assignments.map((a) => {
+                        const staff = resolveStaffFull(a);
+                        return (
+                          <div key={a.id} className="flex items-start gap-3 p-3 rounded-lg border hover:shadow-sm transition-shadow">
+                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                              {staff.name.split(" ").map((n) => n[0]).join("")}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold leading-tight">{staff.name}</p>
+                              <p className="text-xs text-muted-foreground">{staff.role}</p>
+                              {staff.email && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                  <Mail className="h-3 w-3 shrink-0" />{staff.email}
+                                </p>
+                              )}
+                              {staff.phone && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Phone className="h-3 w-3 shrink-0" />{staff.phone}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
