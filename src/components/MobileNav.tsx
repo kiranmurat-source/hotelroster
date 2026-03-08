@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -13,24 +14,26 @@ import {
 
 interface NavItem {
   to: string;
-  label: string;
+  labelKey: string;
+  shortLabelKey?: string;
   icon: React.ElementType;
   adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/roster", label: "Roster", icon: CalendarDays },
-  { to: "/forecast", label: "Forecast", icon: BarChart3 },
-  { to: "/staff", label: "Staff", icon: Users },
-  { to: "/extra-hours", label: "Hours", icon: Clock },
-  { to: "/extra-staff", label: "Staff+", icon: UserPlus },
-  { to: "/admin", label: "Admin", icon: Shield, adminOnly: true },
+  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { to: "/roster", labelKey: "nav.roster", icon: CalendarDays },
+  { to: "/forecast", labelKey: "nav.forecast", icon: BarChart3 },
+  { to: "/staff", labelKey: "nav.staff", icon: Users },
+  { to: "/extra-hours", labelKey: "nav.extraHours", icon: Clock },
+  { to: "/extra-staff", labelKey: "nav.extraStaff", icon: UserPlus },
+  { to: "/admin", labelKey: "nav.admin", icon: Shield, adminOnly: true },
 ];
 
 const MobileNav = () => {
   const location = useLocation();
   const { isAdmin } = useUserRole();
+  const { t } = useLanguage();
 
   const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin);
 
@@ -38,6 +41,9 @@ const MobileNav = () => {
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50 flex justify-around py-2">
       {visibleItems.map((item) => {
         const isActive = location.pathname === item.to;
+        // Use short labels for mobile
+        const label = t(item.labelKey);
+        const shortLabel = label.length > 8 ? label.substring(0, 7) + "…" : label;
         return (
           <NavLink
             key={item.to}
@@ -48,7 +54,7 @@ const MobileNav = () => {
             )}
           >
             <item.icon className="h-5 w-5" />
-            {item.label}
+            {shortLabel}
           </NavLink>
         );
       })}
