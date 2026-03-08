@@ -69,6 +69,7 @@ const RosterPage = () => {
     Afternoon: t("roster.afternoon"),
     Night: t("roster.night"),
     "Day Off": t("roster.dayOff"),
+    Break: t("roster.break"),
   };
 
   const dateLocale = language === "tr" ? "tr-TR" : "en-US";
