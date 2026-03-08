@@ -44,15 +44,31 @@ function normalizeDepartment(val: string): Department | null {
   const lower = val.toLowerCase().trim();
   const match = VALID_DEPARTMENTS.find((d) => d.toLowerCase() === lower);
   if (match) return match;
-  // Fuzzy matching
-  if (lower.includes("f&b") || lower.includes("fnb") || lower.includes("food") || lower.includes("waitress") || lower.includes("waiter") || lower.includes("garson")) return "F&B";
-  if (lower.includes("front") || lower.includes("resepsiyon") || lower.includes("reception")) return "Front Desk";
-  if (lower.includes("house") || lower.includes("maid") || lower.includes("kat hizmet")) return "Housekeeping";
-  if (lower.includes("kitchen") || lower.includes("mutfak") || lower.includes("chef") || lower.includes("cook")) return "Kitchen";
-  if (lower.includes("maint") || lower.includes("teknik") || lower.includes("bakım")) return "Maintenance";
-  if (lower.includes("secur") || lower.includes("güvenlik")) return "Security";
-  if (lower.includes("spa")) return "Spa";
-  if (lower.includes("manag") || lower.includes("yönet") || lower.includes("müdür")) return "Management";
+
+  // F&B / Service
+  if (lower.includes("f&b") || lower.includes("fnb") || lower.includes("food") || lower.includes("waitress") || lower.includes("waiter") || lower.includes("garson") || lower.includes("servis") || lower.includes("restoran") || lower.includes("restaurant") || lower.includes("bar") || lower.includes("banket") || lower.includes("banquet") || lower.includes("yiyecek") || lower.includes("içecek") || lower.includes("icecek")) return "F&B";
+
+  // Front Desk / Reception
+  if (lower.includes("front") || lower.includes("resepsiyon") || lower.includes("reception") || lower.includes("önbüro") || lower.includes("on buro") || lower.includes("ön büro") || lower.includes("concierge") || lower.includes("konsiyerj") || lower.includes("bellboy") || lower.includes("bell")) return "Front Desk";
+
+  // Housekeeping
+  if (lower.includes("house") || lower.includes("maid") || lower.includes("kat hizmet") || lower.includes("oda temizlik") || lower.includes("temizlik") || lower.includes("housekeeper") || lower.includes("laundry") || lower.includes("çamaşır") || lower.includes("camasir") || lower.includes("kat") || lower.includes("gobernes") || lower.includes("linen")) return "Housekeeping";
+
+  // Kitchen
+  if (lower.includes("kitchen") || lower.includes("mutfak") || lower.includes("chef") || lower.includes("cook") || lower.includes("aşçı") || lower.includes("asci") || lower.includes("pastane") || lower.includes("pastry") || lower.includes("bulaşık") || lower.includes("bulasik") || lower.includes("steward")) return "Kitchen";
+
+  // Maintenance / Technical
+  if (lower.includes("maint") || lower.includes("teknik") || lower.includes("bakım") || lower.includes("bakim") || lower.includes("tesisa") || lower.includes("tesisat") || lower.includes("elektrik") || lower.includes("engineer") || lower.includes("boyacı") || lower.includes("boyaci")) return "Maintenance";
+
+  // Security
+  if (lower.includes("secur") || lower.includes("güvenlik") || lower.includes("guvenlik")) return "Security";
+
+  // Spa / Wellness
+  if (lower.includes("spa") || lower.includes("hamam") || lower.includes("sauna") || lower.includes("masaj") || lower.includes("massage") || lower.includes("wellness") || lower.includes("fitness") || lower.includes("havuz") || lower.includes("pool")) return "Spa";
+
+  // Management
+  if (lower.includes("manag") || lower.includes("yönet") || lower.includes("yonet") || lower.includes("müdür") || lower.includes("mudur") || lower.includes("director") || lower.includes("genel") || lower.includes("idari") || lower.includes("insan kaynakları") || lower.includes("ik") || lower.includes("muhasebe") || lower.includes("accounting") || lower.includes("satış") || lower.includes("sales") || lower.includes("pazarlama") || lower.includes("marketing")) return "Management";
+
   return null;
 }
 
