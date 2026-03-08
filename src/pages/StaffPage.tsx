@@ -3,9 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { staffMembers } from "@/lib/mock-data";
 import { Mail, Phone } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
+import { maskPhone } from "@/lib/privacy";
 
 const StaffPage = () => {
   const { t } = useLanguage();
+  const { isManager } = useUserRole();
 
   return (
     <AppLayout>
