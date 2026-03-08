@@ -35,10 +35,14 @@ const navItems: NavItem[] = [
 
 const MobileNav = () => {
   const location = useLocation();
-  const { isAdmin } = useUserRole();
+  const { isAdmin, isManager } = useUserRole();
   const { t } = useLanguage();
 
-  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin);
+  const visibleItems = navItems.filter((item) => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (item.managerOnly && !isManager) return false;
+    return true;
+  });
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50 flex justify-around py-2">
