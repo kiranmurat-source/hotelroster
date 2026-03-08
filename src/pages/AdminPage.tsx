@@ -11,7 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { UserPlus, Shield, Mail, Loader2 } from "lucide-react";
+import { UserPlus, Shield, Mail, Loader2, Save } from "lucide-react";
 
 const DEPARTMENTS = ["Front Desk", "Housekeeping", "F&B", "Kitchen", "Maintenance", "Security", "Spa", "Management"] as const;
 const ROLES = ["staff", "manager", "admin"] as const;
@@ -80,6 +80,32 @@ const AdminPage = () => {
     } finally {
       setInviting(false);
     }
+  };
+
+  const handleUpdateDepartment = async (userId: string, newDept: string) => {
+    const { error } = await supabase.from("profiles").update({ department: newDept }).eq("user_id", userId);
+    if (error) {
+      toast({ title: t("admin.updateFailed") || "Update failed", description: error.message, variant: "destructive" });
+    } else {
+      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, department: newDept } : u)));
+      toast({ title: t("admin.updated") || "Updated" });
+    }
+  };
+
+  const handleUpdateRole = async (userId: string, newRole: string) => {
+    // Upsert into user_roles
+    const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
+    if (delErr) {
+      toast({ title: "Error", description: delErr.message, variant: "destructive" });
+      return;
+    }
+    const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole as any });
+    if (insErr) {
+      toast({ title: "Error", description: insErr.message, variant: "destructive" });
+      return;
+    }
+    setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u)));
+    toast({ title: t("admin.updated") || "Updated" });
   };
 
   const roleBadgeVariant = (r: string) => {
@@ -182,9 +208,25 @@ const AdminPage = () => {
                     {users.map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.display_name || "—"}</TableCell>
-                        <TableCell>{u.department || "—"}</TableCell>
                         <TableCell>
-                          <Badge variant={roleBadgeVariant(u.role)} className="capitalize">{u.role}</Badge>
+                          <Select value={u.department || ""} onValueChange={(v) => handleUpdateDepartment(u.user_id, v)}>
+                            <SelectTrigger className="h-8 w-[140px]"><SelectValue placeholder="Select..." /></SelectTrigger>
+                            <SelectContent>
+                              {DEPARTMENTS.map((d) => (
+                                <SelectItem key={d} value={d}>{d}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Select value={u.role} onValueChange={(v) => handleUpdateRole(u.user_id, v)}>
+                            <SelectTrigger className="h-8 w-[110px]"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {ROLES.map((r) => (
+                                <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
                           {new Date(u.created_at).toLocaleDateString()}
