@@ -240,7 +240,7 @@ const ForecastPage = () => {
             {/* Daily breakdown */}
             <Card className="animate-fade-in">
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-lg">Daily Breakdown</CardTitle>
+                <CardTitle className="text-lg">{t("forecast.dailyBreakdown")}</CardTitle>
                 <div className="flex gap-1 border rounded-lg p-0.5">
                   <Button
                     variant={viewMode === "cards" ? "secondary" : "ghost"}
