@@ -36,7 +36,7 @@ const ForecastPage = () => {
       const buffer = await file.arrayBuffer();
       const result = parseExcelForecast(buffer);
       setForecast(result);
-      toast.success(`Forecast loaded — ${result.days.length} days`);
+      toast.success(t("forecast.loaded").replace("{count}", String(result.days.length)));
     } catch (err) {
       toast.error("Failed to parse file. Check the format and try again.");
       console.error(err);
