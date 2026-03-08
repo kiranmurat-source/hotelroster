@@ -101,18 +101,20 @@ const ForecastPage = () => {
             <h1 className="text-2xl font-bold tracking-tight">{t("forecast.title")}</h1>
             <p className="text-muted-foreground">{t("forecast.subtitle")}</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={downloadTemplate}>
-              <Download className="h-4 w-4 mr-1.5" />
-              {t("forecast.downloadTemplate")}
-            </Button>
-            {forecast && (
-              <Button variant="ghost" size="sm" onClick={() => setForecast(null)}>
-                <X className="h-4 w-4 mr-1.5" />
-                {t("forecast.clear")}
+          {isManager && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={downloadTemplate}>
+                <Download className="h-4 w-4 mr-1.5" />
+                {t("forecast.downloadTemplate")}
               </Button>
-            )}
-          </div>
+              {forecast && (
+                <Button variant="ghost" size="sm" onClick={() => setForecast(null)}>
+                  <X className="h-4 w-4 mr-1.5" />
+                  {t("forecast.clear")}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {!forecast ? (
