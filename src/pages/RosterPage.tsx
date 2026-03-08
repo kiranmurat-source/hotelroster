@@ -502,8 +502,8 @@ const RosterPage = () => {
                   <div key={shift}>
                     <div className={cn("flex items-center gap-2 mb-3 px-2 py-1.5 rounded-md", config.bg)}>
                       <Icon className={cn("h-4 w-4", config.text)} />
-                      <span className={cn("text-sm font-semibold", config.text)}>{shift}</span>
-                      <span className={cn("text-xs ml-auto", config.text)}>{assignments.length} staff</span>
+                      <span className={cn("text-sm font-semibold", config.text)}>{shiftLabels[shift]}</span>
+                      <span className={cn("text-xs ml-auto", config.text)}>{assignments.length} {t("common.staff")}</span>
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {assignments.map((a) => {
