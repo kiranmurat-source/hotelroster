@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { parseExcelForecast, generateSampleExcel } from "@/lib/parse-forecast";
 import { useForecast } from "@/contexts/ForecastContext";
 import { cn } from "@/lib/utils";
-import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
