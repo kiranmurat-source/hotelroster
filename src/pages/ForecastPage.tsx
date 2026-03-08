@@ -283,7 +283,7 @@ const ForecastPage = () => {
                           </div>
                           <div className="space-y-1">
                             <div className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">Occupancy</span>
+                              <span className="text-muted-foreground">{t("forecast.occupancy")}</span>
                               <span className="font-semibold">{day.occupancyRate}%</span>
                             </div>
                             <div className="h-2 bg-muted rounded-full overflow-hidden">
