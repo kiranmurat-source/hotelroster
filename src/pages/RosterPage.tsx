@@ -254,7 +254,7 @@ const RosterPage = () => {
               >
                 <FileSpreadsheet className="h-5 w-5 text-accent shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Drop a roster Excel file</span> or click to upload — showing demo data below
+                  <span className="font-medium text-foreground">{t("roster.dropFile")}</span> {t("roster.orClick")}
                 </p>
                 <input id="roster-upload-drop" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
               </label>
