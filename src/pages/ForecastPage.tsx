@@ -19,6 +19,7 @@ import {
 const ForecastPage = () => {
   const navigate = useNavigate();
   const { forecast, setForecast } = useForecast();
+  const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
