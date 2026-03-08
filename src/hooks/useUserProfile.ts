@@ -6,7 +6,6 @@ import { Department } from "@/lib/types";
 interface UserProfile {
   display_name: string | null;
   department: string | null;
-  role: string | null;
   avatar_url: string | null;
 }
 
