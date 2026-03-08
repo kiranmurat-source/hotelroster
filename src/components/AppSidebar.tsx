@@ -27,6 +27,7 @@ const navItems: NavItem[] = [
   { to: "/staff", label: "Staff", icon: Users, minRole: "manager" },
   { to: "/extra-hours", label: "Extra Hours", icon: Clock },
   { to: "/extra-staff", label: "Extra Staff", icon: UserPlus },
+  { to: "/admin", label: "User Management", icon: Shield, minRole: "admin" },
 ];
 
 const roleBadgeColors: Record<AppRole, string> = {
