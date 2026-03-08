@@ -9,7 +9,7 @@ import { ShiftAssignment, ShiftType } from "@/lib/types";
 import { parseExcelRoster, generateSampleRoster, ParsedRoster } from "@/lib/parse-roster";
 import { useForecast } from "@/contexts/ForecastContext";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles, Mail, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
