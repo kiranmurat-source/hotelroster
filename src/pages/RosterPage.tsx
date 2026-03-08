@@ -410,7 +410,7 @@ const RosterPage = () => {
                   })()}
 
                   {selectedAssignments.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-8 text-center">No shifts scheduled for this date</p>
+                    <p className="text-sm text-muted-foreground py-8 text-center">{t("roster.noShifts")}</p>
                   ) : (
                     <div className="space-y-4">
                       {(Object.keys(groupedByShift) as ShiftType[]).map((shift) => {
