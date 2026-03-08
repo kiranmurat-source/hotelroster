@@ -225,7 +225,7 @@ const RosterPage = () => {
             </Button>
             <label htmlFor="roster-upload">
               <Button variant="outline" size="sm" asChild>
-                <span><Upload className="h-4 w-4 mr-1.5" />Upload Roster</span>
+                <span><Upload className="h-4 w-4 mr-1.5" />{t("roster.uploadRoster")}</span>
               </Button>
               <input id="roster-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
             </label>
