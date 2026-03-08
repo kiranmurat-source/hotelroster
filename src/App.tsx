@@ -15,6 +15,7 @@ import ExtraStaffPage from "./pages/ExtraStaffPage";
 import ForecastPage from "./pages/ForecastPage";
 import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
+import ReportsPage from "./pages/ReportsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
