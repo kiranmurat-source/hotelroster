@@ -293,6 +293,7 @@ const RosterPage = () => {
                     <button
                       key={day}
                       onClick={() => setSelectedDate(dateStr)}
+                      onDoubleClick={() => setModalDate(dateStr)}
                       className={cn(
                         "aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-all relative",
                         "hover:bg-secondary",
