@@ -77,9 +77,9 @@ const ForecastPage = () => {
   };
 
   const getOccupancyBadge = (rate: number) => {
-    if (rate >= 90) return { label: "Critical", className: "bg-destructive/15 text-destructive" };
-    if (rate >= 75) return { label: "High", className: "bg-warning/15 text-warning" };
-    return { label: "Normal", className: "bg-success/15 text-success" };
+    if (rate >= 90) return { label: t("forecast.critical"), className: "bg-destructive/15 text-destructive" };
+    if (rate >= 75) return { label: t("forecast.high"), className: "bg-warning/15 text-warning" };
+    return { label: t("forecast.normal"), className: "bg-success/15 text-success" };
   };
 
   const avgOccupancy = forecast
