@@ -384,9 +384,9 @@ const RosterPage = () => {
               {selectedDate ? (
                 <>
                   <h3 className="font-semibold text-lg mb-1">
-                    {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+                    {new Date(selectedDate + "T00:00:00").toLocaleDateString(dateLocale, { weekday: "long", month: "long", day: "numeric" })}
                   </h3>
-                  <p className="text-xs text-muted-foreground mb-4">{selectedAssignments.length} staff assigned</p>
+                  <p className="text-xs text-muted-foreground mb-4">{t("roster.staffAssigned").replace("{count}", String(selectedAssignments.length))}</p>
 
                   {/* Forecast banner */}
                   {selectedDate && forecastByDate[selectedDate] && (() => {
