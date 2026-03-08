@@ -10,6 +10,7 @@ import {
   UserPlus,
   BarChart3,
   Shield,
+  FileText,
 } from "lucide-react";
 
 interface NavItem {
@@ -18,6 +19,7 @@ interface NavItem {
   shortLabelKey?: string;
   icon: React.ElementType;
   adminOnly?: boolean;
+  managerOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -26,16 +28,21 @@ const navItems: NavItem[] = [
   { to: "/forecast", labelKey: "nav.forecast", icon: BarChart3 },
   { to: "/staff", labelKey: "nav.staff", icon: Users },
   { to: "/extra-hours", labelKey: "nav.extraHours", icon: Clock },
-  { to: "/extra-staff", labelKey: "nav.extraStaff", icon: UserPlus },
+  { to: "/extra-staff", labelKey: "nav.extraStaff", icon: UserPlus, managerOnly: true },
+  { to: "/reports", labelKey: "nav.reports", icon: FileText, managerOnly: true },
   { to: "/admin", labelKey: "nav.admin", icon: Shield, adminOnly: true },
 ];
 
 const MobileNav = () => {
   const location = useLocation();
-  const { isAdmin } = useUserRole();
+  const { isAdmin, isManager } = useUserRole();
   const { t } = useLanguage();
 
-  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin);
+  const visibleItems = navItems.filter((item) => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (item.managerOnly && !isManager) return false;
+    return true;
+  });
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50 flex justify-around py-2">

@@ -13,6 +13,7 @@ import {
   BarChart3,
   LogOut,
   Shield,
+  FileText,
 } from "lucide-react";
 
 interface NavItem {
@@ -28,7 +29,8 @@ const navItems: NavItem[] = [
   { to: "/forecast", labelKey: "nav.forecast", icon: BarChart3 },
   { to: "/staff", labelKey: "nav.staff", icon: Users, minRole: "manager" },
   { to: "/extra-hours", labelKey: "nav.extraHours", icon: Clock },
-  { to: "/extra-staff", labelKey: "nav.extraStaff", icon: UserPlus },
+  { to: "/extra-staff", labelKey: "nav.extraStaff", icon: UserPlus, minRole: "manager" },
+  { to: "/reports", labelKey: "nav.reports", icon: FileText, minRole: "manager" },
   { to: "/admin", labelKey: "nav.admin", icon: Shield, minRole: "admin" },
 ];
 
