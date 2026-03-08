@@ -31,6 +31,7 @@ const ExtraStaffPage = () => {
     Afternoon: t("roster.afternoon"),
     Night: t("roster.night"),
     "Day Off": t("roster.dayOff"),
+    Break: t("roster.break"),
   };
 
   const handleSubmit = (e: React.FormEvent) => {

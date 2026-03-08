@@ -180,7 +180,7 @@ const RosterPage = () => {
 
   const modalGroupedByShift = useMemo(() => {
     const groups: Record<ShiftType, ShiftAssignment[]> = {
-      Morning: [], Afternoon: [], Night: [], "Day Off": [],
+      Morning: [], Afternoon: [], Night: [], "Day Off": [], Break: [],
     };
     modalAssignments.forEach((a) => { groups[a.shift].push(a); });
     return groups;
