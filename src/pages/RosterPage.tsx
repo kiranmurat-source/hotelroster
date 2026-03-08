@@ -61,6 +61,16 @@ const RosterPage = () => {
   }, [searchParams]);
 
   const { forecast } = useForecast();
+  const { t, language } = useLanguage();
+
+  const shiftLabels: Record<ShiftType, string> = {
+    Morning: t("roster.morning"),
+    Afternoon: t("roster.afternoon"),
+    Night: t("roster.night"),
+    "Day Off": t("roster.dayOff"),
+  };
+
+  const dateLocale = language === "tr" ? "tr-TR" : "en-US";
 
   // Use uploaded data if available, otherwise mock
   const activeAssignments: ShiftAssignment[] = uploadedRoster?.assignments ?? mockAssignments;
