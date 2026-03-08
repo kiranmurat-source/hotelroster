@@ -340,7 +340,7 @@ const ForecastPage = () => {
                       {forecast.days.map((day) => {
                         const badge = getOccupancyBadge(day.occupancyRate);
                         return (
-                          <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title="Double-click to view staff roster">
+                          <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title={t("forecast.doubleClickHint")}>
                             <TableCell className="font-medium">{day.dayLabel}</TableCell>
                             <TableCell className="text-muted-foreground">{day.date}</TableCell>
                             <TableCell className="text-right">
