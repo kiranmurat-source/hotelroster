@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,7 @@ const ForecastPage = () => {
   const navigate = useNavigate();
   const { forecast, setForecast } = useForecast();
   const { t } = useLanguage();
+  const { isManager } = useUserRole();
   const [isDragging, setIsDragging] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
@@ -99,45 +101,55 @@ const ForecastPage = () => {
             <h1 className="text-2xl font-bold tracking-tight">{t("forecast.title")}</h1>
             <p className="text-muted-foreground">{t("forecast.subtitle")}</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={downloadTemplate}>
-              <Download className="h-4 w-4 mr-1.5" />
-              {t("forecast.downloadTemplate")}
-            </Button>
-            {forecast && (
-              <Button variant="ghost" size="sm" onClick={() => setForecast(null)}>
-                <X className="h-4 w-4 mr-1.5" />
-                {t("forecast.clear")}
+          {isManager && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={downloadTemplate}>
+                <Download className="h-4 w-4 mr-1.5" />
+                {t("forecast.downloadTemplate")}
               </Button>
-            )}
-          </div>
+              {forecast && (
+                <Button variant="ghost" size="sm" onClick={() => setForecast(null)}>
+                  <X className="h-4 w-4 mr-1.5" />
+                  {t("forecast.clear")}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {!forecast ? (
-          <Card className="animate-fade-in">
-            <CardContent className="p-0">
-              <label
-                htmlFor="file-upload"
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={onDrop}
-                className={cn(
-                  "flex flex-col items-center justify-center py-16 px-6 cursor-pointer rounded-lg border-2 border-dashed transition-colors",
-                  isDragging ? "border-accent bg-accent/5" : "border-border hover:border-accent/50"
-                )}
-              >
-                <div className="h-14 w-14 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-                  <FileSpreadsheet className="h-7 w-7 text-accent" />
-                </div>
-                <p className="font-semibold text-sm mb-1">{t("forecast.dropFile")}</p>
-                <p className="text-xs text-muted-foreground mb-4">{t("forecast.orBrowse")}</p>
-                <Button variant="outline" size="sm" asChild>
-                  <span><Upload className="h-4 w-4 mr-1.5" />{t("forecast.chooseFile")}</span>
-                </Button>
-                <input id="file-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
-              </label>
-            </CardContent>
-          </Card>
+          isManager ? (
+            <Card className="animate-fade-in">
+              <CardContent className="p-0">
+                <label
+                  htmlFor="file-upload"
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={onDrop}
+                  className={cn(
+                    "flex flex-col items-center justify-center py-16 px-6 cursor-pointer rounded-lg border-2 border-dashed transition-colors",
+                    isDragging ? "border-accent bg-accent/5" : "border-border hover:border-accent/50"
+                  )}
+                >
+                  <div className="h-14 w-14 rounded-full bg-accent/10 flex items-center justify-center mb-4">
+                    <FileSpreadsheet className="h-7 w-7 text-accent" />
+                  </div>
+                  <p className="font-semibold text-sm mb-1">{t("forecast.dropFile")}</p>
+                  <p className="text-xs text-muted-foreground mb-4">{t("forecast.orBrowse")}</p>
+                  <Button variant="outline" size="sm" asChild>
+                    <span><Upload className="h-4 w-4 mr-1.5" />{t("forecast.chooseFile")}</span>
+                  </Button>
+                  <input id="file-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
+                </label>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="animate-fade-in">
+              <CardContent className="p-8 text-center">
+                <p className="text-muted-foreground">{t("forecast.noDataYet") || "No forecast data available yet."}</p>
+              </CardContent>
+            </Card>
+          )
         ) : (
           <>
             {/* Summary stats */}
