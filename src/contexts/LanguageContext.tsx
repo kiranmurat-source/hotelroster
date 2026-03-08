@@ -95,6 +95,7 @@ const translations: Record<Language, Record<string, string>> = {
     "roster.afternoon": "Öğleden Sonra",
     "roster.night": "Gece",
     "roster.dayOff": "İzinli",
+    "roster.break": "Ara",
     "roster.highOcc": "Yüksek doluluk (90%+)",
     "roster.event": "Etkinlik",
     "roster.switchedBack": "Varsayılan vardiyaya dönüldü",
