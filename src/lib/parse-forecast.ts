@@ -34,6 +34,8 @@ export function parseExcelForecast(data: ArrayBuffer): WeeklyForecast {
   const sample = rows[0];
   const dateCol = findCol(sample, ["date", "day"]);
   const occCol = findCol(sample, ["occupancy", "occ"]);
+  const arrivalCol = findCol(sample, ["arrival", "checkin", "arriving"]);
+  const departureCol = findCol(sample, ["departure", "checkout", "departing"]);
   const roomCol = findCol(sample, ["roomnight", "roomsbooked", "booking", "rooms"]);
   const totalCol = findCol(sample, ["totalroom", "capacity", "total"]);
   const eventCol = findCol(sample, ["event", "banquet", "function"]);
