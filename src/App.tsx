@@ -13,6 +13,7 @@ import ExtraHoursPage from "./pages/ExtraHoursPage";
 import ExtraStaffPage from "./pages/ExtraStaffPage";
 import ForecastPage from "./pages/ForecastPage";
 import LoginPage from "./pages/LoginPage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/extra-hours" element={<ProtectedRoute><ExtraHoursPage /></ProtectedRoute>} />
               <Route path="/extra-staff" element={<ProtectedRoute><ExtraStaffPage /></ProtectedRoute>} />
               <Route path="/forecast" element={<ProtectedRoute><ForecastPage /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
