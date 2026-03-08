@@ -489,7 +489,7 @@ const RosterPage = () => {
           })()}
 
           {modalAssignments.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No shifts scheduled for this date</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">{t("roster.noShifts")}</p>
           ) : (
             <div className="space-y-5">
               {(Object.keys(modalGroupedByShift) as ShiftType[]).map((shift) => {
