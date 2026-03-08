@@ -149,7 +149,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{avgOccupancy}%</p>
-                    <p className="text-xs text-muted-foreground">Avg. Occupancy</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.avgOccupancy")}</p>
                   </div>
                 </CardContent>
               </Card>
