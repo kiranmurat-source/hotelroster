@@ -101,13 +101,13 @@ export function parseExcelForecast(data: ArrayBuffer): WeeklyForecast {
 /** Generate a sample Excel file for download */
 export function generateSampleExcel(): ArrayBuffer {
   const data = [
-    { Date: "2026-03-09", "Occupancy %": 72, "Room Nights": 144, "Total Rooms": 200, Events: "" },
-    { Date: "2026-03-10", "Occupancy %": 78, "Room Nights": 156, "Total Rooms": 200, Events: "Corporate Seminar" },
-    { Date: "2026-03-11", "Occupancy %": 85, "Room Nights": 170, "Total Rooms": 200, Events: "Wedding Reception" },
-    { Date: "2026-03-12", "Occupancy %": 90, "Room Nights": 180, "Total Rooms": 200, Events: "Wedding Reception, Board Dinner" },
-    { Date: "2026-03-13", "Occupancy %": 95, "Room Nights": 190, "Total Rooms": 200, Events: "Conference Day 1" },
-    { Date: "2026-03-14", "Occupancy %": 98, "Room Nights": 196, "Total Rooms": 200, Events: "Conference Day 2, Gala Night" },
-    { Date: "2026-03-15", "Occupancy %": 82, "Room Nights": 164, "Total Rooms": 200, Events: "" },
+    { Date: "2026-03-09", "Occupancy %": 72, Arrival: 32, Departure: 45, "Room Nights": 144, "Total Rooms": 200, Events: "" },
+    { Date: "2026-03-10", "Occupancy %": 78, Arrival: 33, Departure: 65, "Room Nights": 156, "Total Rooms": 200, Events: "Corporate Seminar" },
+    { Date: "2026-03-11", "Occupancy %": 85, Arrival: 23, Departure: 23, "Room Nights": 170, "Total Rooms": 200, Events: "Wedding Reception" },
+    { Date: "2026-03-12", "Occupancy %": 90, Arrival: 11, Departure: 56, "Room Nights": 180, "Total Rooms": 200, Events: "Wedding Reception, Board Dinner" },
+    { Date: "2026-03-13", "Occupancy %": 95, Arrival: 55, Departure: 32, "Room Nights": 190, "Total Rooms": 200, Events: "Conference Day 1" },
+    { Date: "2026-03-14", "Occupancy %": 98, Arrival: 22, Departure: 55, "Room Nights": 196, "Total Rooms": 200, Events: "Conference Day 2, Gala Night" },
+    { Date: "2026-03-15", "Occupancy %": 82, Arrival: 11, Departure: 77, "Room Nights": 164, "Total Rooms": 200, Events: "" },
   ];
 
   const ws = XLSX.utils.json_to_sheet(data);
