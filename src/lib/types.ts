@@ -1,6 +1,6 @@
 export type Department = "Front Desk" | "Housekeeping" | "F&B" | "Kitchen" | "Maintenance" | "Security" | "Spa" | "Management";
 
-export type ShiftType = "Morning" | "Afternoon" | "Night" | "Day Off";
+export type ShiftType = "Morning" | "Afternoon" | "Night" | "Day Off" | "Break";
 
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 
