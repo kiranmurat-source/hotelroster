@@ -249,6 +249,7 @@ const translations: Record<Language, Record<string, string>> = {
     "roster.afternoon": "Afternoon",
     "roster.night": "Night",
     "roster.dayOff": "Day Off",
+    "roster.break": "Break",
     "roster.highOcc": "High occ. (90%+)",
     "roster.event": "Event",
     "roster.switchedBack": "Switched back to default roster",
