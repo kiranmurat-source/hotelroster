@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,9 +16,14 @@ import {
 } from "recharts";
 
 const ForecastPage = () => {
+  const navigate = useNavigate();
   const { forecast, setForecast } = useForecast();
   const [isDragging, setIsDragging] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+
+  const handleDayDoubleClick = useCallback((dateStr: string) => {
+    navigate(`/roster?date=${dateStr}`);
+  }, [navigate]);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
@@ -184,6 +190,7 @@ const ForecastPage = () => {
             <Card className="animate-fade-in">
               <CardHeader>
                 <CardTitle className="text-lg">Occupancy Forecast</CardTitle>
+                <p className="text-xs text-muted-foreground">Click a bar to view staff roster for that day</p>
               </CardHeader>
               <CardContent>
                 <div className="h-64">
@@ -215,7 +222,7 @@ const ForecastPage = () => {
                           return value;
                         }}
                       />
-                      <Bar yAxisId="left" dataKey="occupancyRate" radius={[6, 6, 0, 0]}>
+                      <Bar yAxisId="left" dataKey="occupancyRate" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(data: any) => { if (data?.date) handleDayDoubleClick(data.date); }}>
                         {forecast.days.map((day, i) => (
                           <Cell key={i} fill={getOccupancyColor(day.occupancyRate)} />
                         ))}
@@ -259,7 +266,9 @@ const ForecastPage = () => {
                       return (
                         <div
                           key={day.date}
-                          className="border rounded-lg p-4 space-y-2 hover:shadow-sm transition-shadow"
+                          onDoubleClick={() => handleDayDoubleClick(day.date)}
+                          className="border rounded-lg p-4 space-y-2 hover:shadow-sm transition-shadow cursor-pointer"
+                          title="Double-click to view staff roster"
                         >
                           <div className="flex items-center justify-between">
                             <div>
@@ -329,7 +338,7 @@ const ForecastPage = () => {
                       {forecast.days.map((day) => {
                         const badge = getOccupancyBadge(day.occupancyRate);
                         return (
-                          <TableRow key={day.date}>
+                          <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title="Double-click to view staff roster">
                             <TableCell className="font-medium">{day.dayLabel}</TableCell>
                             <TableCell className="text-muted-foreground">{day.date}</TableCell>
                             <TableCell className="text-right">

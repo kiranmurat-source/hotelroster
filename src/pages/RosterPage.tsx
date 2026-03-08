@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,12 +36,26 @@ function formatDate(year: number, month: number, day: number) {
 }
 
 const RosterPage = () => {
+  const [searchParams] = useSearchParams();
   const today = new Date();
   const [year, setYear] = useState(2026);
   const [month, setMonth] = useState(2);
   const [selectedDate, setSelectedDate] = useState<string | null>("2026-03-09");
   const [uploadedRoster, setUploadedRoster] = useState<ParsedRoster | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Navigate to date from query param (e.g. from forecast page)
+  useEffect(() => {
+    const dateParam = searchParams.get("date");
+    if (dateParam) {
+      const d = new Date(dateParam + "T00:00:00");
+      if (!isNaN(d.getTime())) {
+        setYear(d.getFullYear());
+        setMonth(d.getMonth());
+        setSelectedDate(dateParam);
+      }
+    }
+  }, [searchParams]);
 
   const { forecast } = useForecast();
 
