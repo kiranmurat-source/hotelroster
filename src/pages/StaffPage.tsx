@@ -32,7 +32,7 @@ const StaffPage = () => {
                     <span className="inline-block mt-1 text-xs bg-secondary px-2 py-0.5 rounded-full">{staff.department}</span>
                     <div className="mt-3 space-y-1">
                       <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Mail className="h-3 w-3" />{staff.email}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Phone className="h-3 w-3" />{staff.phone}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Phone className="h-3 w-3" />{isManager ? staff.phone : maskPhone(staff.phone)}</p>
                     </div>
                   </div>
                 </div>

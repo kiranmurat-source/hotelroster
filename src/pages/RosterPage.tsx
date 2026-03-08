@@ -531,7 +531,7 @@ const RosterPage = () => {
                               )}
                               {staff.phone && (
                                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Phone className="h-3 w-3 shrink-0" />{staff.phone}
+                                  <Phone className="h-3 w-3 shrink-0" />{isManager ? staff.phone : maskPhone(staff.phone)}
                                 </p>
                               )}
                             </div>
