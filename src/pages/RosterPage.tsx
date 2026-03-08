@@ -49,6 +49,8 @@ const RosterPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
 
+  const { isManager } = useUserRole();
+
   // Navigate to date from query param (e.g. from forecast page)
   useEffect(() => {
     const dateParam = searchParams.get("date");
