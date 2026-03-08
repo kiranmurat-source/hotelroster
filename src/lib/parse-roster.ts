@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import * as XLSX from "@e965/xlsx";
 import { ShiftAssignment, ShiftType, Department } from "./types";
 
 const VALID_SHIFTS: ShiftType[] = ["Morning", "Afternoon", "Night", "Day Off", "Break"];
