@@ -129,10 +129,10 @@ const ForecastPage = () => {
                 <div className="h-14 w-14 rounded-full bg-accent/10 flex items-center justify-center mb-4">
                   <FileSpreadsheet className="h-7 w-7 text-accent" />
                 </div>
-                <p className="font-semibold text-sm mb-1">Drop your forecast file here</p>
-                <p className="text-xs text-muted-foreground mb-4">or click to browse — .xlsx, .xls, .csv</p>
+                <p className="font-semibold text-sm mb-1">{t("forecast.dropFile")}</p>
+                <p className="text-xs text-muted-foreground mb-4">{t("forecast.orBrowse")}</p>
                 <Button variant="outline" size="sm" asChild>
-                  <span><Upload className="h-4 w-4 mr-1.5" />Choose File</span>
+                  <span><Upload className="h-4 w-4 mr-1.5" />{t("forecast.chooseFile")}</span>
                 </Button>
                 <input id="file-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
               </label>
