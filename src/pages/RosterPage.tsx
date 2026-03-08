@@ -230,9 +230,9 @@ const RosterPage = () => {
               <input id="roster-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
             </label>
             {uploadedRoster && (
-              <Button variant="ghost" size="sm" onClick={() => { setUploadedRoster(null); toast.info("Switched back to default roster"); }}>
+              <Button variant="ghost" size="sm" onClick={() => { setUploadedRoster(null); toast.info(t("roster.switchedBack")); }}>
                 <X className="h-4 w-4 mr-1.5" />
-                Clear
+                {t("roster.clear")}
               </Button>
             )}
           </div>
