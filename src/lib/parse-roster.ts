@@ -123,6 +123,44 @@ export function generateSampleRoster(): ArrayBuffer {
 
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
+
+  // Add data validation (dropdown lists) for Shift and Department columns
+  const shiftOptions = VALID_SHIFTS.join(",");
+  const deptOptions = VALID_DEPARTMENTS.join(",");
+  const rowCount = data.length;
+
+  // Column C = Shift (index 2), Column D = Department (index 3)
+  // Data validation ranges: C2:C{rowCount+1} and D2:D{rowCount+1}
+  if (!ws["!dataValidation"]) ws["!dataValidation"] = [];
+
+  // Shift dropdown (column C, rows 2 to 1001 to cover future entries)
+  (ws["!dataValidation"] as any[]).push({
+    type: "list",
+    operator: "equal",
+    allowBlank: true,
+    showDropDown: true, // note: in xlsx spec, false=show, but xlsx lib uses true
+    formula1: `"${shiftOptions}"`,
+    sqref: "C2:C1000",
+  });
+
+  // Department dropdown (column D, rows 2 to 1001)
+  (ws["!dataValidation"] as any[]).push({
+    type: "list",
+    operator: "equal",
+    allowBlank: true,
+    showDropDown: true,
+    formula1: `"${deptOptions}"`,
+    sqref: "D2:D1000",
+  });
+
+  // Set column widths for readability
+  ws["!cols"] = [
+    { wch: 20 }, // Staff Name
+    { wch: 12 }, // Date
+    { wch: 14 }, // Shift
+    { wch: 16 }, // Department
+  ];
+
   XLSX.utils.book_append_sheet(wb, ws, "Roster");
   return XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
 }
