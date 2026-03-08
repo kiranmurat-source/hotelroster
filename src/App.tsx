@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,16 +8,17 @@ import { ForecastProvider } from "@/contexts/ForecastContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-import RosterPage from "./pages/RosterPage";
-import StaffPage from "./pages/StaffPage";
-import ExtraHoursPage from "./pages/ExtraHoursPage";
-import ExtraStaffPage from "./pages/ExtraStaffPage";
-import ForecastPage from "./pages/ForecastPage";
-import LoginPage from "./pages/LoginPage";
-import AdminPage from "./pages/AdminPage";
-import ReportsPage from "./pages/ReportsPage";
-import NotFound from "./pages/NotFound";
+
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const RosterPage = lazy(() => import("./pages/RosterPage"));
+const StaffPage = lazy(() => import("./pages/StaffPage"));
+const ExtraHoursPage = lazy(() => import("./pages/ExtraHoursPage"));
+const ExtraStaffPage = lazy(() => import("./pages/ExtraStaffPage"));
+const ForecastPage = lazy(() => import("./pages/ForecastPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -29,18 +31,20 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/roster" element={<ProtectedRoute><RosterPage /></ProtectedRoute>} />
-                <Route path="/staff" element={<ProtectedRoute requiredRole="manager"><StaffPage /></ProtectedRoute>} />
-                <Route path="/extra-hours" element={<ProtectedRoute><ExtraHoursPage /></ProtectedRoute>} />
-                <Route path="/extra-staff" element={<ProtectedRoute requiredRole="manager"><ExtraStaffPage /></ProtectedRoute>} />
-                <Route path="/forecast" element={<ProtectedRoute><ForecastPage /></ProtectedRoute>} />
-                <Route path="/reports" element={<ProtectedRoute requiredRole="manager"><ReportsPage /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/roster" element={<ProtectedRoute><RosterPage /></ProtectedRoute>} />
+                  <Route path="/staff" element={<ProtectedRoute requiredRole="manager"><StaffPage /></ProtectedRoute>} />
+                  <Route path="/extra-hours" element={<ProtectedRoute><ExtraHoursPage /></ProtectedRoute>} />
+                  <Route path="/extra-staff" element={<ProtectedRoute requiredRole="manager"><ExtraStaffPage /></ProtectedRoute>} />
+                  <Route path="/forecast" element={<ProtectedRoute><ForecastPage /></ProtectedRoute>} />
+                  <Route path="/reports" element={<ProtectedRoute requiredRole="manager"><ReportsPage /></ProtectedRoute>} />
+                  <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </BrowserRouter>
           </ForecastProvider>
         </AuthProvider>
