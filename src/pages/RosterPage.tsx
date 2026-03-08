@@ -160,7 +160,25 @@ const RosterPage = () => {
     return groups;
   }, [selectedAssignments]);
 
-  const isToday = (day: number) => {
+  // Modal data
+  const modalAssignments = modalDate
+    ? activeAssignments.filter((a) => a.date === modalDate)
+    : [];
+
+  const modalGroupedByShift = useMemo(() => {
+    const groups: Record<ShiftType, ShiftAssignment[]> = {
+      Morning: [], Afternoon: [], Night: [], "Day Off": [],
+    };
+    modalAssignments.forEach((a) => { groups[a.shift].push(a); });
+    return groups;
+  }, [modalAssignments]);
+
+  const resolveStaffFull = (assignment: ShiftAssignment) => {
+    if (uploadedRoster) return { name: assignment.staffId, role: assignment.department, email: "", phone: "" };
+    const staff = staffMembers.find((s) => s.id === assignment.staffId);
+    return staff ? { name: staff.name, role: staff.role, email: staff.email, phone: staff.phone } : { name: "Unknown", role: "", email: "", phone: "" };
+  };
+
     return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
   };
 
