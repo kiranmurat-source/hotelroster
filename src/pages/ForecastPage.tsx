@@ -326,14 +326,14 @@ const ForecastPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Day</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Occupancy</TableHead>
-                        <TableHead className="text-right">Arrivals</TableHead>
-                        <TableHead className="text-right">Departures</TableHead>
-                        <TableHead className="text-right">Room Nights</TableHead>
-                        <TableHead className="text-right">Total Rooms</TableHead>
-                        <TableHead>Events</TableHead>
+                        <TableHead>{t("forecast.day")}</TableHead>
+                        <TableHead>{t("forecast.date")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.occupancy")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.arrivals")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.departures")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.roomNights")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.totalRooms")}</TableHead>
+                        <TableHead>{t("forecast.events")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
