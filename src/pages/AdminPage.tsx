@@ -208,9 +208,25 @@ const AdminPage = () => {
                     {users.map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.display_name || "—"}</TableCell>
-                        <TableCell>{u.department || "—"}</TableCell>
                         <TableCell>
-                          <Badge variant={roleBadgeVariant(u.role)} className="capitalize">{u.role}</Badge>
+                          <Select value={u.department || ""} onValueChange={(v) => handleUpdateDepartment(u.user_id, v)}>
+                            <SelectTrigger className="h-8 w-[140px]"><SelectValue placeholder="Select..." /></SelectTrigger>
+                            <SelectContent>
+                              {DEPARTMENTS.map((d) => (
+                                <SelectItem key={d} value={d}>{d}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Select value={u.role} onValueChange={(v) => handleUpdateRole(u.user_id, v)}>
+                            <SelectTrigger className="h-8 w-[110px]"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {ROLES.map((r) => (
+                                <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
                           {new Date(u.created_at).toLocaleDateString()}
