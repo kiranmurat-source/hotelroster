@@ -451,7 +451,7 @@ const RosterPage = () => {
                 </>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground text-sm">Select a date to view shift details</p>
+                  <p className="text-muted-foreground text-sm">{t("roster.selectDate")}</p>
                 </div>
               )}
             </CardContent>
