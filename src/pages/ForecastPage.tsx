@@ -29,7 +29,7 @@ const ForecastPage = () => {
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
-      toast.error("Please upload an Excel file (.xlsx, .xls) or CSV");
+      toast.error(t("forecast.invalidFile"));
       return;
     }
     try {
