@@ -160,7 +160,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{totalBookings.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">Total Room Nights</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.totalRoomNights")}</p>
                   </div>
                 </CardContent>
               </Card>
