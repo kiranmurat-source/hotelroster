@@ -9,20 +9,36 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { extraHoursRequests as initialRequests, staffMembers } from "@/lib/mock-data";
 import { ExtraHoursRequest, Department, ApprovalStatus } from "@/lib/types";
-import { Check, X } from "lucide-react";
+import { Check, X, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const departments: Department[] = ["Front Desk", "Housekeeping", "F&B", "Kitchen", "Maintenance", "Security", "Spa", "Management"];
 
 const ExtraHoursPage = () => {
   const { t } = useLanguage();
+  const { isManager, isAdmin } = useUserRole();
+  const { userDepartment } = useUserProfile();
+  const canApprove = isManager || isAdmin;
+
   const [requests, setRequests] = useState<ExtraHoursRequest[]>(initialRequests);
   const [staffId, setStaffId] = useState("");
   const [department, setDepartment] = useState<Department | "">("");
   const [date, setDate] = useState("");
   const [hours, setHours] = useState("");
   const [reason, setReason] = useState("");
+
+  // Staff only sees their department's requests; managers/admins see all
+  const filteredRequests = canApprove
+    ? requests
+    : requests.filter((r) => !userDepartment || r.department === userDepartment);
+
+  // Staff only sees staff from their department
+  const filteredStaff = canApprove
+    ? staffMembers
+    : staffMembers.filter((s) => !userDepartment || s.department === userDepartment);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +64,10 @@ const ExtraHoursPage = () => {
   };
 
   const updateStatus = (id: string, status: ApprovalStatus) => {
+    if (!canApprove) {
+      toast.error(t("permissions.cannotApprove"));
+      return;
+    }
     setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
     toast.success(`${t("common." + status)}`);
   };
@@ -69,14 +89,18 @@ const ExtraHoursPage = () => {
                   <Label>{t("extraHours.staffMember")}</Label>
                   <Select value={staffId} onValueChange={setStaffId}>
                     <SelectTrigger><SelectValue placeholder={t("extraHours.selectStaff")} /></SelectTrigger>
-                    <SelectContent>{staffMembers.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                    <SelectContent>{filteredStaff.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>{t("extraHours.department")}</Label>
                   <Select value={department} onValueChange={(v) => setDepartment(v as Department)}>
                     <SelectTrigger><SelectValue placeholder={t("extraHours.selectDept")} /></SelectTrigger>
-                    <SelectContent>{departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                    <SelectContent>
+                      {(canApprove ? departments : departments.filter((d) => !userDepartment || d === userDepartment)).map((d) => (
+                        <SelectItem key={d} value={d}>{d}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
@@ -99,7 +123,10 @@ const ExtraHoursPage = () => {
           <Card className="lg:col-span-2 animate-fade-in">
             <CardHeader><CardTitle className="text-lg">{t("extraHours.allRequests")}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {requests.map((req) => (
+              {filteredRequests.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">{t("permissions.noRequests")}</p>
+              )}
+              {filteredRequests.map((req) => (
                 <div key={req.id} className="flex items-center justify-between py-3 border-b last:border-0">
                   <div className="space-y-1">
                     <p className="font-medium text-sm">{req.staffName}</p>
@@ -108,7 +135,7 @@ const ExtraHoursPage = () => {
                   </div>
                   <div className="flex items-center gap-2 shrink-0 ml-4">
                     <StatusBadge status={req.status} />
-                    {req.status === "pending" && (
+                    {req.status === "pending" && canApprove && (
                       <>
                         <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:text-success" onClick={() => updateStatus(req.id, "approved")}>
                           <Check className="h-4 w-4" />

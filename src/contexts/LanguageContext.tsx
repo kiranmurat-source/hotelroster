@@ -196,6 +196,11 @@ const translations: Record<Language, Record<string, string>> = {
     "common.pending": "Beklemede",
     "common.approved": "Onaylandı",
     "common.rejected": "Reddedildi",
+
+    // Permissions
+    "permissions.cannotApprove": "Talepleri onaylama yetkiniz yok",
+    "permissions.noRequests": "Görüntülenecek talep yok",
+    "permissions.accessDenied": "Erişim engellendi",
   },
   en: {
     // Login
@@ -350,5 +355,10 @@ const translations: Record<Language, Record<string, string>> = {
     "common.pending": "Pending",
     "common.approved": "Approved",
     "common.rejected": "Rejected",
+
+    // Permissions
+    "permissions.cannotApprove": "You don't have permission to approve requests",
+    "permissions.noRequests": "No requests to display",
+    "permissions.accessDenied": "Access denied",
   },
 };
