@@ -179,6 +179,7 @@ const RosterPage = () => {
     return staff ? { name: staff.name, role: staff.role, email: staff.email, phone: staff.phone } : { name: "Unknown", role: "", email: "", phone: "" };
   };
 
+  const isToday = (day: number) => {
     return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
   };
 
