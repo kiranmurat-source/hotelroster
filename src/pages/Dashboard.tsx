@@ -4,8 +4,10 @@ import StatusBadge from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { staffMembers, extraHoursRequests, extraStaffRequests } from "@/lib/mock-data";
 import { Users, Clock, UserPlus, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Dashboard = () => {
+  const { t } = useLanguage();
   const pendingHours = extraHoursRequests.filter((r) => r.status === "pending");
   const pendingStaff = extraStaffRequests.filter((r) => r.status === "pending");
 
@@ -13,21 +15,21 @@ const Dashboard = () => {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Overview of staff and pending approvals</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("dashboard.title")}</h1>
+          <p className="text-muted-foreground">{t("dashboard.subtitle")}</p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard title="Total Staff" value={staffMembers.length} icon={<Users className="h-5 w-5" />} description="Active employees" />
-          <StatCard title="Pending Extra Hours" value={pendingHours.length} icon={<Clock className="h-5 w-5" />} description="Awaiting approval" />
-          <StatCard title="Pending Extra Staff" value={pendingStaff.length} icon={<UserPlus className="h-5 w-5" />} description="Awaiting approval" />
-          <StatCard title="Total Pending" value={pendingHours.length + pendingStaff.length} icon={<AlertCircle className="h-5 w-5" />} description="Action required" />
+          <StatCard title={t("dashboard.totalStaff")} value={staffMembers.length} icon={<Users className="h-5 w-5" />} description={t("dashboard.activeEmployees")} />
+          <StatCard title={t("dashboard.pendingHours")} value={pendingHours.length} icon={<Clock className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} />
+          <StatCard title={t("dashboard.pendingStaff")} value={pendingStaff.length} icon={<UserPlus className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} />
+          <StatCard title={t("dashboard.totalPending")} value={pendingHours.length + pendingStaff.length} icon={<AlertCircle className="h-5 w-5" />} description={t("dashboard.actionRequired")} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg">Recent Extra Hours Requests</CardTitle>
+              <CardTitle className="text-lg">{t("dashboard.recentExtraHours")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {extraHoursRequests.slice(0, 4).map((req) => (
@@ -44,14 +46,14 @@ const Dashboard = () => {
 
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg">Recent Extra Staff Requests</CardTitle>
+              <CardTitle className="text-lg">{t("dashboard.recentExtraStaff")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {extraStaffRequests.slice(0, 4).map((req) => (
                 <div key={req.id} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div>
                     <p className="font-medium text-sm">{req.department} — {req.shift}</p>
-                    <p className="text-xs text-muted-foreground">{req.numberOfStaff} staff · {req.date}</p>
+                    <p className="text-xs text-muted-foreground">{req.numberOfStaff} {t("common.staff")} · {req.date}</p>
                   </div>
                   <StatusBadge status={req.status} />
                 </div>

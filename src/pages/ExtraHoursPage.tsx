@@ -11,10 +11,12 @@ import { extraHoursRequests as initialRequests, staffMembers } from "@/lib/mock-
 import { ExtraHoursRequest, Department, ApprovalStatus } from "@/lib/types";
 import { Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const departments: Department[] = ["Front Desk", "Housekeeping", "F&B", "Kitchen", "Maintenance", "Security", "Spa", "Management"];
 
 const ExtraHoursPage = () => {
+  const { t } = useLanguage();
   const [requests, setRequests] = useState<ExtraHoursRequest[]>(initialRequests);
   const [staffId, setStaffId] = useState("");
   const [department, setDepartment] = useState<Department | "">("");
@@ -26,7 +28,7 @@ const ExtraHoursPage = () => {
     e.preventDefault();
     const staff = staffMembers.find((s) => s.id === staffId);
     if (!staff || !department || !date || !hours || !reason) {
-      toast.error("Please fill in all fields");
+      toast.error(t("extraHours.fillAll"));
       return;
     }
     const newRequest: ExtraHoursRequest = {
@@ -42,60 +44,60 @@ const ExtraHoursPage = () => {
     };
     setRequests((prev) => [newRequest, ...prev]);
     setStaffId(""); setDepartment(""); setDate(""); setHours(""); setReason("");
-    toast.success("Extra hours request submitted");
+    toast.success(t("extraHours.submitted"));
   };
 
   const updateStatus = (id: string, status: ApprovalStatus) => {
     setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    toast.success(`Request ${status}`);
+    toast.success(`${t("common." + status)}`);
   };
 
   return (
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Extra Hours Requests</h1>
-          <p className="text-muted-foreground">Submit and manage overtime approvals</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("extraHours.title")}</h1>
+          <p className="text-muted-foreground">{t("extraHours.subtitle")}</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-1 animate-fade-in">
-            <CardHeader><CardTitle className="text-lg">New Request</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">{t("extraHours.newRequest")}</CardTitle></CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Staff Member</Label>
+                  <Label>{t("extraHours.staffMember")}</Label>
                   <Select value={staffId} onValueChange={setStaffId}>
-                    <SelectTrigger><SelectValue placeholder="Select staff" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("extraHours.selectStaff")} /></SelectTrigger>
                     <SelectContent>{staffMembers.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Department</Label>
+                  <Label>{t("extraHours.department")}</Label>
                   <Select value={department} onValueChange={(v) => setDepartment(v as Department)}>
-                    <SelectTrigger><SelectValue placeholder="Select department" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("extraHours.selectDept")} /></SelectTrigger>
                     <SelectContent>{departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Date</Label>
+                  <Label>{t("extraHours.date")}</Label>
                   <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Extra Hours</Label>
+                  <Label>{t("extraHours.hours")}</Label>
                   <Input type="number" min="1" max="12" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="e.g. 3" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Reason</Label>
-                  <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why are extra hours needed?" rows={3} />
+                  <Label>{t("extraHours.reason")}</Label>
+                  <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("extraHours.reasonPlaceholder")} rows={3} />
                 </div>
-                <Button type="submit" className="w-full">Submit Request</Button>
+                <Button type="submit" className="w-full">{t("extraHours.submit")}</Button>
               </form>
             </CardContent>
           </Card>
 
           <Card className="lg:col-span-2 animate-fade-in">
-            <CardHeader><CardTitle className="text-lg">All Requests</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">{t("extraHours.allRequests")}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               {requests.map((req) => (
                 <div key={req.id} className="flex items-center justify-between py-3 border-b last:border-0">
