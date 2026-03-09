@@ -19,7 +19,7 @@ import {
 
 const ForecastPage = () => {
   const navigate = useNavigate();
-  const { forecast, setForecast } = useForecast();
+  const { forecast, loading: forecastLoading, saveForecast, clearForecast } = useForecast();
   const { t } = useLanguage();
   const { isManager } = useUserRole();
   const [isDragging, setIsDragging] = useState(false);
