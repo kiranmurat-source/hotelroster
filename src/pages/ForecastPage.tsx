@@ -117,7 +117,13 @@ const ForecastPage = () => {
           )}
         </div>
 
-        {!forecast ? (
+        {forecastLoading ? (
+          <Card className="animate-fade-in">
+            <CardContent className="p-8 text-center">
+              <p className="text-muted-foreground">{t("forecast.loading") || "Loading forecast data..."}</p>
+            </CardContent>
+          </Card>
+        ) : !forecast ? (
           isManager ? (
             <Card className="animate-fade-in">
               <CardContent className="p-0">
