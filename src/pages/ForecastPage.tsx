@@ -19,7 +19,7 @@ import {
 
 const ForecastPage = () => {
   const navigate = useNavigate();
-  const { forecast, setForecast } = useForecast();
+  const { forecast, loading: forecastLoading, saveForecast, clearForecast } = useForecast();
   const { t } = useLanguage();
   const { isManager } = useUserRole();
   const [isDragging, setIsDragging] = useState(false);
@@ -37,7 +37,7 @@ const ForecastPage = () => {
     try {
       const buffer = await file.arrayBuffer();
       const result = parseExcelForecast(buffer);
-      setForecast(result);
+      await saveForecast(result);
       toast.success(t("forecast.loaded").replace("{count}", String(result.days.length)));
     } catch (err) {
       toast.error(t("forecast.parseFailed"));
@@ -108,7 +108,7 @@ const ForecastPage = () => {
                 {t("forecast.downloadTemplate")}
               </Button>
               {forecast && (
-                <Button variant="ghost" size="sm" onClick={() => setForecast(null)}>
+                <Button variant="ghost" size="sm" onClick={() => clearForecast()}>
                   <X className="h-4 w-4 mr-1.5" />
                   {t("forecast.clear")}
                 </Button>
@@ -117,7 +117,13 @@ const ForecastPage = () => {
           )}
         </div>
 
-        {!forecast ? (
+        {forecastLoading ? (
+          <Card className="animate-fade-in">
+            <CardContent className="p-8 text-center">
+              <p className="text-muted-foreground">{t("forecast.loading") || "Loading forecast data..."}</p>
+            </CardContent>
+          </Card>
+        ) : !forecast ? (
           isManager ? (
             <Card className="animate-fade-in">
               <CardContent className="p-0">

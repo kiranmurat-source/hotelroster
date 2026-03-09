@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      forecasts: {
+        Row: {
+          created_at: string
+          days: Json
+          end_date: string
+          id: string
+          start_date: string
+          uploaded_at: string
+          user_id: string
+          week_label: string
+        }
+        Insert: {
+          created_at?: string
+          days: Json
+          end_date: string
+          id?: string
+          start_date: string
+          uploaded_at?: string
+          user_id: string
+          week_label: string
+        }
+        Update: {
+          created_at?: string
+          days?: Json
+          end_date?: string
+          id?: string
+          start_date?: string
+          uploaded_at?: string
+          user_id?: string
+          week_label?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
