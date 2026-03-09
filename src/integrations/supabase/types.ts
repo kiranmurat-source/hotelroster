@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      extra_hours_requests: {
+        Row: {
+          created_at: string
+          date: string
+          department: string
+          hours: number
+          id: string
+          reason: string
+          staff_id: string
+          staff_name: string
+          status: string
+          submitted_at: string
+          submitted_by: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          department: string
+          hours: number
+          id?: string
+          reason: string
+          staff_id: string
+          staff_name: string
+          status?: string
+          submitted_at?: string
+          submitted_by: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          department?: string
+          hours?: number
+          id?: string
+          reason?: string
+          staff_id?: string
+          staff_name?: string
+          status?: string
+          submitted_at?: string
+          submitted_by?: string
+        }
+        Relationships: []
+      }
+      extra_staff_requests: {
+        Row: {
+          created_at: string
+          date: string
+          department: string
+          id: string
+          number_of_staff: number
+          reason: string
+          requested_by: string
+          shift: string
+          status: string
+          submitted_at: string
+          submitted_by: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          department: string
+          id?: string
+          number_of_staff: number
+          reason: string
+          requested_by: string
+          shift: string
+          status?: string
+          submitted_at?: string
+          submitted_by: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          department?: string
+          id?: string
+          number_of_staff?: number
+          reason?: string
+          requested_by?: string
+          shift?: string
+          status?: string
+          submitted_at?: string
+          submitted_by?: string
+        }
+        Relationships: []
+      }
       forecasts: {
         Row: {
           created_at: string
