@@ -37,7 +37,7 @@ const ForecastPage = () => {
     try {
       const buffer = await file.arrayBuffer();
       const result = parseExcelForecast(buffer);
-      setForecast(result);
+      await saveForecast(result);
       toast.success(t("forecast.loaded").replace("{count}", String(result.days.length)));
     } catch (err) {
       toast.error(t("forecast.parseFailed"));
