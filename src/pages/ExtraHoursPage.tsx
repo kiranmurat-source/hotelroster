@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppLayout from "@/components/AppLayout";
 import StatusBadge from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,69 +7,114 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { extraHoursRequests as initialRequests, staffMembers } from "@/lib/mock-data";
-import { ExtraHoursRequest, Department, ApprovalStatus } from "@/lib/types";
-import { Check, X, ShieldAlert } from "lucide-react";
+import { staffMembers } from "@/lib/mock-data";
+import { Department, ApprovalStatus } from "@/lib/types";
+import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const departments: Department[] = ["Front Desk", "Housekeeping", "F&B", "Kitchen", "Maintenance", "Security", "Spa", "Management"];
+
+interface DbExtraHoursRequest {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  department: string;
+  date: string;
+  hours: number;
+  reason: string;
+  status: string;
+  submitted_at: string;
+  submitted_by: string;
+}
 
 const ExtraHoursPage = () => {
   const { t } = useLanguage();
   const { isManager, isAdmin } = useUserRole();
   const { userDepartment } = useUserProfile();
+  const { user } = useAuth();
   const canApprove = isManager || isAdmin;
 
-  const [requests, setRequests] = useState<ExtraHoursRequest[]>(initialRequests);
+  const [requests, setRequests] = useState<DbExtraHoursRequest[]>([]);
+  const [loading, setLoading] = useState(true);
   const [staffId, setStaffId] = useState("");
   const [department, setDepartment] = useState<Department | "">("");
   const [date, setDate] = useState("");
   const [hours, setHours] = useState("");
   const [reason, setReason] = useState("");
 
-  // Staff only sees their department's requests; managers/admins see all
+  const fetchRequests = async () => {
+    const { data, error } = await supabase
+      .from("extra_hours_requests")
+      .select("*")
+      .order("submitted_at", { ascending: false });
+    if (error) {
+      console.error("Error fetching extra hours requests:", error);
+    } else {
+      setRequests(data || []);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
   const filteredRequests = canApprove
     ? requests
     : requests.filter((r) => !userDepartment || r.department === userDepartment);
 
-  // Staff only sees staff from their department
   const filteredStaff = canApprove
     ? staffMembers
     : staffMembers.filter((s) => !userDepartment || s.department === userDepartment);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const staff = staffMembers.find((s) => s.id === staffId);
-    if (!staff || !department || !date || !hours || !reason) {
+    if (!staff || !department || !date || !hours || !reason || !user) {
       toast.error(t("extraHours.fillAll"));
       return;
     }
-    const newRequest: ExtraHoursRequest = {
-      id: `eh-${Date.now()}`,
-      staffId,
-      staffName: staff.name,
-      department: department as Department,
+    const { error } = await supabase.from("extra_hours_requests").insert({
+      staff_id: staffId,
+      staff_name: staff.name,
+      department: department as string,
       date,
       hours: Number(hours),
       reason,
       status: "pending",
-      submittedAt: new Date().toISOString(),
-    };
-    setRequests((prev) => [newRequest, ...prev]);
+      submitted_by: user.id,
+    });
+    if (error) {
+      toast.error("Failed to submit request");
+      console.error(error);
+      return;
+    }
     setStaffId(""); setDepartment(""); setDate(""); setHours(""); setReason("");
     toast.success(t("extraHours.submitted"));
+    fetchRequests();
   };
 
-  const updateStatus = (id: string, status: ApprovalStatus) => {
+  const updateStatus = async (id: string, status: ApprovalStatus) => {
     if (!canApprove) {
       toast.error(t("permissions.cannotApprove"));
       return;
     }
-    setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    const { error } = await supabase
+      .from("extra_hours_requests")
+      .update({ status })
+      .eq("id", id);
+    if (error) {
+      toast.error("Failed to update status");
+      console.error(error);
+      return;
+    }
     toast.success(`${t("common." + status)}`);
+    fetchRequests();
   };
 
   return (
@@ -123,18 +168,19 @@ const ExtraHoursPage = () => {
           <Card className="lg:col-span-2 animate-fade-in">
             <CardHeader><CardTitle className="text-lg">{t("extraHours.allRequests")}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {filteredRequests.length === 0 && (
+              {loading && <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>}
+              {!loading && filteredRequests.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">{t("permissions.noRequests")}</p>
               )}
               {filteredRequests.map((req) => (
                 <div key={req.id} className="flex items-center justify-between py-3 border-b last:border-0">
                   <div className="space-y-1">
-                    <p className="font-medium text-sm">{req.staffName}</p>
+                    <p className="font-medium text-sm">{req.staff_name}</p>
                     <p className="text-xs text-muted-foreground">{req.department} · {req.hours}h · {req.date}</p>
                     <p className="text-xs text-muted-foreground">{req.reason}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 ml-4">
-                    <StatusBadge status={req.status} />
+                    <StatusBadge status={req.status as ApprovalStatus} />
                     {req.status === "pending" && canApprove && (
                       <>
                         <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:text-success" onClick={() => updateStatus(req.id, "approved")}>
