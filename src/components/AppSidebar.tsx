@@ -59,9 +59,7 @@ const AppSidebar = () => {
   return (
     <aside className="hidden md:flex flex-col w-64 bg-primary min-h-screen p-4 gap-1">
       <div className="px-3 py-4 mb-4">
-        <h1 className="text-xl font-bold text-primary-foreground tracking-tight">
-          Hotel<span className="text-accent">Roster</span>
-        </h1>
+        <img src={muninnLogo} alt="Muninn" className="h-8 brightness-0 invert" />
         <p className="text-xs text-primary-foreground/60 mt-1">{t("nav.staffMgmt")}</p>
       </div>
       <nav className="flex flex-col gap-1 flex-1">
