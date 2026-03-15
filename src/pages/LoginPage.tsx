@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { LogIn, Hotel } from "lucide-react";
+import { LogIn } from "lucide-react";
+import muninnLogo from "@/assets/muninn-logo.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
 
@@ -48,11 +49,8 @@ const LoginPage = () => {
           <LanguageToggle variant="login" />
         </div>
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <Hotel className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">
-              Hotel<span className="text-accent">Roster</span>
-            </h1>
+          <div className="inline-flex items-center justify-center mb-2">
+            <img src={muninnLogo} alt="Muninn" className="h-12" />
           </div>
           <p className="text-muted-foreground">{t("login.subtitle")}</p>
         </div>
