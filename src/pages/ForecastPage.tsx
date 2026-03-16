@@ -164,7 +164,7 @@ const ForecastPage = () => {
         ) : (
           <>
             {/* Summary stats */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               <Card className="animate-fade-in">
                 <CardContent className="p-5 flex items-center gap-4">
                   <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
@@ -184,6 +184,28 @@ const ForecastPage = () => {
                   <div>
                     <p className="text-2xl font-bold">{totalBookings.toLocaleString()}</p>
                     <p className="text-xs text-muted-foreground">{t("forecast.totalRoomNights")}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="animate-fade-in">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-secondary-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{totalGuests.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.totalGuests")}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="animate-fade-in">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                    <Coffee className="h-5 w-5 text-warning" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{totalBreakfast.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.totalBreakfast")}</p>
                   </div>
                 </CardContent>
               </Card>
