@@ -33,6 +33,7 @@ const navItems: NavItem[] = [
   { to: "/extra-hours", labelKey: "nav.extraHours", icon: Clock },
   { to: "/extra-staff", labelKey: "nav.extraStaff", icon: UserPlus, minRole: "manager" },
   { to: "/reports", labelKey: "nav.reports", icon: FileText, minRole: "manager" },
+  { to: "/recognition", labelKey: "nav.recognition", icon: Star },
   { to: "/admin", labelKey: "nav.admin", icon: Shield, minRole: "admin" },
 ];
 
