@@ -15,6 +15,7 @@ import {
   LogOut,
   Shield,
   FileText,
+  Star,
 } from "lucide-react";
 
 interface NavItem {
