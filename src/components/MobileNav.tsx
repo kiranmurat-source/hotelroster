@@ -50,7 +50,6 @@ const MobileNav = () => {
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50 flex justify-around py-2">
       {visibleItems.map((item) => {
         const isActive = location.pathname === item.to;
-        // Use short labels for mobile
         const label = t(item.labelKey);
         const shortLabel = label.length > 8 ? label.substring(0, 7) + "…" : label;
         return (

@@ -16,17 +16,10 @@ import { supabase } from "@/integrations/supabase/client";
 const CATEGORIES = ["Teamwork", "Guest Service", "Leadership", "Above & Beyond"] as const;
 
 const categoryColors: Record<string, string> = {
-  "Teamwork": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  "Guest Service": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  "Leadership": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  "Above & Beyond": "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-};
-
-const categoryBorderColors: Record<string, string> = {
-  "Teamwork": "border-l-blue-500",
-  "Guest Service": "border-l-green-500",
-  "Leadership": "border-l-purple-500",
-  "Above & Beyond": "border-l-amber-500",
+  "Teamwork": "bg-primary/20 text-primary-foreground",
+  "Guest Service": "bg-success/20 text-success",
+  "Leadership": "bg-accent/20 text-accent",
+  "Above & Beyond": "bg-warning/20 text-warning",
 };
 
 interface Profile {
@@ -79,9 +72,9 @@ function getInitials(name: string | null): string {
 }
 
 const medalStyles = [
-  "bg-amber-100 text-amber-700 ring-2 ring-amber-400/50",    // gold
-  "bg-gray-100 text-gray-600 ring-2 ring-gray-400/50",       // silver
-  "bg-orange-100 text-orange-700 ring-2 ring-orange-400/50",  // bronze
+  "bg-warning/20 text-warning ring-2 ring-warning/40",     // gold
+  "bg-muted text-muted-foreground ring-2 ring-border",     // silver
+  "bg-accent/20 text-accent ring-2 ring-accent/40",        // bronze
 ];
 
 const RecognitionPage = () => {
@@ -105,7 +98,6 @@ const RecognitionPage = () => {
     return profileMap.get(userId)?.display_name || "Unknown";
   }, [profileMap]);
 
-  // Fetch all data
   const fetchData = useCallback(async () => {
     const [profilesRes, kudosRes, badgesRes] = await Promise.all([
       supabase.from("profiles").select("user_id, display_name, avatar_url"),
@@ -117,7 +109,6 @@ const RecognitionPage = () => {
     if (kudosRes.data) setKudosList(kudosRes.data as KudosItem[]);
     if (badgesRes.data) setAllBadges(badgesRes.data as BadgeItem[]);
 
-    // Leaderboard: current month
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     
@@ -143,7 +134,6 @@ const RecognitionPage = () => {
       setLeaderboard(entries);
     }
 
-    // My badges
     if (user) {
       const { data: earned } = await supabase
         .from("staff_badges")
@@ -157,7 +147,6 @@ const RecognitionPage = () => {
     fetchData();
   }, [fetchData]);
 
-  // Real-time subscription for kudos
   useEffect(() => {
     const channel = supabase
       .channel("kudos-realtime")
@@ -205,18 +194,16 @@ const RecognitionPage = () => {
       <div className="space-y-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Star className="h-6 w-6 text-amber-500" />
+            <Star className="h-6 w-6 text-accent" />
             {t("recognition.title")}
           </h1>
           <p className="text-muted-foreground">{t("recognition.subtitle")}</p>
         </div>
 
-        {/* Top section: Form + Feed */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Send Kudos Form */}
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 border-l-2 border-accent pl-3">
+              <CardTitle className="text-lg flex items-center gap-2">
                 <Send className="h-4 w-4" />
                 {t("recognition.sendKudos")}
               </CardTitle>
@@ -269,10 +256,9 @@ const RecognitionPage = () => {
             </CardContent>
           </Card>
 
-          {/* Activity Feed */}
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg border-l-2 border-accent pl-3">{t("recognition.activityFeed")}</CardTitle>
+              <CardTitle className="text-lg">{t("recognition.activityFeed")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-0 max-h-[420px] overflow-y-auto">
               {kudosList.length === 0 && (
@@ -282,9 +268,9 @@ const RecognitionPage = () => {
                 </div>
               )}
               {kudosList.map(k => (
-                <div key={k.id} className={`flex items-start gap-3 py-3 border-b last:border-0 border-l-3 pl-3 ${categoryBorderColors[k.category] || "border-l-transparent"}`}>
+                <div key={k.id} className="flex items-start gap-3 py-3 border-b last:border-0">
                   <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarFallback className="text-xs">{getInitials(getName(k.from_user_id))}</AvatarFallback>
+                    <AvatarFallback className="text-xs bg-secondary">{getInitials(getName(k.from_user_id))}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm">
@@ -306,13 +292,11 @@ const RecognitionPage = () => {
           </Card>
         </div>
 
-        {/* Bottom section: Leaderboard + My Badges */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Leaderboard */}
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 border-l-2 border-accent pl-3">
-                <Trophy className="h-4 w-4 text-amber-500" />
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Trophy className="h-4 w-4 text-accent" />
                 {t("recognition.leaderboard")}
               </CardTitle>
             </CardHeader>
@@ -343,11 +327,10 @@ const RecognitionPage = () => {
             </CardContent>
           </Card>
 
-          {/* My Badges */}
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 border-l-2 border-accent pl-3">
-                <Award className="h-4 w-4 text-primary" />
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Award className="h-4 w-4 text-accent" />
                 {t("recognition.myBadges")}
               </CardTitle>
             </CardHeader>
@@ -359,10 +342,10 @@ const RecognitionPage = () => {
                     <div
                       key={badge.id}
                       className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all ${
-                        earned ? "border-primary/30 bg-primary/5 shadow-sm" : "opacity-40 grayscale"
+                        earned ? "border-accent/30 bg-accent/5" : "opacity-40 grayscale"
                       }`}
                     >
-                      <Star className={`h-8 w-8 ${earned ? "text-amber-500" : "text-muted-foreground"}`} />
+                      <Star className={`h-8 w-8 ${earned ? "text-accent" : "text-muted-foreground"}`} />
                       <span className="text-xs font-semibold">{badge.name}</span>
                       <span className="text-[10px] text-muted-foreground">{badge.threshold_points} pts</span>
                     </div>

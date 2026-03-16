@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 const statusStyles: Record<ApprovalStatus, string> = {
   pending: "bg-warning/15 text-warning",
   approved: "bg-success/15 text-success",
-  rejected: "bg-destructive/15 text-destructive",
+  rejected: "bg-muted text-muted-foreground",
 };
 
 const StatusBadge = ({ status }: { status: ApprovalStatus }) => (

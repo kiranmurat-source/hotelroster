@@ -73,14 +73,14 @@ const ForecastPage = () => {
   };
 
   const getOccupancyColor = (rate: number) => {
-    if (rate >= 90) return "hsl(0, 72%, 51%)";
-    if (rate >= 75) return "hsl(38, 92%, 50%)";
-    return "hsl(152, 60%, 40%)";
+    if (rate >= 90) return "hsl(var(--warning))";
+    if (rate >= 75) return "hsl(var(--accent))";
+    return "hsl(var(--success))";
   };
 
   const getOccupancyBadge = (rate: number) => {
-    if (rate >= 90) return { label: t("forecast.critical"), className: "bg-destructive/15 text-destructive" };
-    if (rate >= 75) return { label: t("forecast.high"), className: "bg-warning/15 text-warning" };
+    if (rate >= 90) return { label: t("forecast.critical"), className: "bg-warning/15 text-warning" };
+    if (rate >= 75) return { label: t("forecast.high"), className: "bg-accent/15 text-accent" };
     return { label: t("forecast.normal"), className: "bg-success/15 text-success" };
   };
 
@@ -179,7 +179,7 @@ const ForecastPage = () => {
               <Card className="animate-fade-in">
                 <CardContent className="p-5 flex items-center gap-4">
                   <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <BedDouble className="h-5 w-5 text-primary" />
+                    <BedDouble className="h-5 w-5 text-primary-foreground" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{totalBookings.toLocaleString()}</p>
@@ -189,8 +189,8 @@ const ForecastPage = () => {
               </Card>
               <Card className="animate-fade-in">
                 <CardContent className="p-5 flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-secondary-foreground" />
+                  <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
+                    <Users className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{totalGuests.toLocaleString()}</p>
@@ -222,8 +222,8 @@ const ForecastPage = () => {
               </Card>
               <Card className="animate-fade-in">
                 <CardContent className="p-5 flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-                    <CalendarDays className="h-5 w-5 text-destructive" />
+                  <div className="h-10 w-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                    <CalendarDays className="h-5 w-5 text-warning" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{peakDay?.dayLabel}</p>
@@ -240,19 +240,20 @@ const ForecastPage = () => {
                 <p className="text-xs text-muted-foreground">{t("forecast.chartHint")}</p>
               </CardHeader>
               <CardContent>
-                <div className="h-64">
+                <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={forecast.days} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis dataKey="dayLabel" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                      <YAxis yAxisId="left" domain={[0, 100]} className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v}%`} />
-                      <YAxis yAxisId="right" orientation="right" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="dayLabel" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+                      <YAxis yAxisId="left" domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
+                      <YAxis yAxisId="right" orientation="right" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "hsl(var(--card))",
                           border: "1px solid hsl(var(--border))",
                           borderRadius: "8px",
                           fontSize: "12px",
+                          color: "hsl(var(--foreground))",
                         }}
                         formatter={(value: number, name: string) => {
                           if (name === "occupancyRate") return [`${value}%`, t("forecast.occupancy")];
@@ -274,8 +275,8 @@ const ForecastPage = () => {
                           <Cell key={i} fill={getOccupancyColor(day.occupancyRate)} />
                         ))}
                       </Bar>
-                      <Line yAxisId="right" type="monotone" dataKey="arrivals" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
-                      <Line yAxisId="right" type="monotone" dataKey="departures" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 4 }} strokeDasharray="5 5" />
+                      <Line yAxisId="right" type="monotone" dataKey="arrivals" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
+                      <Line yAxisId="right" type="monotone" dataKey="departures" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--accent))" }} strokeDasharray="5 5" />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
@@ -314,7 +315,7 @@ const ForecastPage = () => {
                         <div
                           key={day.date}
                           onDoubleClick={() => handleDayDoubleClick(day.date)}
-                          className="border rounded-lg p-4 space-y-2 hover:shadow-sm transition-shadow cursor-pointer"
+                          className="border rounded-lg p-4 space-y-2 hover:border-accent/50 transition-colors cursor-pointer"
                           title={t("forecast.doubleClickHint")}
                         >
                           <div className="flex items-center justify-between">

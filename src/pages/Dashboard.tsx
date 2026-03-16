@@ -14,7 +14,6 @@ const Dashboard = () => {
   const { userDepartment } = useUserProfile();
   const canSeeAll = isManager || isAdmin;
 
-  // Filter data by department for staff users
   const visibleStaff = canSeeAll
     ? staffMembers
     : staffMembers.filter((s) => !userDepartment || s.department === userDepartment);
@@ -39,16 +38,16 @@ const Dashboard = () => {
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard title={t("dashboard.totalStaff")} value={visibleStaff.length} icon={<Users className="h-5 w-5" />} description={t("dashboard.activeEmployees")} accentColor="border-l-blue-500" trend="up" />
-          <StatCard title={t("dashboard.pendingHours")} value={pendingHours.length} icon={<Clock className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} accentColor="border-l-green-500" trend={pendingHours.length > 0 ? "up" : "down"} />
-          <StatCard title={t("dashboard.pendingStaff")} value={pendingStaff.length} icon={<UserPlus className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} accentColor="border-l-amber-500" trend={pendingStaff.length > 0 ? "up" : "down"} />
-          <StatCard title={t("dashboard.totalPending")} value={pendingHours.length + pendingStaff.length} icon={<AlertCircle className="h-5 w-5" />} description={t("dashboard.actionRequired")} accentColor="border-l-purple-500" />
+          <StatCard title={t("dashboard.totalStaff")} value={visibleStaff.length} icon={<Users className="h-5 w-5" />} description={t("dashboard.activeEmployees")} trend="up" />
+          <StatCard title={t("dashboard.pendingHours")} value={pendingHours.length} icon={<Clock className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} trend={pendingHours.length > 0 ? "up" : "down"} />
+          <StatCard title={t("dashboard.pendingStaff")} value={pendingStaff.length} icon={<UserPlus className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} trend={pendingStaff.length > 0 ? "up" : "down"} />
+          <StatCard title={t("dashboard.totalPending")} value={pendingHours.length + pendingStaff.length} icon={<AlertCircle className="h-5 w-5" />} description={t("dashboard.actionRequired")} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg border-l-2 border-accent pl-3">{t("dashboard.recentExtraHours")}</CardTitle>
+              <CardTitle className="text-lg">{t("dashboard.recentExtraHours")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {visibleHoursRequests.length === 0 && (
@@ -71,7 +70,7 @@ const Dashboard = () => {
 
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg border-l-2 border-accent pl-3">{t("dashboard.recentExtraStaff")}</CardTitle>
+              <CardTitle className="text-lg">{t("dashboard.recentExtraStaff")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {visibleStaffRequests.length === 0 && (

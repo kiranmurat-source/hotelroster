@@ -38,7 +38,7 @@ const navItems: NavItem[] = [
 ];
 
 const roleBadgeColors: Record<AppRole, string> = {
-  admin: "bg-destructive/20 text-destructive",
+  admin: "bg-warning/20 text-warning",
   manager: "bg-accent/20 text-accent",
   staff: "bg-muted text-muted-foreground",
 };
@@ -59,10 +59,10 @@ const AppSidebar = () => {
   const displayRole = isAdmin ? "admin" : isManager ? "manager" : "staff";
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-primary min-h-screen p-4 gap-1">
+    <aside className="hidden md:flex flex-col w-64 bg-sidebar min-h-screen p-4 gap-1">
       <div className="px-3 py-5 mb-6">
         <img src={muninnLogo} alt="Muninn" className="h-10 brightness-0 invert" />
-        <p className="text-sm font-medium text-primary-foreground/80 mt-2 tracking-wide">{t("nav.staffMgmt")}</p>
+        <p className="text-sm font-medium text-sidebar-foreground/80 mt-2 tracking-wide">{t("nav.staffMgmt")}</p>
       </div>
       <nav className="flex flex-col gap-0.5 flex-1">
         {visibleItems.map((item) => {
@@ -74,8 +74,8 @@ const AppSidebar = () => {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground border-l-3 border-sidebar-ring font-semibold shadow-sm"
-                  : "text-primary-foreground/70 hover:text-primary-foreground hover:bg-sidebar-accent/50 border-l-3 border-transparent"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground border-l-3 border-sidebar-ring font-semibold"
+                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 border-l-3 border-transparent"
               )}
             >
               <item.icon className="h-[18px] w-[18px] shrink-0" />
@@ -84,13 +84,13 @@ const AppSidebar = () => {
           );
         })}
       </nav>
-      <div className="mt-auto border-t border-primary-foreground/15 pt-4 space-y-3">
+      <div className="mt-auto border-t border-sidebar-border pt-4 space-y-3">
         <div className="px-3">
           <LanguageToggle />
         </div>
         {user && (
           <div className="px-3">
-            <p className="text-xs text-primary-foreground/50 truncate">
+            <p className="text-xs text-sidebar-foreground/50 truncate">
               {user.email}
             </p>
             <span className={cn("inline-flex items-center gap-1 mt-1 text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full", roleBadgeColors[displayRole])}>
@@ -101,7 +101,7 @@ const AppSidebar = () => {
         )}
         <button
           onClick={signOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-primary-foreground/70 hover:text-primary-foreground hover:bg-sidebar-accent/50 transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors w-full"
         >
           <LogOut className="h-[18px] w-[18px] shrink-0" />
           {t("nav.signOut")}
