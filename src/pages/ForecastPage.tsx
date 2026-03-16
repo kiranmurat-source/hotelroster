@@ -73,14 +73,12 @@ const ForecastPage = () => {
   };
 
   const getOccupancyColor = (rate: number) => {
-    if (rate >= 90) return "hsl(var(--warning))";
-    if (rate >= 75) return "hsl(var(--accent))";
+    if (rate >= 85) return "hsl(var(--danger))";
     return "hsl(var(--success))";
   };
 
   const getOccupancyBadge = (rate: number) => {
-    if (rate >= 90) return { label: t("forecast.critical"), className: "bg-warning/15 text-warning" };
-    if (rate >= 75) return { label: t("forecast.high"), className: "bg-accent/15 text-accent" };
+    if (rate >= 85) return { label: t("forecast.critical"), className: "bg-[hsl(0,80%,75%)]/15 text-[hsl(0,80%,75%)]" };
     return { label: t("forecast.normal"), className: "bg-success/15 text-success" };
   };
 
