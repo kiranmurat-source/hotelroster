@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { parseExcelForecast, generateSampleExcel } from "@/lib/parse-forecast";
 import { useForecast } from "@/contexts/ForecastContext";
 import { cn } from "@/lib/utils";
-import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut, LayoutGrid, Table as TableIcon, Users, Coffee } from "lucide-react";
 import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } from "@/components/ui/table";
@@ -84,11 +84,16 @@ const ForecastPage = () => {
     return { label: t("forecast.normal"), className: "bg-success/15 text-success" };
   };
 
+  const calcGuests = (roomNights: number) => Math.round(roomNights * 1.8);
+  const calcBreakfast = (guests: number) => Math.ceil(guests * 0.8);
+
   const avgOccupancy = forecast
     ? Math.round(forecast.days.reduce((sum, d) => sum + d.occupancyRate, 0) / forecast.days.length)
     : 0;
   const totalBookings = forecast ? forecast.days.reduce((sum, d) => sum + d.roomNights, 0) : 0;
   const totalEvents = forecast ? forecast.days.reduce((sum, d) => sum + d.events.length, 0) : 0;
+  const totalGuests = forecast ? forecast.days.reduce((sum, d) => sum + calcGuests(d.roomNights), 0) : 0;
+  const totalBreakfast = forecast ? forecast.days.reduce((sum, d) => sum + calcBreakfast(calcGuests(d.roomNights)), 0) : 0;
   const peakDay = forecast
     ? forecast.days.reduce((max, d) => (d.occupancyRate > max.occupancyRate ? d : max), forecast.days[0])
     : null;
@@ -159,7 +164,7 @@ const ForecastPage = () => {
         ) : (
           <>
             {/* Summary stats */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               <Card className="animate-fade-in">
                 <CardContent className="p-5 flex items-center gap-4">
                   <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
@@ -179,6 +184,28 @@ const ForecastPage = () => {
                   <div>
                     <p className="text-2xl font-bold">{totalBookings.toLocaleString()}</p>
                     <p className="text-xs text-muted-foreground">{t("forecast.totalRoomNights")}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="animate-fade-in">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-secondary-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{totalGuests.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.totalGuests")}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="animate-fade-in">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                    <Coffee className="h-5 w-5 text-warning" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{totalBreakfast.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.totalBreakfast")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -326,6 +353,14 @@ const ForecastPage = () => {
                             <span className="text-muted-foreground">{t("forecast.roomNights")}</span>
                             <span className="font-medium">{day.roomNights} / {day.totalRooms}</span>
                           </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">{t("forecast.guests")}</span>
+                            <span className="font-medium">{calcGuests(day.roomNights)}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">{t("forecast.breakfast")}</span>
+                            <span className="font-medium">{calcBreakfast(calcGuests(day.roomNights))}</span>
+                          </div>
                           {day.events.length > 0 && (
                             <div className="pt-1 border-t space-y-1">
                               {day.events.map((ev, i) => (
@@ -351,6 +386,8 @@ const ForecastPage = () => {
                         <TableHead className="text-right">{t("forecast.departures")}</TableHead>
                         <TableHead className="text-right">{t("forecast.roomNights")}</TableHead>
                         <TableHead className="text-right">{t("forecast.totalRooms")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.guests")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.breakfast")}</TableHead>
                         <TableHead>{t("forecast.events")}</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -370,6 +407,8 @@ const ForecastPage = () => {
                             <TableCell className="text-right">{day.departures}</TableCell>
                             <TableCell className="text-right">{day.roomNights}</TableCell>
                             <TableCell className="text-right">{day.totalRooms}</TableCell>
+                            <TableCell className="text-right">{calcGuests(day.roomNights)}</TableCell>
+                            <TableCell className="text-right">{calcBreakfast(calcGuests(day.roomNights))}</TableCell>
                             <TableCell>
                               {day.events.length > 0 ? (
                                 <div className="flex flex-wrap gap-1">

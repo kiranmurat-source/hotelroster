@@ -133,6 +133,10 @@ const translations: Record<Language, Record<string, string>> = {
     "forecast.parseFailed": "Dosya ayrıştırılamadı. Formatı kontrol edip tekrar deneyin.",
     "forecast.invalidFile": "Lütfen bir Excel (.xlsx, .xls) veya CSV dosyası yükleyin",
     "forecast.doubleClickHint": "Personel vardiyasını görmek için çift tıklayın",
+    "forecast.guests": "Müşteri",
+    "forecast.totalGuests": "Toplam Müşteri",
+    "forecast.breakfast": "Kahvaltı",
+    "forecast.totalBreakfast": "Toplam Kahvaltı",
 
     // Staff
     "staff.title": "Personel Rehberi",
@@ -340,6 +344,10 @@ const translations: Record<Language, Record<string, string>> = {
     "forecast.parseFailed": "Failed to parse file. Check the format and try again.",
     "forecast.invalidFile": "Please upload an Excel file (.xlsx, .xls) or CSV",
     "forecast.doubleClickHint": "Double-click to view staff roster",
+    "forecast.guests": "Guests",
+    "forecast.totalGuests": "Total Guests",
+    "forecast.breakfast": "Breakfast",
+    "forecast.totalBreakfast": "Total Breakfast",
 
     // Staff
     "staff.title": "Staff Directory",
