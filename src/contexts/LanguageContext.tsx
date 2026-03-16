@@ -291,6 +291,7 @@ const translations: Record<Language, Record<string, string>> = {
     "dashboard.actionRequired": "Action required",
     "dashboard.recentExtraHours": "Recent Extra Hours Requests",
     "dashboard.recentExtraStaff": "Recent Extra Staff Requests",
+    "dashboard.noRequests": "No requests to display",
 
     // Roster
     "roster.title": "Roster Calendar",
