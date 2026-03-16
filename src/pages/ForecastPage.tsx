@@ -84,11 +84,16 @@ const ForecastPage = () => {
     return { label: t("forecast.normal"), className: "bg-success/15 text-success" };
   };
 
+  const calcGuests = (roomNights: number) => Math.round(roomNights * 1.8);
+  const calcBreakfast = (guests: number) => Math.ceil(guests * 0.8);
+
   const avgOccupancy = forecast
     ? Math.round(forecast.days.reduce((sum, d) => sum + d.occupancyRate, 0) / forecast.days.length)
     : 0;
   const totalBookings = forecast ? forecast.days.reduce((sum, d) => sum + d.roomNights, 0) : 0;
   const totalEvents = forecast ? forecast.days.reduce((sum, d) => sum + d.events.length, 0) : 0;
+  const totalGuests = forecast ? forecast.days.reduce((sum, d) => sum + calcGuests(d.roomNights), 0) : 0;
+  const totalBreakfast = forecast ? forecast.days.reduce((sum, d) => sum + calcBreakfast(calcGuests(d.roomNights)), 0) : 0;
   const peakDay = forecast
     ? forecast.days.reduce((max, d) => (d.occupancyRate > max.occupancyRate ? d : max), forecast.days[0])
     : null;
