@@ -229,6 +229,26 @@ const translations: Record<Language, Record<string, string>> = {
     "permissions.cannotApprove": "Talepleri onaylama yetkiniz yok",
     "permissions.noRequests": "Görüntülenecek talep yok",
     "permissions.accessDenied": "Erişim engellendi",
+
+    // Recognition
+    "recognition.title": "Takdir",
+    "recognition.subtitle": "Ekip arkadaşlarınıza teşekkür edin",
+    "recognition.sendKudos": "Takdir Gönder",
+    "recognition.recipient": "Alıcı",
+    "recognition.selectRecipient": "Kişi seçin",
+    "recognition.category": "Kategori",
+    "recognition.selectCategory": "Kategori seçin",
+    "recognition.message": "Mesaj",
+    "recognition.messagePlaceholder": "Takdirinizi yazın...",
+    "recognition.send": "Gönder",
+    "recognition.sent": "Takdir gönderildi!",
+    "recognition.cantSelfKudos": "Kendinize takdir gönderemezsiniz",
+    "recognition.activityFeed": "Son Aktiviteler",
+    "recognition.noKudos": "Henüz takdir yok",
+    "recognition.leaderboard": "Bu Ayın Liderleri",
+    "recognition.noPoints": "Bu ay henüz puan yok",
+    "recognition.myBadges": "Rozetlerim",
+    "recognition.noBadges": "Rozet bulunamadı",
   },
   en: {
     // Login
