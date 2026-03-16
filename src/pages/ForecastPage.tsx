@@ -386,6 +386,8 @@ const ForecastPage = () => {
                         <TableHead className="text-right">{t("forecast.departures")}</TableHead>
                         <TableHead className="text-right">{t("forecast.roomNights")}</TableHead>
                         <TableHead className="text-right">{t("forecast.totalRooms")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.guests")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.breakfast")}</TableHead>
                         <TableHead>{t("forecast.events")}</TableHead>
                       </TableRow>
                     </TableHeader>
