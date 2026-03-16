@@ -20,10 +20,10 @@ const StaffPage = () => {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {staffMembers.map((staff) => (
-            <Card key={staff.id} className="animate-fade-in hover:shadow-md transition-shadow">
+            <Card key={staff.id} className="animate-fade-in hover:border-accent/30 transition-colors">
               <CardContent className="p-5">
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center text-accent text-sm font-bold shrink-0">
                     {staff.name.split(" ").map((n) => n[0]).join("")}
                   </div>
                   <div className="min-w-0">

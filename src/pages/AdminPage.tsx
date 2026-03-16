@@ -109,7 +109,7 @@ const AdminPage = () => {
   };
 
   const roleBadgeVariant = (r: string) => {
-    if (r === "admin") return "destructive";
+    if (r === "admin") return "default";
     if (r === "manager") return "default";
     return "secondary";
   };

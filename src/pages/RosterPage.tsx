@@ -19,7 +19,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 const shiftConfig: Record<ShiftType, { bg: string; text: string; icon: typeof Sun }> = {
   Morning: { bg: "bg-success/15", text: "text-success", icon: Sun },
   Afternoon: { bg: "bg-accent/15", text: "text-accent", icon: Sunset },
-  Night: { bg: "bg-primary/20", text: "text-primary", icon: Moon },
+  Night: { bg: "bg-primary/20", text: "text-primary-foreground", icon: Moon },
   "Day Off": { bg: "bg-muted", text: "text-muted-foreground", icon: Coffee },
   Break: { bg: "bg-warning/15", text: "text-warning", icon: Timer },
 };
@@ -52,7 +52,6 @@ const RosterPage = () => {
 
   const { isManager } = useUserRole();
 
-  // Navigate to date from query param (e.g. from forecast page)
   useEffect(() => {
     const dateParam = searchParams.get("date");
     if (dateParam) {
@@ -78,10 +77,8 @@ const RosterPage = () => {
 
   const dateLocale = language === "tr" ? "tr-TR" : "en-US";
 
-  // Use uploaded data if available, otherwise mock
   const activeAssignments: ShiftAssignment[] = uploadedRoster?.assignments ?? mockAssignments;
 
-  // Build a date→forecast lookup
   const forecastByDate = useMemo(() => {
     if (!forecast) return {};
     const map: Record<string, { occupancyRate: number; events: string[] }> = {};
@@ -113,7 +110,6 @@ const RosterPage = () => {
       const buffer = await file.arrayBuffer();
       const result = parseExcelRoster(buffer);
       setUploadedRoster(result);
-      // Auto-navigate to first date in upload
       if (result.assignments.length > 0) {
         const firstDate = result.assignments[0].date;
         const d = new Date(firstDate + "T00:00:00");
@@ -177,7 +173,6 @@ const RosterPage = () => {
     return groups;
   }, [selectedAssignments]);
 
-  // Modal data
   const modalAssignments = modalDate
     ? activeAssignments.filter((a) => a.date === modalDate)
     : [];
@@ -201,7 +196,7 @@ const RosterPage = () => {
   };
 
   const resolveStaffName = (assignment: ShiftAssignment) => {
-    if (uploadedRoster) return assignment.staffId; // staffId is the name for uploads
+    if (uploadedRoster) return assignment.staffId;
     const staff = staffMembers.find((s) => s.id === assignment.staffId);
     return staff?.name ?? "Unknown";
   };
@@ -246,7 +241,6 @@ const RosterPage = () => {
           )}
         </div>
 
-        {/* Drop zone — shown when no data or as a compact banner (managers only) */}
         {!uploadedRoster && isManager && (
           <Card className="animate-fade-in">
             <CardContent className="p-0">
@@ -316,18 +310,16 @@ const RosterPage = () => {
                       className={cn(
                         "aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-all relative",
                         "hover:bg-secondary",
-                        isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 ring-2 ring-primary ring-offset-2 ring-offset-background",
+                        isSelected && "bg-accent text-accent-foreground hover:bg-accent/90 ring-2 ring-accent ring-offset-2 ring-offset-background",
                         isToday(day) && !isSelected && "font-bold ring-1 ring-accent",
                         isWeekend && !isSelected && "text-muted-foreground",
-                        !isSelected && isHighOcc && "bg-destructive/10 ring-1 ring-destructive/40",
-                        !isSelected && isMedOcc && !isHighOcc && "bg-warning/10 ring-1 ring-warning/40",
                       )}
                     >
                       {/* Occupancy indicator */}
                       {fc && !isSelected && (
                         <span className={cn(
                           "absolute top-0.5 right-0.5 text-[9px] font-bold",
-                          isHighOcc ? "text-destructive" : isMedOcc ? "text-warning" : "text-muted-foreground"
+                          isHighOcc ? "text-warning" : isMedOcc ? "text-accent" : "text-muted-foreground"
                         )}>
                           {fc.occupancyRate}%
                         </span>
@@ -374,7 +366,7 @@ const RosterPage = () => {
                   <>
                     <span className="text-muted-foreground/40">|</span>
                     <div className="flex items-center gap-1.5 text-xs">
-                      <span className="h-2.5 w-2.5 rounded-sm bg-destructive/30 ring-1 ring-destructive/40" />
+                      <span className="h-2.5 w-2.5 rounded-sm bg-warning/30 ring-1 ring-warning/40" />
                       <span className="text-muted-foreground">{t("roster.highOcc")}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs">
@@ -395,156 +387,117 @@ const RosterPage = () => {
                   <h3 className="font-semibold text-lg mb-1">
                     {new Date(selectedDate + "T00:00:00").toLocaleDateString(dateLocale, { weekday: "long", month: "long", day: "numeric" })}
                   </h3>
-                  <p className="text-xs text-muted-foreground mb-4">{t("roster.staffAssigned").replace("{count}", String(selectedAssignments.length))}</p>
-
-                  {/* Forecast banner */}
-                  {selectedDate && forecastByDate[selectedDate] && (() => {
-                    const fc = forecastByDate[selectedDate];
-                    const isHigh = fc.occupancyRate >= 90;
-                    const isMed = fc.occupancyRate >= 75;
-                    return (
-                      <div className={cn(
-                        "rounded-md px-3 py-2 mb-4 flex items-start gap-2 text-xs",
-                        isHigh ? "bg-destructive/10 text-destructive" : isMed ? "bg-warning/10 text-warning" : "bg-success/10 text-success"
+                  {forecastByDate[selectedDate] && (
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className={cn(
+                        "text-xs font-semibold px-2 py-0.5 rounded-full",
+                        forecastByDate[selectedDate].occupancyRate >= 90
+                          ? "bg-warning/15 text-warning"
+                          : forecastByDate[selectedDate].occupancyRate >= 75
+                          ? "bg-accent/15 text-accent"
+                          : "bg-success/15 text-success"
                       )}>
-                        <Flame className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                        <div>
-                          <p className="font-semibold">{t("roster.occupancyForecasted").replace("{rate}", String(fc.occupancyRate))}</p>
-                          {fc.events.length > 0 && (
-                            <p className="opacity-80 mt-0.5">{fc.events.join(" · ")}</p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {selectedAssignments.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-8 text-center">{t("roster.noShifts")}</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {(Object.keys(groupedByShift) as ShiftType[]).map((shift) => {
-                        const assignments = groupedByShift[shift];
-                        if (assignments.length === 0) return null;
-                        const config = shiftConfig[shift];
-                        const Icon = config.icon;
-
-                        return (
-                          <div key={shift}>
-                            <div className={cn("flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md", config.bg)}>
-                              <Icon className={cn("h-4 w-4", config.text)} />
-                              <span className={cn("text-sm font-semibold", config.text)}>{shiftLabels[shift]}</span>
-                              <span className={cn("text-xs ml-auto", config.text)}>{assignments.length} {t("common.staff")}</span>
-                            </div>
-                            <div className="space-y-1 pl-1">
-                              {assignments.map((a) => {
-                                const name = resolveStaffName(a);
-                                const role = resolveStaffRole(a);
-                                return (
-                                  <div key={a.id} className="flex items-center gap-2 py-1.5">
-                                    <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                                      {name.split(" ").map((n) => n[0]).join("")}
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-medium leading-tight">{name}</p>
-                                      <p className="text-xs text-muted-foreground">{role}</p>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
+                        {forecastByDate[selectedDate].occupancyRate}% occ.
+                      </span>
+                      {forecastByDate[selectedDate].events.map((ev, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 text-[10px] text-accent">
+                          <Sparkles className="h-2.5 w-2.5" />{ev}
+                        </span>
+                      ))}
                     </div>
                   )}
+                  <div className="space-y-4">
+                    {(Object.keys(groupedByShift) as ShiftType[]).map((shift) => {
+                      const items = groupedByShift[shift];
+                      if (items.length === 0) return null;
+                      const config = shiftConfig[shift];
+                      const Icon = config.icon;
+                      return (
+                        <div key={shift}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Icon className={cn("h-4 w-4", config.text)} />
+                            <span className="text-sm font-semibold">{shiftLabels[shift]}</span>
+                            <span className="text-xs text-muted-foreground">({items.length})</span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {items.map((a) => (
+                              <div key={a.id} className={cn("flex items-center justify-between py-1.5 px-3 rounded-md text-sm", config.bg)}>
+                                <span className="font-medium">{resolveStaffName(a)}</span>
+                                <span className="text-xs text-muted-foreground">{resolveStaffRole(a)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {selectedAssignments.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">{t("roster.noShifts")}</p>
+                    )}
+                  </div>
                 </>
               ) : (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground text-sm">{t("roster.selectDate")}</p>
-                </div>
+                <p className="text-sm text-muted-foreground text-center py-8">{t("roster.selectDay")}</p>
               )}
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* Staff detail modal */}
-      <Dialog open={!!modalDate} onOpenChange={(open) => { if (!open) setModalDate(null); }}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      {/* Detail modal */}
+      <Dialog open={!!modalDate} onOpenChange={() => setModalDate(null)}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {modalDate && new Date(modalDate + "T00:00:00").toLocaleDateString(dateLocale, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">{t("roster.staffAssigned").replace("{count}", String(modalAssignments.length))}</p>
           </DialogHeader>
-
-          {/* Forecast banner in modal */}
-          {modalDate && forecastByDate[modalDate] && (() => {
-            const fc = forecastByDate[modalDate];
-            const isHigh = fc.occupancyRate >= 90;
-            const isMed = fc.occupancyRate >= 75;
-            return (
-              <div className={cn(
-                "rounded-md px-3 py-2 flex items-start gap-2 text-xs",
-                isHigh ? "bg-destructive/10 text-destructive" : isMed ? "bg-warning/10 text-warning" : "bg-success/10 text-success"
-              )}>
-                <Flame className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <div>
-                  <p className="font-semibold">{t("roster.occupancyForecasted").replace("{rate}", String(fc.occupancyRate))}</p>
-                  {fc.events.length > 0 && <p className="opacity-80 mt-0.5">{fc.events.join(" · ")}</p>}
-                </div>
-              </div>
-            );
-          })()}
-
-          {modalAssignments.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">{t("roster.noShifts")}</p>
-          ) : (
-            <div className="space-y-5">
-              {(Object.keys(modalGroupedByShift) as ShiftType[]).map((shift) => {
-                const assignments = modalGroupedByShift[shift];
-                if (assignments.length === 0) return null;
-                const config = shiftConfig[shift];
-                const Icon = config.icon;
-
-                return (
-                  <div key={shift}>
-                    <div className={cn("flex items-center gap-2 mb-3 px-2 py-1.5 rounded-md", config.bg)}>
-                      <Icon className={cn("h-4 w-4", config.text)} />
-                      <span className={cn("text-sm font-semibold", config.text)}>{shiftLabels[shift]}</span>
-                      <span className={cn("text-xs ml-auto", config.text)}>{assignments.length} {t("common.staff")}</span>
-                    </div>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {assignments.map((a) => {
-                        const staff = resolveStaffFull(a);
-                        return (
-                          <div key={a.id} className="flex items-start gap-3 p-3 rounded-lg border hover:shadow-sm transition-shadow">
-                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                              {staff.name.split(" ").map((n) => n[0]).join("")}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-semibold leading-tight">{staff.name}</p>
-                              <p className="text-xs text-muted-foreground">{staff.role}</p>
+          <div className="space-y-4">
+            {(Object.keys(modalGroupedByShift) as ShiftType[]).map((shift) => {
+              const items = modalGroupedByShift[shift];
+              if (items.length === 0) return null;
+              const config = shiftConfig[shift];
+              const Icon = config.icon;
+              return (
+                <div key={shift}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon className={cn("h-4 w-4", config.text)} />
+                    <span className="text-sm font-semibold">{shiftLabels[shift]}</span>
+                    <span className="text-xs text-muted-foreground">({items.length})</span>
+                  </div>
+                  <div className="space-y-2">
+                    {items.map((a) => {
+                      const staff = resolveStaffFull(a);
+                      return (
+                        <div key={a.id} className={cn("py-2 px-3 rounded-md", config.bg)}>
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm">{staff.name}</span>
+                            <span className="text-xs text-muted-foreground">{staff.role}</span>
+                          </div>
+                          {(staff.email || staff.phone) && (
+                            <div className="flex gap-4 mt-1">
                               {staff.email && (
-                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                                  <Mail className="h-3 w-3 shrink-0" />{staff.email}
-                                </p>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Mail className="h-3 w-3" />{staff.email}
+                                </span>
                               )}
                               {staff.phone && (
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Phone className="h-3 w-3 shrink-0" />{isManager ? staff.phone : maskPhone(staff.phone)}
-                                </p>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Phone className="h-3 w-3" />{isManager ? staff.phone : maskPhone(staff.phone)}
+                                </span>
                               )}
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          )}
+                </div>
+              );
+            })}
+            {modalAssignments.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">{t("roster.noShifts")}</p>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </AppLayout>
