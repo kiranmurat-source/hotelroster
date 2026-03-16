@@ -18,6 +18,7 @@ const ForecastPage = lazy(() => import("./pages/ForecastPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+const RecognitionPage = lazy(() => import("./pages/RecognitionPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
                   <Route path="/extra-staff" element={<ProtectedRoute requiredRole="manager"><ExtraStaffPage /></ProtectedRoute>} />
                   <Route path="/forecast" element={<ProtectedRoute><ForecastPage /></ProtectedRoute>} />
                   <Route path="/reports" element={<ProtectedRoute requiredRole="manager"><ReportsPage /></ProtectedRoute>} />
+                  <Route path="/recognition" element={<ProtectedRoute><RecognitionPage /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

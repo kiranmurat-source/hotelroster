@@ -11,6 +11,7 @@ import {
   BarChart3,
   Shield,
   FileText,
+  Star,
 } from "lucide-react";
 
 interface NavItem {
@@ -30,6 +31,7 @@ const navItems: NavItem[] = [
   { to: "/extra-hours", labelKey: "nav.extraHours", icon: Clock },
   { to: "/extra-staff", labelKey: "nav.extraStaff", icon: UserPlus, managerOnly: true },
   { to: "/reports", labelKey: "nav.reports", icon: FileText, managerOnly: true },
+  { to: "/recognition", labelKey: "nav.recognition", icon: Star },
   { to: "/admin", labelKey: "nav.admin", icon: Shield, adminOnly: true },
 ];
 
