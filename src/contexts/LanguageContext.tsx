@@ -62,6 +62,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.extraHours": "Fazla Mesai",
     "nav.extraStaff": "Ek Personel",
     "nav.reports": "Raporlar",
+    "nav.recognition": "Takdir",
     "nav.admin": "Kullanıcı Yönetimi",
     "nav.signOut": "Çıkış Yap",
     "nav.staffMgmt": "Personel Yönetimi",
