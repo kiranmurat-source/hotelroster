@@ -11,6 +11,7 @@ import {
   BarChart3,
   Shield,
   FileText,
+  Star,
 } from "lucide-react";
 
 interface NavItem {
