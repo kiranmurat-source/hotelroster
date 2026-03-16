@@ -269,6 +269,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.extraHours": "Extra Hours",
     "nav.extraStaff": "Extra Staff",
     "nav.reports": "Reports",
+    "nav.recognition": "Recognition",
     "nav.admin": "User Management",
     "nav.signOut": "Sign Out",
     "nav.staffMgmt": "Staff Management",
