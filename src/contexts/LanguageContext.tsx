@@ -79,6 +79,7 @@ const translations: Record<Language, Record<string, string>> = {
     "dashboard.actionRequired": "İşlem gerekli",
     "dashboard.recentExtraHours": "Son Fazla Mesai Talepleri",
     "dashboard.recentExtraStaff": "Son Ek Personel Talepleri",
+    "dashboard.noRequests": "Görüntülenecek talep yok",
 
     // Roster
     "roster.title": "Vardiya Takvimi",
