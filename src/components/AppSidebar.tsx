@@ -60,11 +60,11 @@ const AppSidebar = () => {
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-primary min-h-screen p-4 gap-1">
-      <div className="px-3 py-4 mb-4">
-        <img src={muninnLogo} alt="Muninn" className="h-8 brightness-0 invert" />
-        <p className="text-xs text-primary-foreground/60 mt-1">{t("nav.staffMgmt")}</p>
+      <div className="px-3 py-5 mb-6">
+        <img src={muninnLogo} alt="Muninn" className="h-10 brightness-0 invert" />
+        <p className="text-sm font-medium text-primary-foreground/80 mt-2 tracking-wide">{t("nav.staffMgmt")}</p>
       </div>
-      <nav className="flex flex-col gap-1 flex-1">
+      <nav className="flex flex-col gap-0.5 flex-1">
         {visibleItems.map((item) => {
           const isActive = location.pathname === item.to;
           return (
@@ -72,19 +72,19 @@ const AppSidebar = () => {
               key={item.to}
               to={item.to}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-primary-foreground/70 hover:text-primary-foreground hover:bg-sidebar-accent/50"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground border-l-3 border-sidebar-ring font-semibold shadow-sm"
+                  : "text-primary-foreground/70 hover:text-primary-foreground hover:bg-sidebar-accent/50 border-l-3 border-transparent"
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-[18px] w-[18px] shrink-0" />
               {t(item.labelKey)}
             </RouterNavLink>
           );
         })}
       </nav>
-      <div className="mt-auto border-t border-primary-foreground/10 pt-3 space-y-2">
+      <div className="mt-auto border-t border-primary-foreground/15 pt-4 space-y-3">
         <div className="px-3">
           <LanguageToggle />
         </div>
@@ -103,7 +103,7 @@ const AppSidebar = () => {
           onClick={signOut}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-primary-foreground/70 hover:text-primary-foreground hover:bg-sidebar-accent/50 transition-colors w-full"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-[18px] w-[18px] shrink-0" />
           {t("nav.signOut")}
         </button>
       </div>

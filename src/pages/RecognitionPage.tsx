@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Star, Send, Trophy, Award } from "lucide-react";
+import { Star, Send, Trophy, Award, Medal, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +20,13 @@ const categoryColors: Record<string, string> = {
   "Guest Service": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
   "Leadership": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
   "Above & Beyond": "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+};
+
+const categoryBorderColors: Record<string, string> = {
+  "Teamwork": "border-l-blue-500",
+  "Guest Service": "border-l-green-500",
+  "Leadership": "border-l-purple-500",
+  "Above & Beyond": "border-l-amber-500",
 };
 
 interface Profile {
@@ -71,6 +78,12 @@ function getInitials(name: string | null): string {
   return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
+const medalStyles = [
+  "bg-amber-100 text-amber-700 ring-2 ring-amber-400/50",    // gold
+  "bg-gray-100 text-gray-600 ring-2 ring-gray-400/50",       // silver
+  "bg-orange-100 text-orange-700 ring-2 ring-orange-400/50",  // bronze
+];
+
 const RecognitionPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -108,7 +121,6 @@ const RecognitionPage = () => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     
-    // Get all kudos this month to calculate points
     const { data: monthKudos } = await supabase
       .from("kudos")
       .select("from_user_id, to_user_id")
@@ -190,7 +202,7 @@ const RecognitionPage = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <Star className="h-6 w-6 text-amber-500" />
@@ -204,7 +216,7 @@ const RecognitionPage = () => {
           {/* Send Kudos Form */}
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-lg flex items-center gap-2 border-l-2 border-accent pl-3">
                 <Send className="h-4 w-4" />
                 {t("recognition.sendKudos")}
               </CardTitle>
@@ -250,7 +262,7 @@ const RecognitionPage = () => {
                   />
                   <p className="text-xs text-muted-foreground text-right">{message.length}/150</p>
                 </div>
-                <Button type="submit" className="w-full" disabled={!canSubmit}>
+                <Button type="submit" className="w-full font-semibold" disabled={!canSubmit}>
                   {submitting ? "..." : t("recognition.send")}
                 </Button>
               </form>
@@ -260,14 +272,17 @@ const RecognitionPage = () => {
           {/* Activity Feed */}
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg">{t("recognition.activityFeed")}</CardTitle>
+              <CardTitle className="text-lg border-l-2 border-accent pl-3">{t("recognition.activityFeed")}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 max-h-[420px] overflow-y-auto">
+            <CardContent className="space-y-0 max-h-[420px] overflow-y-auto">
               {kudosList.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">{t("recognition.noKudos")}</p>
+                <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                  <Inbox className="h-8 w-8 mb-2" />
+                  <p className="text-sm">{t("recognition.noKudos")}</p>
+                </div>
               )}
               {kudosList.map(k => (
-                <div key={k.id} className="flex items-start gap-3 py-3 border-b last:border-0">
+                <div key={k.id} className={`flex items-start gap-3 py-3 border-b last:border-0 border-l-3 pl-3 ${categoryBorderColors[k.category] || "border-l-transparent"}`}>
                   <Avatar className="h-8 w-8 shrink-0">
                     <AvatarFallback className="text-xs">{getInitials(getName(k.from_user_id))}</AvatarFallback>
                   </Avatar>
@@ -296,29 +311,33 @@ const RecognitionPage = () => {
           {/* Leaderboard */}
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-lg flex items-center gap-2 border-l-2 border-accent pl-3">
                 <Trophy className="h-4 w-4 text-amber-500" />
                 {t("recognition.leaderboard")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {leaderboard.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">{t("recognition.noPoints")}</p>
+                <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                  <Medal className="h-8 w-8 mb-2" />
+                  <p className="text-sm">{t("recognition.noPoints")}</p>
+                </div>
               )}
               {leaderboard.map((entry, i) => (
-                <div key={entry.staff_id} className="flex items-center justify-between py-2.5 border-b last:border-0">
+                <div key={entry.staff_id} className="flex items-center justify-between py-3 border-b last:border-0">
                   <div className="flex items-center gap-3">
-                    <span className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-                      i === 0 ? "bg-amber-100 text-amber-700" :
-                      i === 1 ? "bg-gray-100 text-gray-600" :
-                      i === 2 ? "bg-orange-100 text-orange-700" :
-                      "bg-muted text-muted-foreground"
+                    <span className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${
+                      i < 3 ? medalStyles[i] : "bg-muted text-muted-foreground"
                     }`}>
-                      {i + 1}
+                      {i < 3 ? (
+                        <Medal className="h-4 w-4" />
+                      ) : (
+                        i + 1
+                      )}
                     </span>
-                    <span className="text-sm font-medium">{entry.display_name}</span>
+                    <span className={`text-sm ${i < 3 ? "font-semibold" : "font-medium"}`}>{entry.display_name}</span>
                   </div>
-                  <Badge variant="secondary" className="text-xs">{entry.total_points} pts</Badge>
+                  <Badge variant="secondary" className="text-xs font-semibold">{entry.total_points} pts</Badge>
                 </div>
               ))}
             </CardContent>
@@ -327,23 +346,23 @@ const RecognitionPage = () => {
           {/* My Badges */}
           <Card className="animate-fade-in">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-lg flex items-center gap-2 border-l-2 border-accent pl-3">
                 <Award className="h-4 w-4 text-primary" />
                 {t("recognition.myBadges")}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {allBadges.map(badge => {
                   const earned = myEarnedBadges.some(e => e.badge_id === badge.id);
                   return (
                     <div
                       key={badge.id}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border text-center transition-colors ${
-                        earned ? "border-primary/30 bg-primary/5" : "opacity-40 grayscale"
+                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all ${
+                        earned ? "border-primary/30 bg-primary/5 shadow-sm" : "opacity-40 grayscale"
                       }`}
                     >
-                      <Star className={`h-6 w-6 ${earned ? "text-amber-500" : "text-muted-foreground"}`} />
+                      <Star className={`h-8 w-8 ${earned ? "text-amber-500" : "text-muted-foreground"}`} />
                       <span className="text-xs font-semibold">{badge.name}</span>
                       <span className="text-[10px] text-muted-foreground">{badge.threshold_points} pts</span>
                     </div>
@@ -351,7 +370,10 @@ const RecognitionPage = () => {
                 })}
               </div>
               {allBadges.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">{t("recognition.noBadges")}</p>
+                <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                  <Award className="h-8 w-8 mb-2" />
+                  <p className="text-sm">{t("recognition.noBadges")}</p>
+                </div>
               )}
             </CardContent>
           </Card>
