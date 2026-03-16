@@ -50,7 +50,7 @@ const LoginPage = () => {
         </div>
         <div className="text-center">
           <div className="inline-flex items-center justify-center mb-2">
-            <img src={muninnLogo} alt="Muninn" style={{ height: 496 }} />
+            <img src={muninnLogo} alt="Muninn" style={{ height: 268 }} />
           </div>
           <p className="text-muted-foreground">{t("login.subtitle")}</p>
         </div>
