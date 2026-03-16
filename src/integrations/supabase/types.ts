@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      badges: {
+        Row: {
+          description: string | null
+          id: string
+          name: string
+          threshold_points: number
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          name: string
+          threshold_points: number
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          name?: string
+          threshold_points?: number
+        }
+        Relationships: []
+      }
       extra_hours_requests: {
         Row: {
           created_at: string
@@ -131,6 +152,33 @@ export type Database = {
         }
         Relationships: []
       }
+      kudos: {
+        Row: {
+          category: string
+          created_at: string
+          from_user_id: string
+          id: string
+          message: string
+          to_user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          from_user_id: string
+          id?: string
+          message: string
+          to_user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          message?: string
+          to_user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -158,6 +206,53 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      staff_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          staff_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          staff_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          staff_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_points: {
+        Row: {
+          staff_id: string
+          total_points: number
+          updated_at: string
+        }
+        Insert: {
+          staff_id: string
+          total_points?: number
+          updated_at?: string
+        }
+        Update: {
+          staff_id?: string
+          total_points?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -193,6 +288,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      process_kudos: {
+        Args: {
+          _category: string
+          _from_user_id: string
+          _message: string
+          _to_user_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
