@@ -45,14 +45,37 @@ function formatDate(year: number, month: number, day: number) {
 const RosterPage = () => {
   const [searchParams] = useSearchParams();
   const today = new Date();
-  const [year, setYear] = useState(2026);
-  const [month, setMonth] = useState(2);
-  const [selectedDate, setSelectedDate] = useState<string | null>("2026-03-09");
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [uploadedRoster, setUploadedRoster] = useState<ParsedRoster | null>(null);
+  const [dbShifts, setDbShifts] = useState<ShiftAssignment[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const { isManager } = useUserRole();
+  const { user } = useAuth();
+
+  // Load saved roster shifts from database
+  useEffect(() => {
+    const loadShifts = async () => {
+      const { data, error } = await supabase
+        .from("roster_shifts")
+        .select("*");
+      if (!error && data && data.length > 0) {
+        const assignments: ShiftAssignment[] = data.map((row: any) => ({
+          id: row.id,
+          staffId: row.staff_name,
+          date: row.date,
+          shift: row.shift as ShiftType,
+          department: row.department as Department,
+        }));
+        setDbShifts(assignments);
+      }
+    };
+    loadShifts();
+  }, []);
 
   useEffect(() => {
     const dateParam = searchParams.get("date");
@@ -79,7 +102,8 @@ const RosterPage = () => {
 
   const dateLocale = language === "tr" ? "tr-TR" : "en-US";
 
-  const activeAssignments: ShiftAssignment[] = uploadedRoster?.assignments ?? mockAssignments;
+  // Priority: uploaded (unsaved) > saved DB shifts > mock data
+  const activeAssignments: ShiftAssignment[] = uploadedRoster?.assignments ?? (dbShifts.length > 0 ? dbShifts : mockAssignments);
 
   const forecastByDate = useMemo(() => {
     if (!forecast) return {};
