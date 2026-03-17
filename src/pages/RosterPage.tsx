@@ -14,8 +14,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { maskPhone } from "@/lib/privacy";
-import { cn } from "@/lib/utils";
-import { maskPhone } from "@/lib/privacy";
 import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles, Mail, Phone, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
