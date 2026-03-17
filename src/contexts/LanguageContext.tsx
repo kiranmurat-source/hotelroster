@@ -315,6 +315,7 @@ const translations: Record<Language, Record<string, string>> = {
     "roster.highOcc": "High occ. (90%+)",
     "roster.event": "Event",
     "roster.switchedBack": "Switched back to default roster",
+    "roster.saved": "Roster saved successfully",
 
     // Forecast
     "forecast.title": "Hotel Activity Forecast",
