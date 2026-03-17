@@ -98,13 +98,7 @@ function isDateColumn(key: string): boolean {
 function parseDateHeader(key: string): string | null {
   const trimmed = key.trim();
   
-  // Try direct ISO parse
-  const direct = new Date(trimmed);
-  if (!isNaN(direct.getTime()) && direct.getFullYear() > 2000) {
-    return direct.toISOString().split("T")[0];
-  }
-  
-  // Handle M/D/YY or M/D/YYYY
+  // Handle M/D/YY or M/D/YYYY first (most common in Excel exports)
   const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
   if (slashMatch) {
     let [, m, d, y] = slashMatch;
@@ -120,6 +114,21 @@ function parseDateHeader(key: string): string | null {
     let year = parseInt(y);
     if (year < 100) year += 2000;
     return `${year}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
+
+  // Handle ISO format YYYY-MM-DD
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    return trimmed;
+  }
+
+  // Try parsing as date using local timezone (avoid UTC shift)
+  const direct = new Date(trimmed + "T00:00:00");
+  if (!isNaN(direct.getTime()) && direct.getFullYear() > 2000) {
+    const y = direct.getFullYear();
+    const m = String(direct.getMonth() + 1).padStart(2, "0");
+    const d = String(direct.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   }
 
   return null;
@@ -220,14 +229,20 @@ function parseVerticalRoster(rows: Record<string, unknown>[]): ParsedRoster {
     if (dateCol) {
       const val = row[dateCol];
       if (val instanceof Date) {
-        dateStr = val.toISOString().split("T")[0];
+        const y = val.getFullYear();
+        const m = String(val.getMonth() + 1).padStart(2, "0");
+        const dd = String(val.getDate()).padStart(2, "0");
+        dateStr = `${y}-${m}-${dd}`;
       } else if (typeof val === "number") {
         const d = XLSX.SSF.parse_date_code(val);
         dateStr = `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`;
       } else {
-        const parsed = new Date(String(val));
+        const parsed = new Date(String(val) + "T00:00:00");
         if (!isNaN(parsed.getTime())) {
-          dateStr = parsed.toISOString().split("T")[0];
+          const y = parsed.getFullYear();
+          const m = String(parsed.getMonth() + 1).padStart(2, "0");
+          const dd = String(parsed.getDate()).padStart(2, "0");
+          dateStr = `${y}-${m}-${dd}`;
         }
       }
     }

@@ -209,6 +209,36 @@ export type Database = {
         }
         Relationships: []
       }
+      roster_shifts: {
+        Row: {
+          created_at: string
+          date: string
+          department: string
+          id: string
+          shift: string
+          staff_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          department: string
+          id?: string
+          shift: string
+          staff_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          department?: string
+          id?: string
+          shift?: string
+          staff_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       staff_badges: {
         Row: {
           badge_id: string

@@ -5,11 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { staffMembers, shiftAssignments as mockAssignments } from "@/lib/mock-data";
-import { ShiftAssignment, ShiftType } from "@/lib/types";
+import { ShiftAssignment, ShiftType, Department } from "@/lib/types";
 import { parseExcelRoster, generateSampleRoster, ParsedRoster } from "@/lib/parse-roster";
 import { useForecast } from "@/contexts/ForecastContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { maskPhone } from "@/lib/privacy";
 import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles, Mail, Phone, Timer } from "lucide-react";
@@ -43,14 +45,37 @@ function formatDate(year: number, month: number, day: number) {
 const RosterPage = () => {
   const [searchParams] = useSearchParams();
   const today = new Date();
-  const [year, setYear] = useState(2026);
-  const [month, setMonth] = useState(2);
-  const [selectedDate, setSelectedDate] = useState<string | null>("2026-03-09");
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [uploadedRoster, setUploadedRoster] = useState<ParsedRoster | null>(null);
+  const [dbShifts, setDbShifts] = useState<ShiftAssignment[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const { isManager } = useUserRole();
+  const { user } = useAuth();
+
+  // Load saved roster shifts from database
+  useEffect(() => {
+    const loadShifts = async () => {
+      const { data, error } = await supabase
+        .from("roster_shifts")
+        .select("*");
+      if (!error && data && data.length > 0) {
+        const assignments: ShiftAssignment[] = data.map((row: any) => ({
+          id: row.id,
+          staffId: row.staff_name,
+          date: row.date,
+          shift: row.shift as ShiftType,
+          department: row.department as Department,
+        }));
+        setDbShifts(assignments);
+      }
+    };
+    loadShifts();
+  }, []);
 
   useEffect(() => {
     const dateParam = searchParams.get("date");
@@ -77,7 +102,8 @@ const RosterPage = () => {
 
   const dateLocale = language === "tr" ? "tr-TR" : "en-US";
 
-  const activeAssignments: ShiftAssignment[] = uploadedRoster?.assignments ?? mockAssignments;
+  // Priority: uploaded (unsaved) > saved DB shifts > mock data
+  const activeAssignments: ShiftAssignment[] = uploadedRoster?.assignments ?? (dbShifts.length > 0 ? dbShifts : mockAssignments);
 
   const forecastByDate = useMemo(() => {
     if (!forecast) return {};
@@ -101,6 +127,49 @@ const RosterPage = () => {
     setSelectedDate(null);
   };
 
+  const saveRosterToDb = useCallback(async (result: ParsedRoster) => {
+    if (!user) return;
+    setSaving(true);
+    try {
+      // Delete existing shifts first
+      await supabase.from("roster_shifts").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
+      // Insert new shifts in batches of 500
+      const rows = result.assignments.map((a) => ({
+        user_id: user.id,
+        staff_name: a.staffId,
+        date: a.date,
+        shift: a.shift,
+        department: a.department,
+      }));
+
+      for (let i = 0; i < rows.length; i += 500) {
+        const batch = rows.slice(i, i + 500);
+        const { error } = await supabase.from("roster_shifts").insert(batch);
+        if (error) throw error;
+      }
+
+      // Update local state
+      const { data } = await supabase.from("roster_shifts").select("*");
+      if (data) {
+        setDbShifts(data.map((row: any) => ({
+          id: row.id,
+          staffId: row.staff_name,
+          date: row.date,
+          shift: row.shift as ShiftType,
+          department: row.department as Department,
+        })));
+      }
+      setUploadedRoster(null);
+      toast.success(t("roster.saved") || "Roster saved successfully");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to save roster: " + (err?.message || "Unknown error"));
+    } finally {
+      setSaving(false);
+    }
+  }, [user, t]);
+
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
       toast.error(t("forecast.invalidFile"));
@@ -118,11 +187,13 @@ const RosterPage = () => {
         setSelectedDate(firstDate);
       }
       toast.success(`Roster loaded — ${result.assignments.length} shifts, ${result.staffNames.length} staff${result.skipped > 0 ? `, ${result.skipped} rows skipped` : ""}`);
+      // Auto-save to database
+      await saveRosterToDb(result);
     } catch (err: any) {
       toast.error(err?.message || t("forecast.parseFailed"));
       console.error(err);
     }
-  }, []);
+  }, [saveRosterToDb, t]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -231,8 +302,13 @@ const RosterPage = () => {
                 </Button>
                 <input id="roster-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
               </label>
-              {uploadedRoster && (
-                <Button variant="ghost" size="sm" onClick={() => { setUploadedRoster(null); toast.info(t("roster.switchedBack")); }}>
+              {(uploadedRoster || dbShifts.length > 0) && (
+                <Button variant="ghost" size="sm" onClick={async () => {
+                  setUploadedRoster(null);
+                  setDbShifts([]);
+                  await supabase.from("roster_shifts").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+                  toast.info(t("roster.switchedBack"));
+                }}>
                   <X className="h-4 w-4 mr-1.5" />
                   {t("roster.clear")}
                 </Button>
@@ -241,7 +317,7 @@ const RosterPage = () => {
           )}
         </div>
 
-        {!uploadedRoster && isManager && (
+        {!uploadedRoster && dbShifts.length === 0 && isManager && (
           <Card className="animate-fade-in">
             <CardContent className="p-0">
               <label
