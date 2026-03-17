@@ -102,6 +102,7 @@ const translations: Record<Language, Record<string, string>> = {
     "roster.highOcc": "Yüksek doluluk (90%+)",
     "roster.event": "Etkinlik",
     "roster.switchedBack": "Varsayılan vardiyaya dönüldü",
+    "roster.saved": "Vardiya kaydedildi",
 
     // Forecast
     "forecast.title": "Otel Aktivite Tahmini",
