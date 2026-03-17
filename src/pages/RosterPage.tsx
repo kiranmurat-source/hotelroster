@@ -256,8 +256,10 @@ const RosterPage = () => {
     return groups;
   }, [modalAssignments]);
 
+  const isFromDb = dbShifts.length > 0 && !uploadedRoster;
+
   const resolveStaffFull = (assignment: ShiftAssignment) => {
-    if (uploadedRoster) return { name: assignment.staffId, role: assignment.department, email: "", phone: "" };
+    if (uploadedRoster || isFromDb) return { name: assignment.staffId, role: assignment.department, email: "", phone: "" };
     const staff = staffMembers.find((s) => s.id === assignment.staffId);
     return staff ? { name: staff.name, role: staff.role, email: staff.email, phone: staff.phone } : { name: "Unknown", role: "", email: "", phone: "" };
   };
@@ -267,13 +269,13 @@ const RosterPage = () => {
   };
 
   const resolveStaffName = (assignment: ShiftAssignment) => {
-    if (uploadedRoster) return assignment.staffId;
+    if (uploadedRoster || isFromDb) return assignment.staffId;
     const staff = staffMembers.find((s) => s.id === assignment.staffId);
     return staff?.name ?? "Unknown";
   };
 
   const resolveStaffRole = (assignment: ShiftAssignment) => {
-    if (uploadedRoster) return assignment.department;
+    if (uploadedRoster || isFromDb) return assignment.department;
     const staff = staffMembers.find((s) => s.id === assignment.staffId);
     return staff?.role ?? "";
   };
