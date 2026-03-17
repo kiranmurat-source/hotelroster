@@ -302,8 +302,13 @@ const RosterPage = () => {
                 </Button>
                 <input id="roster-upload" type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onFileInput} />
               </label>
-              {uploadedRoster && (
-                <Button variant="ghost" size="sm" onClick={() => { setUploadedRoster(null); toast.info(t("roster.switchedBack")); }}>
+              {(uploadedRoster || dbShifts.length > 0) && (
+                <Button variant="ghost" size="sm" onClick={async () => {
+                  setUploadedRoster(null);
+                  setDbShifts([]);
+                  await supabase.from("roster_shifts").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+                  toast.info(t("roster.switchedBack"));
+                }}>
                   <X className="h-4 w-4 mr-1.5" />
                   {t("roster.clear")}
                 </Button>
