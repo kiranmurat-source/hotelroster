@@ -229,14 +229,20 @@ function parseVerticalRoster(rows: Record<string, unknown>[]): ParsedRoster {
     if (dateCol) {
       const val = row[dateCol];
       if (val instanceof Date) {
-        dateStr = val.toISOString().split("T")[0];
+        const y = val.getFullYear();
+        const m = String(val.getMonth() + 1).padStart(2, "0");
+        const dd = String(val.getDate()).padStart(2, "0");
+        dateStr = `${y}-${m}-${dd}`;
       } else if (typeof val === "number") {
         const d = XLSX.SSF.parse_date_code(val);
         dateStr = `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`;
       } else {
-        const parsed = new Date(String(val));
+        const parsed = new Date(String(val) + "T00:00:00");
         if (!isNaN(parsed.getTime())) {
-          dateStr = parsed.toISOString().split("T")[0];
+          const y = parsed.getFullYear();
+          const m = String(parsed.getMonth() + 1).padStart(2, "0");
+          const dd = String(parsed.getDate()).padStart(2, "0");
+          dateStr = `${y}-${m}-${dd}`;
         }
       }
     }
