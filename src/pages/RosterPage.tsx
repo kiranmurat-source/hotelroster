@@ -317,7 +317,7 @@ const RosterPage = () => {
           )}
         </div>
 
-        {!uploadedRoster && isManager && (
+        {!uploadedRoster && dbShifts.length === 0 && isManager && (
           <Card className="animate-fade-in">
             <CardContent className="p-0">
               <label
