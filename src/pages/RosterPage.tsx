@@ -127,6 +127,49 @@ const RosterPage = () => {
     setSelectedDate(null);
   };
 
+  const saveRosterToDb = useCallback(async (result: ParsedRoster) => {
+    if (!user) return;
+    setSaving(true);
+    try {
+      // Delete existing shifts first
+      await supabase.from("roster_shifts").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
+      // Insert new shifts in batches of 500
+      const rows = result.assignments.map((a) => ({
+        user_id: user.id,
+        staff_name: a.staffId,
+        date: a.date,
+        shift: a.shift,
+        department: a.department,
+      }));
+
+      for (let i = 0; i < rows.length; i += 500) {
+        const batch = rows.slice(i, i + 500);
+        const { error } = await supabase.from("roster_shifts").insert(batch);
+        if (error) throw error;
+      }
+
+      // Update local state
+      const { data } = await supabase.from("roster_shifts").select("*");
+      if (data) {
+        setDbShifts(data.map((row: any) => ({
+          id: row.id,
+          staffId: row.staff_name,
+          date: row.date,
+          shift: row.shift as ShiftType,
+          department: row.department as Department,
+        })));
+      }
+      setUploadedRoster(null);
+      toast.success(t("roster.saved") || "Roster saved successfully");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to save roster: " + (err?.message || "Unknown error"));
+    } finally {
+      setSaving(false);
+    }
+  }, [user, t]);
+
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
       toast.error(t("forecast.invalidFile"));
@@ -144,11 +187,13 @@ const RosterPage = () => {
         setSelectedDate(firstDate);
       }
       toast.success(`Roster loaded — ${result.assignments.length} shifts, ${result.staffNames.length} staff${result.skipped > 0 ? `, ${result.skipped} rows skipped` : ""}`);
+      // Auto-save to database
+      await saveRosterToDb(result);
     } catch (err: any) {
       toast.error(err?.message || t("forecast.parseFailed"));
       console.error(err);
     }
-  }, []);
+  }, [saveRosterToDb, t]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
