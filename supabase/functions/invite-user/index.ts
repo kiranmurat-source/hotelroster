@@ -19,15 +19,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify caller is admin
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
 
+    // Verify caller
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-
     const { data: { user: caller } } = await callerClient.auth.getUser();
     if (!caller) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -52,44 +51,54 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, role, display_name, department } = await req.json();
+    const { email, password, role, display_name, department } = await req.json();
 
-    if (!email || !role) {
-      return new Response(JSON.stringify({ error: "Email and role are required" }), {
+    if (!email || !role || !password) {
+      return new Response(JSON.stringify({ error: "Email, password and role are required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Invite user via admin API (sends invitation email)
-    const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
-      data: { display_name, department, role },
+    if (password.length < 6) {
+      return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Create user with password (no email sent)
+    const { data: userData, error: createError } = await adminClient.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { display_name, department, role },
     });
 
-    if (inviteError) {
-      return new Response(JSON.stringify({ error: inviteError.message }), {
+    if (createError) {
+      return new Response(JSON.stringify({ error: createError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Update the profile with department and display_name
-    if (inviteData.user) {
+    // Update profile with department and display_name
+    if (userData.user) {
       await adminClient
         .from("profiles")
         .update({ display_name, department })
-        .eq("user_id", inviteData.user.id);
+        .eq("user_id", userData.user.id);
 
       // Set the correct role (replace default 'staff' if different)
       if (role !== "staff") {
         await adminClient
           .from("user_roles")
           .update({ role })
-          .eq("user_id", inviteData.user.id);
+          .eq("user_id", userData.user.id);
       }
     }
 
-    return new Response(JSON.stringify({ success: true, user: inviteData.user }), {
+    return new Response(JSON.stringify({ success: true, user: userData.user }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

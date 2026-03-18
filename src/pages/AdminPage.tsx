@@ -29,6 +29,7 @@ const AdminPage = () => {
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState<string>("staff");
   const [department, setDepartment] = useState<string>("");
   const [inviting, setInviting] = useState(false);
@@ -63,7 +64,7 @@ const AdminPage = () => {
     setInviting(true);
     try {
       const res = await supabase.functions.invoke("invite-user", {
-        body: { email, role, display_name: displayName || email, department },
+        body: { email, password, role, display_name: displayName || email, department },
       });
 
       if (res.error) throw new Error(res.error.message);
@@ -72,6 +73,7 @@ const AdminPage = () => {
       toast({ title: t("admin.inviteSent"), description: t("admin.inviteDesc2").replace("{email}", email).replace("{role}", role) });
       setEmail("");
       setDisplayName("");
+      setPassword("");
       setRole("staff");
       setDepartment("");
       fetchUsers();
@@ -148,6 +150,10 @@ const AdminPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="invite-name">{t("admin.displayName")}</Label>
                 <Input id="invite-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="John Doe" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invite-password">{t("admin.password") || "Şifre"}</Label>
+                <Input id="invite-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 karakter" required minLength={6} />
               </div>
               <div className="space-y-2">
                 <Label>{t("admin.role")}</Label>
