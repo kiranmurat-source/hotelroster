@@ -60,7 +60,7 @@ const ForecastPage = () => {
     }
     try {
       const buffer = await file.arrayBuffer();
-      const result = parseExcelForecast(buffer);
+      const result = await parseExcelForecast(buffer);
       await saveForecast(result);
       toast.success(t("forecast.loaded").replace("{count}", String(result.days.length)));
     } catch (err) {
