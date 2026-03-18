@@ -256,12 +256,14 @@ const TrainingPage = () => {
 
         // Award 1 point to the manager who did the training
         if (myProfile && topic) {
-          await supabase.rpc("process_kudos", {
-            _from_user_id: user.id,
-            _to_user_id: user.id,
-            _message: topic.title,
-            _category: "training",
-          }).catch(() => {});
+          try {
+            await supabase.rpc("process_kudos", {
+              _from_user_id: user.id,
+              _to_user_id: user.id,
+              _message: topic.title,
+              _category: "training",
+            });
+          } catch {}
         }
       }
     },
