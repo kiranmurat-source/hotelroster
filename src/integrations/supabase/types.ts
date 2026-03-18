@@ -269,27 +269,6 @@ export type Database = {
         }
         Relationships: []
       }
-      public_holidays: {
-        Row: {
-          date: string
-          id: string
-          name: string
-          year: number
-        }
-        Insert: {
-          date: string
-          id?: string
-          name: string
-          year: number
-        }
-        Update: {
-          date?: string
-          id?: string
-          name?: string
-          year?: number
-        }
-        Relationships: []
-      }
       roster_shifts: {
         Row: {
           created_at: string
@@ -479,7 +458,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "manager" | "staff"
       leave_status: "pending" | "approved" | "rejected"
-      leave_type: "annual" | "compensatory" | "public_holiday" | "sick"
+      leave_type: "annual" | "administrative"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -609,7 +588,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "manager", "staff"],
       leave_status: ["pending", "approved", "rejected"],
-      leave_type: ["annual", "compensatory", "public_holiday", "sick"],
+      leave_type: ["annual", "administrative"],
     },
   },
 } as const

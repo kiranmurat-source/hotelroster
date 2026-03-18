@@ -39,9 +39,7 @@ const shiftConfig: Record<ShiftType, { bg: string; text: string; icon: typeof Su
 
 const LEAVE_BADGE: Record<string, { code: string; color: string; label: string }> = {
   annual: { code: "YIL", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300", label: "Yıllık İzin" },
-  compensatory: { code: "OFF", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300", label: "Alacak Off" },
-  public_holiday: { code: "TAT", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300", label: "Resmi Tatil" },
-  sick: { code: "HST", color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300", label: "Hastalık İzni" },
+  administrative: { code: "IDAR", color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300", label: "İdari İzin" },
 };
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -80,19 +78,16 @@ const RosterPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [publicHolidays, setPublicHolidays] = useState<Record<string, string>>({});
+  
 
   const { isManager } = useUserRole();
   const { user } = useAuth();
   const { shiftTypes, getById, getByCode } = useShiftTypes();
 
-  // Load saved roster shifts and public holidays from database
+  // Load saved roster shifts from database
   useEffect(() => {
     const loadShifts = async () => {
-      const [shiftsRes, holidaysRes] = await Promise.all([
-        supabase.from("roster_shifts").select("*, leave_requests(leave_type)"),
-        supabase.from("public_holidays").select("date, name"),
-      ]);
+      const shiftsRes = await supabase.from("roster_shifts").select("*, leave_requests(leave_type)");
 
       if (!shiftsRes.error && shiftsRes.data && shiftsRes.data.length > 0) {
         const assignments: RosterShift[] = shiftsRes.data.map((row: any) => ({
@@ -108,12 +103,6 @@ const RosterPage = () => {
           leave_type: row.leave_requests?.leave_type || null,
         }));
         setDbShifts(assignments);
-      }
-
-      if (!holidaysRes.error && holidaysRes.data) {
-        const map: Record<string, string> = {};
-        holidaysRes.data.forEach((h: any) => { map[h.date] = h.name; });
-        setPublicHolidays(map);
       }
     };
     loadShifts();
@@ -453,8 +442,6 @@ const RosterPage = () => {
                   const isHighOcc = fc && fc.occupancyRate >= 90;
                   const isMedOcc = fc && fc.occupancyRate >= 75 && fc.occupancyRate < 90;
                   const hasEvents = fc && fc.events.length > 0;
-                  const isHoliday = !!publicHolidays[dateStr];
-
                   const calButton = (
                     <button
                       key={day}
@@ -478,9 +465,6 @@ const RosterPage = () => {
                       )}
                       {hasEvents && !isSelected && (
                         <Sparkles className="absolute top-0.5 left-0.5 h-2.5 w-2.5 text-accent" />
-                      )}
-                      {isHoliday && !isSelected && (
-                        <span className="absolute top-0 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-red-500" />
                       )}
                       <span className={cn("text-sm", isSelected ? "font-bold" : "font-medium")}>{day}</span>
                       {hasData && !isSelected && (

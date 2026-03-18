@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate } from "react-router-dom";
@@ -8,14 +8,21 @@ import { Button } from "@/components/ui/button";
 import { parseExcelForecast, generateSampleExcel } from "@/lib/parse-forecast";
 import { useForecast } from "@/contexts/ForecastContext";
 import { cn } from "@/lib/utils";
-import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut, LayoutGrid, Table as TableIcon, Users, Coffee } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut, LayoutGrid, Table as TableIcon, Users, Coffee, ChevronDown } from "lucide-react";
 import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } from "@/components/ui/table";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend,
 } from "recharts";
+
+interface PublicHolidayAPI {
+  date: string;
+  localName: string;
+}
+
 
 const ForecastPage = () => {
   const navigate = useNavigate();
@@ -24,6 +31,23 @@ const ForecastPage = () => {
   const { isManager } = useUserRole();
   const [isDragging, setIsDragging] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  const [holidays, setHolidays] = useState<PublicHolidayAPI[]>([]);
+  const [holidaysOpen, setHolidaysOpen] = useState(false);
+
+  // Fetch Turkish public holidays
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("https://date.nager.at/api/v3/PublicHolidays/2026/TR", { signal: controller.signal })
+      .then((res) => res.ok ? res.json() : Promise.reject())
+      .then((data: PublicHolidayAPI[]) => setHolidays(data))
+      .catch(() => { /* silently ignore */ });
+    return () => controller.abort();
+  }, []);
+
+  const holidayMap = holidays.reduce<Record<string, string>>((acc, h) => {
+    acc[h.date] = h.localName;
+    return acc;
+  }, {});
 
   const handleDayDoubleClick = useCallback((dateStr: string) => {
     navigate(`/roster?date=${dateStr}`);
@@ -321,9 +345,16 @@ const ForecastPage = () => {
                               <p className="font-semibold text-sm">{day.dayLabel}</p>
                               <p className="text-xs text-muted-foreground">{day.date}</p>
                             </div>
-                            <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", badge.className)}>
-                              {badge.label}
-                            </span>
+                            <div className="flex flex-col items-end gap-1">
+                              <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", badge.className)}>
+                                {badge.label}
+                              </span>
+                              {holidayMap[day.date] && (
+                                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                  {holidayMap[day.date]}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <div className="space-y-1">
                             <div className="flex justify-between text-xs">
@@ -396,7 +427,16 @@ const ForecastPage = () => {
                         return (
                           <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title={t("forecast.doubleClickHint")}>
                             <TableCell className="font-medium">{day.dayLabel}</TableCell>
-                            <TableCell className="text-muted-foreground">{day.date}</TableCell>
+                            <TableCell className="text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                {day.date}
+                                {holidayMap[day.date] && (
+                                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                    {holidayMap[day.date]}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell className="text-right">
                               <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", badge.className)}>
                                 {day.occupancyRate}%
@@ -430,6 +470,45 @@ const ForecastPage = () => {
                 )}
               </CardContent>
             </Card>
+            {/* Public Holidays */}
+            {holidays.length > 0 && (
+              <Collapsible open={holidaysOpen} onOpenChange={setHolidaysOpen}>
+                <Card className="animate-fade-in">
+                  <CollapsibleTrigger asChild>
+                    <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <CalendarDays className="h-5 w-5 text-amber-600" />
+                          {t("forecast.publicHolidays")}
+                        </CardTitle>
+                        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", holidaysOpen && "rotate-180")} />
+                      </div>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="pt-0">
+                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {holidays.map((h) => {
+                          const isPast = h.date < new Date().toISOString().split("T")[0];
+                          return (
+                            <div
+                              key={h.date}
+                              className={cn(
+                                "flex items-center justify-between py-2 px-3 rounded-lg text-sm",
+                                isPast ? "bg-muted/50 text-muted-foreground" : "bg-amber-50 dark:bg-amber-900/10 border border-amber-200/50"
+                              )}
+                            >
+                              <span className={cn("font-medium", !isPast && "text-amber-800 dark:text-amber-300")}>{h.localName}</span>
+                              <span className="text-xs text-muted-foreground">{h.date}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            )}
           </>
         )}
       </div>
