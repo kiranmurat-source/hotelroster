@@ -78,7 +78,7 @@ const RosterPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  
+  const [trainingCompletions, setTrainingCompletions] = useState<{ staff_name: string; date: string; title: string }[]>([]);
 
   const { isManager } = useUserRole();
   const { user } = useAuth();
