@@ -134,7 +134,7 @@ const RosterPage = () => {
 
   const dateLocale = language === "tr" ? "tr-TR" : "en-US";
 
-  const activeAssignments: RosterShift[] = uploadedRoster?.assignments ?? (dbShifts.length > 0 ? dbShifts : mockAssignments);
+  const activeAssignments: RosterShift[] = uploadedRoster?.assignments ?? dbShifts;
 
   const forecastByDate = useMemo(() => {
     if (!forecast) return {};
