@@ -23,13 +23,6 @@ interface PublicHolidayAPI {
   localName: string;
 }
 
-import {
-  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
-} from "@/components/ui/table";
-import { toast } from "sonner";
-import {
-  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend,
-} from "recharts";
 
 const ForecastPage = () => {
   const navigate = useNavigate();
