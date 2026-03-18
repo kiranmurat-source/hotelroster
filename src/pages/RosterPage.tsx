@@ -546,6 +546,11 @@ const RosterPage = () => {
                     </div>
                   </>
                 )}
+                <span className="text-muted-foreground/40">|</span>
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="h-2.5 w-2.5 rounded-full bg-purple-500" />
+                  <span className="text-muted-foreground">{language === "tr" ? "Eğitim" : "Training"}</span>
+                </div>
               </div>
             </CardContent>
           </Card>
