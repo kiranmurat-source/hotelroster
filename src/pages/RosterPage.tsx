@@ -569,14 +569,31 @@ const RosterPage = () => {
                           </div>
                           <div className="space-y-1.5">
                             {items.map((a) => {
-                              const bgClass = shiftType
-                                ? shiftConfig[a.shift]?.bg || "bg-muted"
-                                : "bg-muted";
+                              const leaveBadge = a.leave_request_id && a.leave_type ? LEAVE_BADGE[a.leave_type] : null;
+                              const bgClass = leaveBadge
+                                ? leaveBadge.color
+                                : shiftType
+                                  ? shiftConfig[a.shift]?.bg || "bg-muted"
+                                  : "bg-muted";
                               return (
-                                <div key={a.id} className={cn("flex items-center justify-between py-1.5 px-3 rounded-md text-sm", bgClass)}>
-                                  <span className="font-medium">{resolveStaffName(a)}</span>
-                                  <span className="text-xs text-muted-foreground">{resolveStaffRole(a)}</span>
-                                </div>
+                                <Tooltip key={a.id}>
+                                  <TooltipTrigger asChild>
+                                    <div className={cn("flex items-center justify-between py-1.5 px-3 rounded-md text-sm", bgClass)}>
+                                      <div className="flex items-center gap-2">
+                                        {leaveBadge && (
+                                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-background/50">{leaveBadge.code}</span>
+                                        )}
+                                        <span className="font-medium">{resolveStaffName(a)}</span>
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">{resolveStaffRole(a)}</span>
+                                    </div>
+                                  </TooltipTrigger>
+                                  {leaveBadge && (
+                                    <TooltipContent side="top" className="text-xs">
+                                      <p className="font-semibold">{leaveBadge.label}</p>
+                                    </TooltipContent>
+                                  )}
+                                </Tooltip>
                               );
                             })}
                           </div>
