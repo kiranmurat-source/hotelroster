@@ -469,9 +469,6 @@ const RosterPage = () => {
                       {hasEvents && !isSelected && (
                         <Sparkles className="absolute top-0.5 left-0.5 h-2.5 w-2.5 text-accent" />
                       )}
-                      {hasTraining && !isSelected && (
-                        <span className="absolute bottom-0.5 right-0.5 h-2 w-2 rounded-full bg-purple-500" />
-                      )}
                       <span className={cn("text-sm", isSelected ? "font-bold" : "font-medium")}>{day}</span>
                       {hasData && !isSelected && (
                         <div className="flex gap-0.5 mt-0.5">
