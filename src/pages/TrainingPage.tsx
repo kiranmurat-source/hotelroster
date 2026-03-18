@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -13,7 +14,8 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { Upload, GraduationCap, CheckCircle2, Circle, TrendingUp, CalendarDays, Users, AlertTriangle } from "lucide-react";
+import { Upload, GraduationCap, CheckCircle2, Circle, TrendingUp, CalendarDays, Users, AlertTriangle, LayoutGrid } from "lucide-react";
+import TrainingCalendarView from "@/components/training/TrainingCalendarView";
 import * as XLSX from "@e965/xlsx";
 
 interface TrainingTopic {
