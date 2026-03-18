@@ -44,6 +44,7 @@ const App = () => (
                   <Route path="/forecast" element={<ProtectedRoute><ForecastPage /></ProtectedRoute>} />
                   <Route path="/reports" element={<ProtectedRoute requiredRole="manager"><ReportsPage /></ProtectedRoute>} />
                   <Route path="/recognition" element={<ProtectedRoute><RecognitionPage /></ProtectedRoute>} />
+                  <Route path="/leave-requests" element={<ProtectedRoute requiredRole="manager"><LeaveRequestsPage /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
