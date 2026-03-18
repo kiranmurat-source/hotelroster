@@ -37,6 +37,13 @@ const shiftConfig: Record<ShiftType, { bg: string; text: string; icon: typeof Su
   Break: { bg: "bg-emerald-100/50 dark:bg-emerald-900/20", text: "text-emerald-600", icon: Timer },
 };
 
+const LEAVE_BADGE: Record<string, { code: string; color: string; label: string }> = {
+  annual: { code: "YIL", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300", label: "Yıllık İzin" },
+  compensatory: { code: "OFF", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300", label: "Alacak Off" },
+  public_holiday: { code: "TAT", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300", label: "Resmi Tatil" },
+  sick: { code: "HST", color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300", label: "Hastalık İzni" },
+};
+
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
