@@ -152,6 +152,10 @@ const AdminPage = () => {
                 <Input id="invite-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="John Doe" />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="invite-password">{t("admin.password") || "Şifre"}</Label>
+                <Input id="invite-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 karakter" required minLength={6} />
+              </div>
+              <div className="space-y-2">
                 <Label>{t("admin.role")}</Label>
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
