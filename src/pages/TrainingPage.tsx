@@ -3,6 +3,7 @@ import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { Upload, GraduationCap, CheckCircle2, Circle, TrendingUp, CalendarDays, Users } from "lucide-react";
+import { Upload, GraduationCap, CheckCircle2, Circle, TrendingUp, CalendarDays, Users, AlertTriangle } from "lucide-react";
 import * as XLSX from "@e965/xlsx";
 
 interface TrainingTopic {
@@ -47,34 +48,55 @@ interface ParsedRow {
   category: string;
   title: string;
   key_info: string;
+  duration_minutes: number;
 }
 
 const TrainingPage = () => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
-  const { isManager } = useUserRole();
+  const { isManager, isAdmin } = useUserRole();
   const { profile: userProfile } = useUserProfile();
 
-  const [department, setDepartment] = useState("");
   const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
   const [importing, setImporting] = useState(false);
 
   const [topics, setTopics] = useState<TrainingTopic[]>([]);
   const [completions, setCompletions] = useState<TrainingCompletion[]>([]);
   const [staffProfiles, setStaffProfiles] = useState<Profile[]>([]);
+  const [allDepartments, setAllDepartments] = useState<string[]>([]);
+  const [adminSelectedDept, setAdminSelectedDept] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   const userDept = userProfile?.department || "";
 
-  // Load data
+  // The active department: for admin can be switched, others use their own
+  const activeDept = isAdmin && adminSelectedDept ? adminSelectedDept : userDept;
+
+  // Load departments list for admin
   useEffect(() => {
-    if (!userDept) return;
+    if (!isAdmin) return;
+    const loadDepts = async () => {
+      const { data } = await supabase.from("profiles").select("department");
+      if (data) {
+        const depts = [...new Set(data.map((p: any) => p.department).filter(Boolean))] as string[];
+        setAllDepartments(depts);
+      }
+    };
+    loadDepts();
+  }, [isAdmin]);
+
+  // Load data filtered by department
+  useEffect(() => {
+    if (!activeDept) {
+      setLoading(false);
+      return;
+    }
     const load = async () => {
       setLoading(true);
       const [topicsRes, completionsRes, staffRes] = await Promise.all([
-        supabase.from("training_topics").select("*").order("day_number"),
-        supabase.from("training_completions").select("*"),
-        supabase.from("profiles").select("id, user_id, display_name, department"),
+        supabase.from("training_topics").select("*").eq("department", activeDept).order("day_number"),
+        supabase.from("training_completions").select("*").eq("department", activeDept),
+        supabase.from("profiles").select("id, user_id, display_name, department").eq("department", activeDept),
       ]);
 
       if (topicsRes.data) setTopics(topicsRes.data as TrainingTopic[]);
@@ -83,23 +105,11 @@ const TrainingPage = () => {
       setLoading(false);
     };
     load();
-  }, [userDept]);
+  }, [activeDept]);
 
-  // Filter topics for the department being viewed
-  const deptTopics = useMemo(() => {
-    const dept = isManager && department ? department : userDept;
-    return topics.filter((t) => t.department === dept);
-  }, [topics, department, userDept, isManager]);
-
-  const deptStaff = useMemo(() => {
-    const dept = isManager && department ? department : userDept;
-    return staffProfiles.filter((p) => p.department === dept && p.display_name);
-  }, [staffProfiles, department, userDept, isManager]);
-
-  const deptCompletions = useMemo(() => {
-    const dept = isManager && department ? department : userDept;
-    return completions.filter((c) => c.department === dept);
-  }, [completions, department, userDept, isManager]);
+  const deptTopics = topics;
+  const deptStaff = useMemo(() => staffProfiles.filter((p) => p.display_name), [staffProfiles]);
+  const deptCompletions = completions;
 
   // Group topics by category
   const categories = useMemo(() => {
@@ -159,11 +169,12 @@ const TrainingPage = () => {
             const row = rows[i];
             if (!row[0] && row[0] !== 0) break;
             parsed.push({
-              day_number: Number(row[0]),
+              day_number: parseInt(String(row[0]), 10),
               code: String(row[1] || ""),
               category: String(row[2] || ""),
               title: String(row[3] || ""),
               key_info: String(row[4] || ""),
+              duration_minutes: row[5] ? parseInt(String(row[5]), 10) || 10 : 10,
             });
           }
           setParsedRows(parsed);
@@ -182,34 +193,38 @@ const TrainingPage = () => {
   );
 
   const handleImport = useCallback(async () => {
-    if (!department || parsedRows.length === 0) {
+    if (!activeDept || parsedRows.length === 0) {
       toast.error(language === "tr" ? "Departman ve dosya gerekli" : "Department and file required");
       return;
     }
     setImporting(true);
     try {
-      // Delete existing topics for this department, then insert new
-      await supabase.from("training_topics").delete().eq("department", department);
-
       const rows = parsedRows.map((r) => ({
-        department,
+        department: activeDept,
         day_number: r.day_number,
         code: r.code,
         category: r.category,
         title: r.title,
         key_info: r.key_info || null,
+        duration_minutes: r.duration_minutes,
       }));
 
-      const { error } = await supabase.from("training_topics").insert(rows);
+      const { error } = await supabase
+        .from("training_topics")
+        .upsert(rows, { onConflict: "department,day_number" });
       if (error) throw error;
 
       // Refresh topics
-      const { data } = await supabase.from("training_topics").select("*").order("day_number");
+      const { data } = await supabase
+        .from("training_topics")
+        .select("*")
+        .eq("department", activeDept)
+        .order("day_number");
       if (data) setTopics(data as TrainingTopic[]);
 
       setParsedRows([]);
       toast.success(
-        language === "tr" ? `${rows.length} konu yüklendi` : `${rows.length} topics imported`
+        language === "tr" ? `${rows.length} konu başarıyla yüklendi` : `${rows.length} topics imported successfully`
       );
     } catch (err: any) {
       console.error(err);
@@ -217,17 +232,15 @@ const TrainingPage = () => {
     } finally {
       setImporting(false);
     }
-  }, [department, parsedRows, language]);
+  }, [activeDept, parsedRows, language]);
 
   const toggleCompletion = useCallback(
     async (topicId: string, staffId: string) => {
       if (!user) return;
       const existing = deptCompletions.find((c) => c.topic_id === topicId && c.staff_id === staffId);
       const topic = deptTopics.find((t) => t.id === topicId);
-      const dept = isManager && department ? department : userDept;
 
       if (existing) {
-        // Remove completion
         const { error } = await supabase.from("training_completions").delete().eq("id", existing.id);
         if (error) {
           toast.error(error.message);
@@ -235,14 +248,13 @@ const TrainingPage = () => {
         }
         setCompletions((prev) => prev.filter((c) => c.id !== existing.id));
       } else {
-        // Add completion
         const myProfile = staffProfiles.find((p) => p.user_id === user.id);
         const { data, error } = await supabase
           .from("training_completions")
           .insert({
             topic_id: topicId,
             staff_id: staffId,
-            department: dept,
+            department: activeDept,
             confirmed_by: myProfile?.id || null,
           })
           .select()
@@ -254,7 +266,6 @@ const TrainingPage = () => {
         }
         setCompletions((prev) => [...prev, data as TrainingCompletion]);
 
-        // Award 1 point to the manager who did the training
         if (myProfile && topic) {
           try {
             await supabase.rpc("process_kudos", {
@@ -267,10 +278,9 @@ const TrainingPage = () => {
         }
       }
     },
-    [user, deptCompletions, deptTopics, staffProfiles, department, userDept, isManager]
+    [user, deptCompletions, deptTopics, staffProfiles, activeDept]
   );
 
-  // Staff view: find current user's profile
   const myProfile = staffProfiles.find((p) => p.user_id === user?.id);
 
   if (loading) {
@@ -278,6 +288,27 @@ const TrainingPage = () => {
       <AppLayout>
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // No department set
+  if (!userDept) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <h1 className="text-2xl font-bold tracking-tight">{t("training.title")}</h1>
+          <Card>
+            <CardContent className="p-8 text-center space-y-3">
+              <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto" />
+              <p className="text-muted-foreground font-medium">
+                {language === "tr"
+                  ? "Departmanınız tanımlanmamış. Lütfen yöneticinizle iletişime geçin."
+                  : "Your department is not set. Please contact your manager."}
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </AppLayout>
     );
@@ -291,6 +322,25 @@ const TrainingPage = () => {
           <p className="text-muted-foreground">{t("training.subtitle")}</p>
         </div>
 
+        {/* Admin department switcher */}
+        {isAdmin && allDepartments.length > 0 && (
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-muted-foreground">
+              {language === "tr" ? "Departman:" : "Department:"}
+            </span>
+            <Select value={adminSelectedDept || userDept} onValueChange={setAdminSelectedDept}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {allDepartments.map((d) => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* Manager: Excel Import */}
         {isManager && (
           <Card>
@@ -302,8 +352,9 @@ const TrainingPage = () => {
                 <div className="space-y-1.5 flex-1">
                   <Input
                     placeholder={t("training.departmentPlaceholder")}
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
+                    value={activeDept}
+                    readOnly
+                    className="bg-muted cursor-not-allowed"
                   />
                 </div>
                 <label htmlFor="training-upload">
@@ -350,7 +401,7 @@ const TrainingPage = () => {
                       ...{language === "tr" ? `ve ${parsedRows.length - 5} konu daha` : `and ${parsedRows.length - 5} more`}
                     </p>
                   )}
-                  <Button onClick={handleImport} disabled={importing || !department}>
+                  <Button onClick={handleImport} disabled={importing || !activeDept}>
                     <GraduationCap className="h-4 w-4 mr-2" />
                     {t("training.importBtn")}
                   </Button>
@@ -406,15 +457,12 @@ const TrainingPage = () => {
               <CardTitle className="text-base flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 {t("training.matrix")}
-                {isManager && department && (
-                  <span className="text-xs font-normal text-muted-foreground ml-2">— {department}</span>
-                )}
+                <span className="text-xs font-normal text-muted-foreground ml-2">— {activeDept}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
-                  {/* Category header row */}
                   <thead>
                     <tr className="border-b bg-muted/30">
                       <th className="sticky left-0 z-10 bg-muted/30 px-3 py-2 text-left text-xs font-semibold text-muted-foreground min-w-[150px]">
@@ -433,7 +481,6 @@ const TrainingPage = () => {
                         {t("training.progress")}
                       </th>
                     </tr>
-                    {/* Topic code row */}
                     <tr className="border-b">
                       <th className="sticky left-0 z-10 bg-card px-3 py-1.5" />
                       {deptTopics.map((topic) => (
@@ -489,7 +536,6 @@ const TrainingPage = () => {
                         </tr>
                       );
                     })}
-                    {/* Bottom totals row */}
                     {isManager && (
                       <tr className="border-t-2 bg-muted/20">
                         <td className="sticky left-0 z-10 bg-muted/20 px-3 py-2 text-xs font-semibold text-muted-foreground">
@@ -518,7 +564,6 @@ const TrainingPage = () => {
           )
         )}
 
-        {/* Staff personal progress */}
         {!isManager && myProfile && deptTopics.length > 0 && (
           <p className="text-sm text-muted-foreground text-center">
             {staffCompletionCount(myProfile.id)} / {deptTopics.length} {t("training.topicsCompleted")}
