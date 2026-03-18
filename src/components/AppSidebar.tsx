@@ -17,7 +17,7 @@ import {
   FileText,
   Star,
   CalendarOff,
-  GraduationCap,
+  
 } from "lucide-react";
 
 interface NavItem {
