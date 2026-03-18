@@ -19,6 +19,7 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const RecognitionPage = lazy(() => import("./pages/RecognitionPage"));
+const LeaveRequestsPage = lazy(() => import("./pages/LeaveRequestsPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
