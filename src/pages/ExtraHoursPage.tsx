@@ -144,7 +144,7 @@ const ExtraHoursPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label>{t("extraHours.staffMember")}</Label>
-                  <Select value={staffId || undefined} onValueChange={setStaffId}>
+                  <Select onValueChange={setStaffId}>
                     <SelectTrigger><SelectValue placeholder={t("extraHours.selectStaff")} /></SelectTrigger>
                     <SelectContent>{filteredStaff.map((s) => <SelectItem key={s.user_id} value={s.user_id}>{s.display_name || "Unnamed"}</SelectItem>)}</SelectContent>
                   </Select>
