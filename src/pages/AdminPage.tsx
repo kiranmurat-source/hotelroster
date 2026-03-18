@@ -29,6 +29,7 @@ const AdminPage = () => {
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState<string>("staff");
   const [department, setDepartment] = useState<string>("");
   const [inviting, setInviting] = useState(false);
