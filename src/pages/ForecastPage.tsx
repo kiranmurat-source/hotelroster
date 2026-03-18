@@ -427,7 +427,16 @@ const ForecastPage = () => {
                         return (
                           <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title={t("forecast.doubleClickHint")}>
                             <TableCell className="font-medium">{day.dayLabel}</TableCell>
-                            <TableCell className="text-muted-foreground">{day.date}</TableCell>
+                            <TableCell className="text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                {day.date}
+                                {holidayMap[day.date] && (
+                                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                    {holidayMap[day.date]}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell className="text-right">
                               <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", badge.className)}>
                                 {day.occupancyRate}%
