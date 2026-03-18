@@ -67,6 +67,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.signOut": "Çıkış Yap",
     "nav.staffMgmt": "Personel Yönetimi",
     "nav.leave": "İzin Yönetimi",
+    "nav.training": "Eğitim",
 
     // Dashboard
     "dashboard.title": "Kontrol Paneli",
