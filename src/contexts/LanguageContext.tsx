@@ -136,6 +136,7 @@ const translations: Record<Language, Record<string, string>> = {
     "forecast.parseFailed": "Dosya ayrıştırılamadı. Formatı kontrol edip tekrar deneyin.",
     "forecast.invalidFile": "Lütfen bir Excel (.xlsx, .xls) veya CSV dosyası yükleyin",
     "forecast.doubleClickHint": "Personel vardiyasını görmek için çift tıklayın",
+    "forecast.publicHolidays": "2026 Resmi Tatilleri",
     "forecast.guests": "Müşteri",
     "forecast.totalGuests": "Toplam Müşteri",
     "forecast.breakfast": "Kahvaltı",
