@@ -73,6 +73,7 @@ const AdminPage = () => {
       toast({ title: t("admin.inviteSent"), description: t("admin.inviteDesc2").replace("{email}", email).replace("{role}", role) });
       setEmail("");
       setDisplayName("");
+      setPassword("");
       setRole("staff");
       setDepartment("");
       fetchUsers();
