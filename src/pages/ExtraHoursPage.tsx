@@ -106,7 +106,7 @@ const ExtraHoursPage = () => {
       console.error(error);
       return;
     }
-    setStaffId(""); setDepartment(""); setDate(""); setHours(""); setReason("");
+    setStaffId(""); setDepartment(undefined); setDate(""); setHours(""); setReason("");
     toast.success(t("extraHours.submitted"));
     fetchRequests();
   };
