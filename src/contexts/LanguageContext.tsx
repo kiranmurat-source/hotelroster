@@ -67,6 +67,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.signOut": "Çıkış Yap",
     "nav.staffMgmt": "Personel Yönetimi",
     "nav.leave": "İzin Yönetimi",
+    "nav.training": "Eğitim",
 
     // Dashboard
     "dashboard.title": "Kontrol Paneli",
@@ -295,6 +296,27 @@ const translations: Record<Language, Record<string, string>> = {
     "leave.cancel": "İptal",
     "leave.confirm": "Onayla",
     "leave.holidayApplied": "{count} personele tatil uygulandı",
+
+    // Training
+    "training.title": "Eğitim Matrisi",
+    "training.subtitle": "Personel eğitim takibi ve ilerleme",
+    "training.importTitle": "Excel ile Konu Yükle",
+    "training.departmentPlaceholder": "Departman adı (ör: Önbüro)",
+    "training.uploadBtn": "Excel Yükle (.xlsx)",
+    "training.day": "Gün",
+    "training.code": "Kod",
+    "training.category": "Kategori",
+    "training.topicTitle": "Konu",
+    "training.importBtn": "İçe Aktar",
+    "training.totalCompleted": "Toplam Tamamlanan",
+    "training.teamCompletion": "Ekip Tamamlama",
+    "training.thisMonth": "Bu Ay",
+    "training.matrix": "Eğitim Matrisi",
+    "training.staff": "Personel",
+    "training.progress": "İlerleme",
+    "training.total": "Toplam",
+    "training.noTopics": "Departmanınız için henüz eğitim konusu yüklenmedi",
+    "training.topicsCompleted": "konu tamamlandı",
   },
   en: {
     // Login
@@ -320,6 +342,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.signOut": "Sign Out",
     "nav.staffMgmt": "Staff Management",
     "nav.leave": "Leave Management",
+    "nav.training": "Training",
 
     // Dashboard
     "dashboard.title": "Dashboard",
@@ -548,5 +571,26 @@ const translations: Record<Language, Record<string, string>> = {
     "leave.cancel": "Cancel",
     "leave.confirm": "Confirm",
     "leave.holidayApplied": "Holiday applied to {count} staff",
+
+    // Training
+    "training.title": "Training Matrix",
+    "training.subtitle": "Staff training tracking and progress",
+    "training.importTitle": "Import Topics from Excel",
+    "training.departmentPlaceholder": "Department name (e.g. Front Office)",
+    "training.uploadBtn": "Upload Excel (.xlsx)",
+    "training.day": "Day",
+    "training.code": "Code",
+    "training.category": "Category",
+    "training.topicTitle": "Topic",
+    "training.importBtn": "Import",
+    "training.totalCompleted": "Total Completed",
+    "training.teamCompletion": "Team Completion",
+    "training.thisMonth": "This Month",
+    "training.matrix": "Training Matrix",
+    "training.staff": "Staff",
+    "training.progress": "Progress",
+    "training.total": "Total",
+    "training.noTopics": "No training topics uploaded for your department yet",
+    "training.topicsCompleted": "topics completed",
   },
 };

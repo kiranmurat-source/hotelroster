@@ -412,6 +412,91 @@ export type Database = {
         }
         Relationships: []
       }
+      training_completions: {
+        Row: {
+          completed_at: string | null
+          confirmed_by: string | null
+          department: string
+          id: string
+          staff_id: string
+          topic_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          confirmed_by?: string | null
+          department: string
+          id?: string
+          staff_id: string
+          topic_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          confirmed_by?: string | null
+          department?: string
+          id?: string
+          staff_id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_completions_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_completions_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_completions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "training_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_topics: {
+        Row: {
+          category: string
+          code: string
+          created_at: string | null
+          day_number: number
+          department: string
+          duration_minutes: number | null
+          id: string
+          key_info: string | null
+          title: string
+        }
+        Insert: {
+          category: string
+          code: string
+          created_at?: string | null
+          day_number: number
+          department: string
+          duration_minutes?: number | null
+          id?: string
+          key_info?: string | null
+          title: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string | null
+          day_number?: number
+          department?: string
+          duration_minutes?: number | null
+          id?: string
+          key_info?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
