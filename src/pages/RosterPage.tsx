@@ -4,7 +4,7 @@ import AppLayout from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { staffMembers, shiftAssignments as mockAssignments } from "@/lib/mock-data";
+
 import { ShiftAssignment, ShiftType, Department } from "@/lib/types";
 import { parseExcelRoster, generateSampleRoster, ParsedRoster } from "@/lib/parse-roster";
 import { useForecast } from "@/contexts/ForecastContext";
