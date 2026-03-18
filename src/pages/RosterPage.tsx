@@ -326,23 +326,17 @@ const RosterPage = () => {
   const isFromDb = dbShifts.length > 0 && !uploadedRoster;
 
   const resolveStaffFull = (assignment: ShiftAssignment) => {
-    if (uploadedRoster || isFromDb) return { name: assignment.staffId, role: assignment.department, email: "", phone: "" };
-    const staff = staffMembers.find((s) => s.id === assignment.staffId);
-    return staff ? { name: staff.name, role: staff.role, email: staff.email, phone: staff.phone } : { name: "Unknown", role: "", email: "", phone: "" };
+    return { name: assignment.staffId, role: assignment.department, email: "", phone: "" };
   };
 
   const isToday = (day: number) => today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
 
   const resolveStaffName = (assignment: ShiftAssignment) => {
-    if (uploadedRoster || isFromDb) return assignment.staffId;
-    const staff = staffMembers.find((s) => s.id === assignment.staffId);
-    return staff?.name ?? "Unknown";
+    return assignment.staffId;
   };
 
   const resolveStaffRole = (assignment: ShiftAssignment) => {
-    if (uploadedRoster || isFromDb) return assignment.department;
-    const staff = staffMembers.find((s) => s.id === assignment.staffId);
-    return staff?.role ?? "";
+    return assignment.department;
   };
 
   return (

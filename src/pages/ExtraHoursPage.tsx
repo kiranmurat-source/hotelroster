@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { staffMembers } from "@/lib/mock-data";
 import { Department, ApprovalStatus } from "@/lib/types";
 import { Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +31,13 @@ interface DbExtraHoursRequest {
   submitted_by: string;
 }
 
+interface StaffProfile {
+  id: string;
+  user_id: string;
+  display_name: string | null;
+  department: string | null;
+}
+
 const ExtraHoursPage = () => {
   const { t } = useLanguage();
   const { isManager, isAdmin } = useUserRole();
@@ -40,6 +46,7 @@ const ExtraHoursPage = () => {
   const canApprove = isManager || isAdmin;
 
   const [requests, setRequests] = useState<DbExtraHoursRequest[]>([]);
+  const [profiles, setProfiles] = useState<StaffProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [staffId, setStaffId] = useState("");
   const [department, setDepartment] = useState<Department | "">("");
@@ -62,6 +69,11 @@ const ExtraHoursPage = () => {
 
   useEffect(() => {
     fetchRequests();
+    const loadProfiles = async () => {
+      const { data } = await supabase.from("profiles").select("id, user_id, display_name, department");
+      if (data) setProfiles(data);
+    };
+    loadProfiles();
   }, []);
 
   const filteredRequests = canApprove
@@ -69,19 +81,19 @@ const ExtraHoursPage = () => {
     : requests.filter((r) => !userDepartment || r.department === userDepartment);
 
   const filteredStaff = canApprove
-    ? staffMembers
-    : staffMembers.filter((s) => !userDepartment || s.department === userDepartment);
+    ? profiles
+    : profiles.filter((s) => !userDepartment || s.department === userDepartment);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const staff = staffMembers.find((s) => s.id === staffId);
+    const staff = profiles.find((s) => s.user_id === staffId);
     if (!staff || !department || !date || !hours || !reason || !user) {
       toast.error(t("extraHours.fillAll"));
       return;
     }
     const { error } = await supabase.from("extra_hours_requests").insert({
       staff_id: staffId,
-      staff_name: staff.name,
+      staff_name: staff.display_name || "Unknown",
       department: department as string,
       date,
       hours: Number(hours),
@@ -134,7 +146,7 @@ const ExtraHoursPage = () => {
                   <Label>{t("extraHours.staffMember")}</Label>
                   <Select value={staffId} onValueChange={setStaffId}>
                     <SelectTrigger><SelectValue placeholder={t("extraHours.selectStaff")} /></SelectTrigger>
-                    <SelectContent>{filteredStaff.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                    <SelectContent>{filteredStaff.map((s) => <SelectItem key={s.user_id} value={s.user_id}>{s.display_name || "Unnamed"}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
