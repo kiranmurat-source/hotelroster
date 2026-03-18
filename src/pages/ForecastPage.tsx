@@ -60,7 +60,7 @@ const ForecastPage = () => {
     }
     try {
       const buffer = await file.arrayBuffer();
-      const result = parseExcelForecast(buffer);
+      const result = await parseExcelForecast(buffer);
       await saveForecast(result);
       toast.success(t("forecast.loaded").replace("{count}", String(result.days.length)));
     } catch (err) {
@@ -84,8 +84,8 @@ const ForecastPage = () => {
     if (file) handleFile(file);
   };
 
-  const downloadTemplate = () => {
-    const buffer = generateSampleExcel();
+  const downloadTemplate = async () => {
+    const buffer = await generateSampleExcel();
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
