@@ -136,7 +136,7 @@ const ExtraStaffPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label>{t("extraStaff.department")}</Label>
-                  <Select value={department} onValueChange={(v) => setDepartment(v as Department)}>
+                  <Select value={department || undefined} onValueChange={(v) => setDepartment(v as Department)}>
                     <SelectTrigger><SelectValue placeholder={t("extraStaff.selectDept")} /></SelectTrigger>
                     <SelectContent>
                       {(canApprove ? departments : departments.filter((d) => !userDepartment || d === userDepartment)).map((d) => (
