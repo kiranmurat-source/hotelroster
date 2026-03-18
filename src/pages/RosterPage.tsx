@@ -4,7 +4,7 @@ import AppLayout from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { staffMembers, shiftAssignments as mockAssignments } from "@/lib/mock-data";
+
 import { ShiftAssignment, ShiftType, Department } from "@/lib/types";
 import { parseExcelRoster, generateSampleRoster, ParsedRoster } from "@/lib/parse-roster";
 import { useForecast } from "@/contexts/ForecastContext";
@@ -134,7 +134,7 @@ const RosterPage = () => {
 
   const dateLocale = language === "tr" ? "tr-TR" : "en-US";
 
-  const activeAssignments: RosterShift[] = uploadedRoster?.assignments ?? (dbShifts.length > 0 ? dbShifts : mockAssignments);
+  const activeAssignments: RosterShift[] = uploadedRoster?.assignments ?? dbShifts;
 
   const forecastByDate = useMemo(() => {
     if (!forecast) return {};
@@ -326,23 +326,17 @@ const RosterPage = () => {
   const isFromDb = dbShifts.length > 0 && !uploadedRoster;
 
   const resolveStaffFull = (assignment: ShiftAssignment) => {
-    if (uploadedRoster || isFromDb) return { name: assignment.staffId, role: assignment.department, email: "", phone: "" };
-    const staff = staffMembers.find((s) => s.id === assignment.staffId);
-    return staff ? { name: staff.name, role: staff.role, email: staff.email, phone: staff.phone } : { name: "Unknown", role: "", email: "", phone: "" };
+    return { name: assignment.staffId, role: assignment.department, email: "", phone: "" };
   };
 
   const isToday = (day: number) => today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
 
   const resolveStaffName = (assignment: ShiftAssignment) => {
-    if (uploadedRoster || isFromDb) return assignment.staffId;
-    const staff = staffMembers.find((s) => s.id === assignment.staffId);
-    return staff?.name ?? "Unknown";
+    return assignment.staffId;
   };
 
   const resolveStaffRole = (assignment: ShiftAssignment) => {
-    if (uploadedRoster || isFromDb) return assignment.department;
-    const staff = staffMembers.find((s) => s.id === assignment.staffId);
-    return staff?.role ?? "";
+    return assignment.department;
   };
 
   return (
