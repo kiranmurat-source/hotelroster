@@ -64,7 +64,7 @@ const AdminPage = () => {
     setInviting(true);
     try {
       const res = await supabase.functions.invoke("invite-user", {
-        body: { email, role, display_name: displayName || email, department },
+        body: { email, password, role, display_name: displayName || email, department },
       });
 
       if (res.error) throw new Error(res.error.message);
