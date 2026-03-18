@@ -317,6 +317,7 @@ const translations: Record<Language, Record<string, string>> = {
     "training.total": "Toplam",
     "training.noTopics": "Departmanınız için henüz eğitim konusu yüklenmedi",
     "training.topicsCompleted": "konu tamamlandı",
+    "training.calendarView": "Takvim Görünümü",
   },
   en: {
     // Login
