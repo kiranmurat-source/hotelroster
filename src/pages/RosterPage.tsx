@@ -444,7 +444,7 @@ const RosterPage = () => {
                   const isHighOcc = fc && fc.occupancyRate >= 90;
                   const isMedOcc = fc && fc.occupancyRate >= 75 && fc.occupancyRate < 90;
                   const hasEvents = fc && fc.events.length > 0;
-                  const hasTraining = !!trainingByDate[dateStr];
+                  
                   const calButton = (
                     <button
                       key={day}
