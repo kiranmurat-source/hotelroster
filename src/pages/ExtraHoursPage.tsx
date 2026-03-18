@@ -141,17 +141,20 @@ const ExtraHoursPage = () => {
           <Card className="lg:col-span-1 animate-fade-in">
             <CardHeader><CardTitle className="text-lg">{t("extraHours.newRequest")}</CardTitle></CardHeader>
             <CardContent>
+              {loading ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label>{t("extraHours.staffMember")}</Label>
-                  <Select onValueChange={setStaffId}>
+                  <Select key={`staff-${filteredStaff.length}`} onValueChange={setStaffId}>
                     <SelectTrigger><SelectValue placeholder={t("extraHours.selectStaff")} /></SelectTrigger>
                     <SelectContent>{filteredStaff.map((s) => <SelectItem key={s.user_id} value={s.user_id}>{s.display_name || "Unnamed"}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>{t("extraHours.department")}</Label>
-                  <Select onValueChange={(v) => setDepartment(v as Department)}>
+                  <Select key="dept-select" onValueChange={(v) => setDepartment(v as Department)}>
                     <SelectTrigger><SelectValue placeholder={t("extraHours.selectDept")} /></SelectTrigger>
                     <SelectContent>
                       {(canApprove ? departments : departments.filter((d) => !userDepartment || d === userDepartment)).map((d) => (
@@ -174,6 +177,7 @@ const ExtraHoursPage = () => {
                 </div>
                 <Button type="submit" className="w-full">{t("extraHours.submit")}</Button>
               </form>
+              )}
             </CardContent>
           </Card>
 

@@ -133,10 +133,13 @@ const ExtraStaffPage = () => {
           <Card className="lg:col-span-1 animate-fade-in">
             <CardHeader><CardTitle className="text-lg">{t("extraStaff.newRequest")}</CardTitle></CardHeader>
             <CardContent>
+              {loading ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label>{t("extraStaff.department")}</Label>
-                  <Select onValueChange={(v) => setDepartment(v as Department)}>
+                  <Select key="dept-select" onValueChange={(v) => setDepartment(v as Department)}>
                     <SelectTrigger><SelectValue placeholder={t("extraStaff.selectDept")} /></SelectTrigger>
                     <SelectContent>
                       {(canApprove ? departments : departments.filter((d) => !userDepartment || d === userDepartment)).map((d) => (
@@ -151,7 +154,7 @@ const ExtraStaffPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>{t("extraStaff.shift")}</Label>
-                  <Select onValueChange={(v) => setShift(v as ShiftType)}>
+                  <Select key="shift-select" onValueChange={(v) => setShift(v as ShiftType)}>
                     <SelectTrigger><SelectValue placeholder={t("extraStaff.selectShift")} /></SelectTrigger>
                     <SelectContent>{shifts.map((s) => <SelectItem key={s} value={s}>{shiftLabels[s]}</SelectItem>)}</SelectContent>
                   </Select>
@@ -170,6 +173,7 @@ const ExtraStaffPage = () => {
                 </div>
                 <Button type="submit" className="w-full">{t("extraStaff.submit")}</Button>
               </form>
+              )}
             </CardContent>
           </Card>
 
