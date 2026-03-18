@@ -213,7 +213,7 @@ const RosterPage = () => {
     }
     try {
       const buffer = await file.arrayBuffer();
-      const result = parseExcelRoster(buffer);
+      const result = await parseExcelRoster(buffer);
       setUploadedRoster(result);
       if (result.assignments.length > 0) {
         const firstDate = result.assignments[0].date;
