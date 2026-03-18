@@ -470,6 +470,45 @@ const ForecastPage = () => {
                 )}
               </CardContent>
             </Card>
+            {/* Public Holidays */}
+            {holidays.length > 0 && (
+              <Collapsible open={holidaysOpen} onOpenChange={setHolidaysOpen}>
+                <Card className="animate-fade-in">
+                  <CollapsibleTrigger asChild>
+                    <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <CalendarDays className="h-5 w-5 text-amber-600" />
+                          {t("forecast.publicHolidays")}
+                        </CardTitle>
+                        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", holidaysOpen && "rotate-180")} />
+                      </div>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="pt-0">
+                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {holidays.map((h) => {
+                          const isPast = h.date < new Date().toISOString().split("T")[0];
+                          return (
+                            <div
+                              key={h.date}
+                              className={cn(
+                                "flex items-center justify-between py-2 px-3 rounded-lg text-sm",
+                                isPast ? "bg-muted/50 text-muted-foreground" : "bg-amber-50 dark:bg-amber-900/10 border border-amber-200/50"
+                              )}
+                            >
+                              <span className={cn("font-medium", !isPast && "text-amber-800 dark:text-amber-300")}>{h.localName}</span>
+                              <span className="text-xs text-muted-foreground">{h.date}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            )}
           </>
         )}
       </div>
