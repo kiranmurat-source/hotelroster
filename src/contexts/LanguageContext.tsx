@@ -389,6 +389,7 @@ const translations: Record<Language, Record<string, string>> = {
     "forecast.parseFailed": "Failed to parse file. Check the format and try again.",
     "forecast.invalidFile": "Please upload an Excel file (.xlsx, .xls) or CSV",
     "forecast.doubleClickHint": "Double-click to view staff roster",
+    "forecast.publicHolidays": "2026 Public Holidays",
     "forecast.guests": "Guests",
     "forecast.totalGuests": "Total Guests",
     "forecast.breakfast": "Breakfast",
