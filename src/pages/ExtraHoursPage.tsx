@@ -49,7 +49,7 @@ const ExtraHoursPage = () => {
   const [profiles, setProfiles] = useState<StaffProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [staffId, setStaffId] = useState("");
-  const [department, setDepartment] = useState<Department | "">("");
+  const [department, setDepartment] = useState<string | undefined>(undefined);
   const [date, setDate] = useState("");
   const [hours, setHours] = useState("");
   const [reason, setReason] = useState("");
