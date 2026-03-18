@@ -48,7 +48,7 @@ const ExtraHoursPage = () => {
   const [requests, setRequests] = useState<DbExtraHoursRequest[]>([]);
   const [profiles, setProfiles] = useState<StaffProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [staffId, setStaffId] = useState("");
+  const [staffId, setStaffId] = useState<string | undefined>(undefined);
   const [department, setDepartment] = useState<string | undefined>(undefined);
   const [date, setDate] = useState("");
   const [hours, setHours] = useState("");
