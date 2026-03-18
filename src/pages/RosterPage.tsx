@@ -108,23 +108,6 @@ const RosterPage = () => {
     loadShifts();
   }, []);
 
-  // Load training completions with topic titles
-  useEffect(() => {
-    const loadTraining = async () => {
-      const { data } = await supabase
-        .from("training_completions")
-        .select("completed_at, staff_id, training_topics(title)")
-      if (data) {
-        const mapped = data.map((c: any) => ({
-          staff_name: c.staff_id,
-          date: c.completed_at ? c.completed_at.substring(0, 10) : "",
-          title: c.training_topics?.title || "",
-        }));
-        setTrainingCompletions(mapped);
-      }
-    };
-    loadTraining();
-  }, []);
 
   useEffect(() => {
     const dateParam = searchParams.get("date");
