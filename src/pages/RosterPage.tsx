@@ -471,6 +471,7 @@ const RosterPage = () => {
                   const isMedOcc = fc && fc.occupancyRate >= 75 && fc.occupancyRate < 90;
                   const hasEvents = fc && fc.events.length > 0;
                   const hasTraining = !!trainingByDate[dateStr];
+                  const calButton = (
                     <button
                       key={day}
                       onClick={() => setSelectedDate(dateStr)}
@@ -493,6 +494,9 @@ const RosterPage = () => {
                       )}
                       {hasEvents && !isSelected && (
                         <Sparkles className="absolute top-0.5 left-0.5 h-2.5 w-2.5 text-accent" />
+                      )}
+                      {hasTraining && !isSelected && (
+                        <span className="absolute bottom-0.5 right-0.5 h-2 w-2 rounded-full bg-purple-500" />
                       )}
                       <span className={cn("text-sm", isSelected ? "font-bold" : "font-medium")}>{day}</span>
                       {hasData && !isSelected && (
