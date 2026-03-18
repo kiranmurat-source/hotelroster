@@ -69,17 +69,30 @@ const ReportsPage = () => {
   const totalExtraStaffRequested = filteredExtraStaff.reduce((sum, r) => sum + r.number_of_staff, 0);
   const approvedExtraStaff = filteredExtraStaff.filter((r) => r.status === "approved").reduce((sum, r) => sum + r.number_of_staff, 0);
 
+  const sanitizeCsvField = (val: string | number): string => {
+    const s = String(val);
+    if (/^[=+\-@\t\r]/.test(s)) return `'${s}`;
+    return s;
+  };
+
+  const csvCell = (val: string | number): string => {
+    const safe = sanitizeCsvField(val);
+    return safe.includes(",") || safe.includes('"') || safe.includes("\n")
+      ? `"${safe.replace(/"/g, '""')}"`
+      : safe;
+  };
+
   const exportCSV = (tab: string) => {
     let csv = "";
     if (tab === "roster") {
       csv = "Date,Staff,Department,Shift\n";
-      filteredRoster.forEach((a) => { csv += `${a.date},${a.staff_name},${a.department},${a.shift}\n`; });
+      filteredRoster.forEach((a) => { csv += `${csvCell(a.date)},${csvCell(a.staff_name)},${csvCell(a.department)},${csvCell(a.shift)}\n`; });
     } else if (tab === "extra-hours") {
       csv = "Date,Staff,Department,Hours,Reason,Status\n";
-      filteredExtraHours.forEach((r) => { csv += `${r.date},${r.staff_name},${r.department},${r.hours},"${r.reason}",${r.status}\n`; });
+      filteredExtraHours.forEach((r) => { csv += `${csvCell(r.date)},${csvCell(r.staff_name)},${csvCell(r.department)},${csvCell(r.hours)},${csvCell(r.reason)},${csvCell(r.status)}\n`; });
     } else {
       csv = "Date,Department,Shift,Staff Needed,Reason,Requested By,Status\n";
-      filteredExtraStaff.forEach((r) => { csv += `${r.date},${r.department},${r.shift},${r.number_of_staff},"${r.reason}",${r.requested_by},${r.status}\n`; });
+      filteredExtraStaff.forEach((r) => { csv += `${csvCell(r.date)},${csvCell(r.department)},${csvCell(r.shift)},${csvCell(r.number_of_staff)},${csvCell(r.reason)},${csvCell(r.requested_by)},${csvCell(r.status)}\n`; });
     }
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
