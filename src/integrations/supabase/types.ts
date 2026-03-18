@@ -212,30 +212,86 @@ export type Database = {
       roster_shifts: {
         Row: {
           created_at: string
+          custom_end_time: string | null
+          custom_start_time: string | null
           date: string
           department: string
           id: string
           shift: string
+          shift_type_id: string | null
           staff_name: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          custom_end_time?: string | null
+          custom_start_time?: string | null
           date: string
           department: string
           id?: string
           shift: string
+          shift_type_id?: string | null
           staff_name: string
           user_id: string
         }
         Update: {
           created_at?: string
+          custom_end_time?: string | null
+          custom_start_time?: string | null
           date?: string
           department?: string
           id?: string
           shift?: string
+          shift_type_id?: string | null
           staff_name?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roster_shifts_shift_type_id_fkey"
+            columns: ["shift_type_id"]
+            isOneToOne: false
+            referencedRelation: "shift_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_types: {
+        Row: {
+          code: string
+          color: string
+          created_at: string | null
+          end_time: string | null
+          id: string
+          is_editable_time: boolean
+          is_off: boolean
+          label: string
+          sort_order: number
+          start_time: string | null
+        }
+        Insert: {
+          code: string
+          color?: string
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          is_editable_time?: boolean
+          is_off?: boolean
+          label: string
+          sort_order?: number
+          start_time?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          is_editable_time?: boolean
+          is_off?: boolean
+          label?: string
+          sort_order?: number
+          start_time?: string | null
         }
         Relationships: []
       }

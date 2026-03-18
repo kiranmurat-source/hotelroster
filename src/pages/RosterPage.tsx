@@ -11,19 +11,28 @@ import { useForecast } from "@/contexts/ForecastContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
+import { useShiftTypes, ShiftTypeRecord } from "@/hooks/useShiftTypes";
+import { ShiftPill, ShiftDot } from "@/components/ShiftPill";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { maskPhone } from "@/lib/privacy";
-import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Flame, Sparkles, Mail, Phone, Timer } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Sparkles, Mail, Phone, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
+// Extended assignment type to hold shift_type_id
+interface RosterShift extends ShiftAssignment {
+  shift_type_id?: string | null;
+  custom_start_time?: string | null;
+  custom_end_time?: string | null;
+}
+
 const shiftConfig: Record<ShiftType, { bg: string; text: string; icon: typeof Sun }> = {
-  Morning: { bg: "bg-success/15", text: "text-success", icon: Sun },
-  Afternoon: { bg: "bg-accent/15", text: "text-accent", icon: Sunset },
-  Night: { bg: "bg-primary/20", text: "text-primary-foreground", icon: Moon },
+  Morning: { bg: "bg-blue-100/50 dark:bg-blue-900/20", text: "text-blue-600", icon: Sun },
+  Afternoon: { bg: "bg-orange-100/50 dark:bg-orange-900/20", text: "text-orange-600", icon: Sunset },
+  Night: { bg: "bg-purple-100/50 dark:bg-purple-900/20", text: "text-purple-600", icon: Moon },
   "Day Off": { bg: "bg-muted", text: "text-muted-foreground", icon: Coffee },
-  Break: { bg: "bg-warning/15", text: "text-warning", icon: Timer },
+  Break: { bg: "bg-emerald-100/50 dark:bg-emerald-900/20", text: "text-emerald-600", icon: Timer },
 };
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -42,6 +51,15 @@ function formatDate(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
+/** Map old ShiftType to new shift_type code */
+const SHIFT_TO_CODE: Record<ShiftType, string> = {
+  Morning: "A",
+  Afternoon: "B",
+  Night: "C",
+  "Day Off": "OFF",
+  Break: "MID",
+};
+
 const RosterPage = () => {
   const [searchParams] = useSearchParams();
   const today = new Date();
@@ -49,27 +67,29 @@ const RosterPage = () => {
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [uploadedRoster, setUploadedRoster] = useState<ParsedRoster | null>(null);
-  const [dbShifts, setDbShifts] = useState<ShiftAssignment[]>([]);
+  const [dbShifts, setDbShifts] = useState<RosterShift[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const { isManager } = useUserRole();
   const { user } = useAuth();
+  const { shiftTypes, getById, getByCode } = useShiftTypes();
 
   // Load saved roster shifts from database
   useEffect(() => {
     const loadShifts = async () => {
-      const { data, error } = await supabase
-        .from("roster_shifts")
-        .select("*");
+      const { data, error } = await supabase.from("roster_shifts").select("*");
       if (!error && data && data.length > 0) {
-        const assignments: ShiftAssignment[] = data.map((row: any) => ({
+        const assignments: RosterShift[] = data.map((row: any) => ({
           id: row.id,
           staffId: row.staff_name,
           date: row.date,
           shift: row.shift as ShiftType,
           department: row.department as Department,
+          shift_type_id: row.shift_type_id,
+          custom_start_time: row.custom_start_time,
+          custom_end_time: row.custom_end_time,
         }));
         setDbShifts(assignments);
       }
@@ -102,8 +122,7 @@ const RosterPage = () => {
 
   const dateLocale = language === "tr" ? "tr-TR" : "en-US";
 
-  // Priority: uploaded (unsaved) > saved DB shifts > mock data
-  const activeAssignments: ShiftAssignment[] = uploadedRoster?.assignments ?? (dbShifts.length > 0 ? dbShifts : mockAssignments);
+  const activeAssignments: RosterShift[] = uploadedRoster?.assignments ?? (dbShifts.length > 0 ? dbShifts : mockAssignments);
 
   const forecastByDate = useMemo(() => {
     if (!forecast) return {};
@@ -116,31 +135,34 @@ const RosterPage = () => {
   const firstDay = getFirstDayOfWeek(year, month);
 
   const prevMonth = () => {
-    if (month === 0) { setYear(year - 1); setMonth(11); }
-    else setMonth(month - 1);
+    if (month === 0) { setYear(year - 1); setMonth(11); } else setMonth(month - 1);
     setSelectedDate(null);
   };
 
   const nextMonth = () => {
-    if (month === 11) { setYear(year + 1); setMonth(0); }
-    else setMonth(month + 1);
+    if (month === 11) { setYear(year + 1); setMonth(0); } else setMonth(month + 1);
     setSelectedDate(null);
   };
+
+  /** Resolve a shift_type_id for a given ShiftType code */
+  const resolveShiftTypeId = useCallback((shift: ShiftType): string | undefined => {
+    const code = SHIFT_TO_CODE[shift];
+    return getByCode(code)?.id;
+  }, [getByCode]);
 
   const saveRosterToDb = useCallback(async (result: ParsedRoster) => {
     if (!user) return;
     setSaving(true);
     try {
-      // Delete existing shifts first
       await supabase.from("roster_shifts").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
-      // Insert new shifts in batches of 500
       const rows = result.assignments.map((a) => ({
         user_id: user.id,
         staff_name: a.staffId,
         date: a.date,
         shift: a.shift,
         department: a.department,
+        shift_type_id: resolveShiftTypeId(a.shift) || null,
       }));
 
       for (let i = 0; i < rows.length; i += 500) {
@@ -149,7 +171,6 @@ const RosterPage = () => {
         if (error) throw error;
       }
 
-      // Update local state
       const { data } = await supabase.from("roster_shifts").select("*");
       if (data) {
         setDbShifts(data.map((row: any) => ({
@@ -158,6 +179,9 @@ const RosterPage = () => {
           date: row.date,
           shift: row.shift as ShiftType,
           department: row.department as Department,
+          shift_type_id: row.shift_type_id,
+          custom_start_time: row.custom_start_time,
+          custom_end_time: row.custom_end_time,
         })));
       }
       setUploadedRoster(null);
@@ -168,7 +192,7 @@ const RosterPage = () => {
     } finally {
       setSaving(false);
     }
-  }, [user, t]);
+  }, [user, t, resolveShiftTypeId]);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
@@ -187,7 +211,6 @@ const RosterPage = () => {
         setSelectedDate(firstDate);
       }
       toast.success(`Roster loaded — ${result.assignments.length} shifts, ${result.staffNames.length} staff${result.skipped > 0 ? `, ${result.skipped} rows skipped` : ""}`);
-      // Auto-save to database
       await saveRosterToDb(result);
     } catch (err: any) {
       toast.error(err?.message || t("forecast.parseFailed"));
@@ -219,42 +242,73 @@ const RosterPage = () => {
     toast.success("Template downloaded");
   };
 
+  /** Resolve shift type for display */
+  const resolveShiftType = useCallback((a: RosterShift): ShiftTypeRecord | null => {
+    if (a.shift_type_id) return getById(a.shift_type_id) || null;
+    // Fallback: try to map old text shift to a shift type
+    const code = SHIFT_TO_CODE[a.shift];
+    if (code) return getByCode(code) || null;
+    return null;
+  }, [getById, getByCode]);
+
+  // Calendar day counts by shift type color
   const dayCounts = useMemo(() => {
-    const counts: Record<string, Record<ShiftType, number>> = {};
+    const counts: Record<string, Record<string, number>> = {};
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = formatDate(year, month, d);
       const dayAssignments = activeAssignments.filter((a) => a.date === dateStr);
       if (dayAssignments.length > 0) {
-        counts[dateStr] = { Morning: 0, Afternoon: 0, Night: 0, "Day Off": 0, Break: 0 };
-        dayAssignments.forEach((a) => { counts[dateStr][a.shift]++; });
+        const colorCounts: Record<string, number> = {};
+        dayAssignments.forEach((a) => {
+          const st = resolveShiftType(a as RosterShift);
+          const color = st?.color || "gray";
+          colorCounts[color] = (colorCounts[color] || 0) + 1;
+        });
+        counts[dateStr] = colorCounts;
       }
     }
     return counts;
-  }, [year, month, daysInMonth, activeAssignments]);
+  }, [year, month, daysInMonth, activeAssignments, resolveShiftType]);
 
   const selectedAssignments = selectedDate
     ? activeAssignments.filter((a) => a.date === selectedDate)
     : [];
 
-  const groupedByShift = useMemo(() => {
-    const groups: Record<ShiftType, typeof selectedAssignments> = {
-      Morning: [], Afternoon: [], Night: [], "Day Off": [], Break: [],
-    };
-    selectedAssignments.forEach((a) => { groups[a.shift].push(a); });
-    return groups;
-  }, [selectedAssignments]);
+  // Group by shift type
+  const groupedByShiftType = useMemo(() => {
+    const groups: Map<string, { shiftType: ShiftTypeRecord | null; items: RosterShift[] }> = new Map();
+    
+    (selectedAssignments as RosterShift[]).forEach((a) => {
+      const st = resolveShiftType(a);
+      const key = st?.id || a.shift;
+      if (!groups.has(key)) {
+        groups.set(key, { shiftType: st, items: [] });
+      }
+      groups.get(key)!.items.push(a);
+    });
+
+    // Sort by shift type sort_order
+    return Array.from(groups.values()).sort((a, b) => {
+      const orderA = a.shiftType?.sort_order ?? 99;
+      const orderB = b.shiftType?.sort_order ?? 99;
+      return orderA - orderB;
+    });
+  }, [selectedAssignments, resolveShiftType]);
 
   const modalAssignments = modalDate
-    ? activeAssignments.filter((a) => a.date === modalDate)
+    ? (activeAssignments as RosterShift[]).filter((a) => a.date === modalDate)
     : [];
 
-  const modalGroupedByShift = useMemo(() => {
-    const groups: Record<ShiftType, ShiftAssignment[]> = {
-      Morning: [], Afternoon: [], Night: [], "Day Off": [], Break: [],
-    };
-    modalAssignments.forEach((a) => { groups[a.shift].push(a); });
-    return groups;
-  }, [modalAssignments]);
+  const modalGrouped = useMemo(() => {
+    const groups: Map<string, { shiftType: ShiftTypeRecord | null; items: RosterShift[] }> = new Map();
+    modalAssignments.forEach((a) => {
+      const st = resolveShiftType(a);
+      const key = st?.id || a.shift;
+      if (!groups.has(key)) groups.set(key, { shiftType: st, items: [] });
+      groups.get(key)!.items.push(a);
+    });
+    return Array.from(groups.values()).sort((a, b) => (a.shiftType?.sort_order ?? 99) - (b.shiftType?.sort_order ?? 99));
+  }, [modalAssignments, resolveShiftType]);
 
   const isFromDb = dbShifts.length > 0 && !uploadedRoster;
 
@@ -264,9 +318,7 @@ const RosterPage = () => {
     return staff ? { name: staff.name, role: staff.role, email: staff.email, phone: staff.phone } : { name: "Unknown", role: "", email: "", phone: "" };
   };
 
-  const isToday = (day: number) => {
-    return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
-  };
+  const isToday = (day: number) => today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
 
   const resolveStaffName = (assignment: ShiftAssignment) => {
     if (uploadedRoster || isFromDb) return assignment.staffId;
@@ -393,11 +445,10 @@ const RosterPage = () => {
                         isWeekend && !isSelected && "text-muted-foreground",
                       )}
                     >
-                      {/* Occupancy indicator */}
                       {fc && !isSelected && (
                         <span className={cn(
                           "absolute top-0.5 right-0.5 text-[9px] font-bold",
-                          isHighOcc ? "text-warning" : isMedOcc ? "text-accent" : "text-muted-foreground"
+                          isHighOcc ? "text-orange-500" : isMedOcc ? "text-blue-500" : "text-muted-foreground"
                         )}>
                           {fc.occupancyRate}%
                         </span>
@@ -408,10 +459,9 @@ const RosterPage = () => {
                       <span className={cn("text-sm", isSelected ? "font-bold" : "font-medium")}>{day}</span>
                       {hasData && !isSelected && (
                         <div className="flex gap-0.5 mt-0.5">
-                          {hasData.Morning > 0 && <span className="h-1.5 w-1.5 rounded-full bg-success" />}
-                          {hasData.Afternoon > 0 && <span className="h-1.5 w-1.5 rounded-full bg-accent" />}
-                          {hasData.Night > 0 && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
-                          {hasData.Break > 0 && <span className="h-1.5 w-1.5 rounded-full bg-warning" />}
+                          {Object.keys(hasData).filter(c => c !== "gray").map((color) => (
+                            <ShiftDot key={color} color={color} />
+                          ))}
                         </div>
                       )}
                     </button>
@@ -433,18 +483,19 @@ const RosterPage = () => {
                 })}
               </div>
 
-              <div className="flex flex-wrap gap-4 mt-5 pt-4 border-t">
-                {(Object.keys(shiftConfig) as ShiftType[]).map((shift) => (
-                  <div key={shift} className="flex items-center gap-1.5 text-xs">
-                    <span className={cn("h-2.5 w-2.5 rounded-full", shift === "Morning" ? "bg-success" : shift === "Afternoon" ? "bg-accent" : shift === "Night" ? "bg-primary" : "bg-muted-foreground/40")} />
-                    <span className="text-muted-foreground">{shiftLabels[shift]}</span>
+              {/* Legend */}
+              <div className="flex flex-wrap gap-3 mt-5 pt-4 border-t">
+                {shiftTypes.map((st) => (
+                  <div key={st.id} className="flex items-center gap-1.5 text-xs">
+                    <ShiftDot color={st.color} />
+                    <span className="text-muted-foreground">{st.code} — {st.label}</span>
                   </div>
                 ))}
                 {forecast && (
                   <>
                     <span className="text-muted-foreground/40">|</span>
                     <div className="flex items-center gap-1.5 text-xs">
-                      <span className="h-2.5 w-2.5 rounded-sm bg-warning/30 ring-1 ring-warning/40" />
+                      <span className="h-2.5 w-2.5 rounded-sm bg-orange-200 ring-1 ring-orange-300" />
                       <span className="text-muted-foreground">{t("roster.highOcc")}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs">
@@ -470,10 +521,10 @@ const RosterPage = () => {
                       <span className={cn(
                         "text-xs font-semibold px-2 py-0.5 rounded-full",
                         forecastByDate[selectedDate].occupancyRate >= 90
-                          ? "bg-warning/15 text-warning"
+                          ? "bg-orange-100 text-orange-700"
                           : forecastByDate[selectedDate].occupancyRate >= 75
-                          ? "bg-accent/15 text-accent"
-                          : "bg-success/15 text-success"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-emerald-100 text-emerald-700"
                       )}>
                         {forecastByDate[selectedDate].occupancyRate}% occ.
                       </span>
@@ -485,25 +536,30 @@ const RosterPage = () => {
                     </div>
                   )}
                   <div className="space-y-4">
-                    {(Object.keys(groupedByShift) as ShiftType[]).map((shift) => {
-                      const items = groupedByShift[shift];
+                    {groupedByShiftType.map(({ shiftType, items }) => {
                       if (items.length === 0) return null;
-                      const config = shiftConfig[shift];
-                      const Icon = config.icon;
                       return (
-                        <div key={shift}>
+                        <div key={shiftType?.id || "unknown"}>
                           <div className="flex items-center gap-2 mb-2">
-                            <Icon className={cn("h-4 w-4", config.text)} />
-                            <span className="text-sm font-semibold">{shiftLabels[shift]}</span>
+                            {shiftType ? (
+                              <ShiftPill shiftType={shiftType} size="md" />
+                            ) : (
+                              <span className="text-sm font-semibold text-muted-foreground">{items[0]?.shift}</span>
+                            )}
                             <span className="text-xs text-muted-foreground">({items.length})</span>
                           </div>
                           <div className="space-y-1.5">
-                            {items.map((a) => (
-                              <div key={a.id} className={cn("flex items-center justify-between py-1.5 px-3 rounded-md text-sm", config.bg)}>
-                                <span className="font-medium">{resolveStaffName(a)}</span>
-                                <span className="text-xs text-muted-foreground">{resolveStaffRole(a)}</span>
-                              </div>
-                            ))}
+                            {items.map((a) => {
+                              const bgClass = shiftType
+                                ? shiftConfig[a.shift]?.bg || "bg-muted"
+                                : "bg-muted";
+                              return (
+                                <div key={a.id} className={cn("flex items-center justify-between py-1.5 px-3 rounded-md text-sm", bgClass)}>
+                                  <span className="font-medium">{resolveStaffName(a)}</span>
+                                  <span className="text-xs text-muted-foreground">{resolveStaffRole(a)}</span>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       );
@@ -530,26 +586,36 @@ const RosterPage = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {(Object.keys(modalGroupedByShift) as ShiftType[]).map((shift) => {
-              const items = modalGroupedByShift[shift];
+            {modalGrouped.map(({ shiftType, items }) => {
               if (items.length === 0) return null;
-              const config = shiftConfig[shift];
-              const Icon = config.icon;
               return (
-                <div key={shift}>
+                <div key={shiftType?.id || "unknown"}>
                   <div className="flex items-center gap-2 mb-2">
-                    <Icon className={cn("h-4 w-4", config.text)} />
-                    <span className="text-sm font-semibold">{shiftLabels[shift]}</span>
+                    {shiftType ? (
+                      <ShiftPill shiftType={shiftType} size="md" />
+                    ) : (
+                      <span className="text-sm font-semibold text-muted-foreground">{items[0]?.shift}</span>
+                    )}
                     <span className="text-xs text-muted-foreground">({items.length})</span>
                   </div>
                   <div className="space-y-2">
                     {items.map((a) => {
                       const staff = resolveStaffFull(a);
+                      const bgClass = shiftType
+                        ? shiftConfig[a.shift]?.bg || "bg-muted"
+                        : "bg-muted";
                       return (
-                        <div key={a.id} className={cn("py-2 px-3 rounded-md", config.bg)}>
+                        <div key={a.id} className={cn("py-2 px-3 rounded-md", bgClass)}>
                           <div className="flex items-center justify-between">
                             <span className="font-medium text-sm">{staff.name}</span>
-                            <span className="text-xs text-muted-foreground">{staff.role}</span>
+                            <div className="flex items-center gap-2">
+                              {shiftType && a.custom_start_time && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  {a.custom_start_time?.slice(0,5)} - {a.custom_end_time?.slice(0,5)}
+                                </span>
+                              )}
+                              <span className="text-xs text-muted-foreground">{staff.role}</span>
+                            </div>
                           </div>
                           {(staff.email || staff.phone) && (
                             <div className="flex gap-4 mt-1">
