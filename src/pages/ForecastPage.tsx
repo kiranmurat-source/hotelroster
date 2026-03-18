@@ -38,6 +38,23 @@ const ForecastPage = () => {
   const { isManager } = useUserRole();
   const [isDragging, setIsDragging] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  const [holidays, setHolidays] = useState<PublicHolidayAPI[]>([]);
+  const [holidaysOpen, setHolidaysOpen] = useState(false);
+
+  // Fetch Turkish public holidays
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("https://date.nager.at/api/v3/PublicHolidays/2026/TR", { signal: controller.signal })
+      .then((res) => res.ok ? res.json() : Promise.reject())
+      .then((data: PublicHolidayAPI[]) => setHolidays(data))
+      .catch(() => { /* silently ignore */ });
+    return () => controller.abort();
+  }, []);
+
+  const holidayMap = holidays.reduce<Record<string, string>>((acc, h) => {
+    acc[h.date] = h.localName;
+    return acc;
+  }, {});
 
   const handleDayDoubleClick = useCallback((dateStr: string) => {
     navigate(`/roster?date=${dateStr}`);
