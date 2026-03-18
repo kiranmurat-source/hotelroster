@@ -41,9 +41,9 @@ const ExtraStaffPage = () => {
 
   const [requests, setRequests] = useState<DbExtraStaffRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [department, setDepartment] = useState<string | undefined>(undefined);
+  const [department, setDepartment] = useState("");
   const [date, setDate] = useState("");
-  const [shift, setShift] = useState<string | undefined>(undefined);
+  const [shift, setShift] = useState("");
   const [numberOfStaff, setNumberOfStaff] = useState("");
   const [reason, setReason] = useState("");
   const [requestedBy, setRequestedBy] = useState("");
