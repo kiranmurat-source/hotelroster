@@ -282,15 +282,6 @@ const RosterPage = () => {
     return counts;
   }, [year, month, daysInMonth, activeAssignments, resolveShiftType]);
 
-  // Training completions lookup by date
-  const trainingByDate = useMemo(() => {
-    const map: Record<string, { staff_name: string; title: string }[]> = {};
-    trainingCompletions.forEach((tc) => {
-      if (!map[tc.date]) map[tc.date] = [];
-      map[tc.date].push(tc);
-    });
-    return map;
-  }, [trainingCompletions]);
 
   const selectedAssignments = selectedDate
     ? activeAssignments.filter((a) => a.date === selectedDate)
