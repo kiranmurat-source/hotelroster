@@ -472,6 +472,9 @@ const RosterPage = () => {
                       {hasEvents && !isSelected && (
                         <Sparkles className="absolute top-0.5 left-0.5 h-2.5 w-2.5 text-accent" />
                       )}
+                      {isHoliday && !isSelected && (
+                        <span className="absolute top-0 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-red-500" />
+                      )}
                       <span className={cn("text-sm", isSelected ? "font-bold" : "font-medium")}>{day}</span>
                       {hasData && !isSelected && (
                         <div className="flex gap-0.5 mt-0.5">
