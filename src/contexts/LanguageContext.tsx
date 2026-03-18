@@ -593,5 +593,6 @@ const translations: Record<Language, Record<string, string>> = {
     "training.total": "Total",
     "training.noTopics": "No training topics uploaded for your department yet",
     "training.topicsCompleted": "topics completed",
+    "training.calendarView": "Calendar View",
   },
 };
