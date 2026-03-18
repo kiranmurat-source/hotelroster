@@ -626,6 +626,24 @@ const RosterPage = () => {
                     {selectedAssignments.length === 0 && (
                       <p className="text-sm text-muted-foreground text-center py-4">{t("roster.noShifts")}</p>
                     )}
+                    {/* Training completions for this date */}
+                    {selectedDate && trainingByDate[selectedDate] && trainingByDate[selectedDate].length > 0 && (
+                      <div className="mt-4 pt-3 border-t">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="h-2.5 w-2.5 rounded-full bg-purple-500" />
+                          <span className="text-xs font-semibold text-muted-foreground">
+                            {language === "tr" ? "Eğitim" : "Training"}
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          {trainingByDate[selectedDate].map((tc, i) => (
+                            <p key={i} className="text-xs text-muted-foreground pl-4">
+                              Eğitim: {tc.title}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
