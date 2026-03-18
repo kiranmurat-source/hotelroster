@@ -21,12 +21,14 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       toast({ title: t("login.failed"), description: error.message, variant: "destructive" });
     } else {
-      navigate("/");
+      // Check if user must change password
+      const mustChange = data.user?.user_metadata?.must_change_password === true;
+      navigate(mustChange ? "/change-password" : "/");
     }
   };
 

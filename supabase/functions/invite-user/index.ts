@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { display_name, department, role },
+      user_metadata: { display_name, department, role, must_change_password: true },
     });
 
     if (createError) {

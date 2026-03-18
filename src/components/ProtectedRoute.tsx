@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole, AppRole } from "@/hooks/useUserRole";
 
@@ -11,6 +11,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isManager, loading: roleLoading } = useUserRole();
+  const location = useLocation();
 
   if (authLoading || roleLoading) {
     return (
@@ -22,6 +23,12 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Check if user must change password
+  const mustChangePassword = user.user_metadata?.must_change_password === true;
+  if (mustChangePassword && location.pathname !== "/change-password") {
+    return <Navigate to="/change-password" replace />;
   }
 
   if (requiredRole === "admin" && !isAdmin) {

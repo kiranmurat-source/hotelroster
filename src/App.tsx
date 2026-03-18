@@ -20,6 +20,7 @@ const AdminPage = lazy(() => import("./pages/AdminPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const RecognitionPage = lazy(() => import("./pages/RecognitionPage"));
 const LeaveRequestsPage = lazy(() => import("./pages/LeaveRequestsPage"));
+const ChangePasswordPage = lazy(() => import("./pages/ChangePasswordPage"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -37,6 +38,7 @@ const App = () => (
               <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
                 <Routes>
                   <Route path="/login" element={<LoginPage />} />
+                  <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
                   <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                   <Route path="/roster" element={<ProtectedRoute><RosterPage /></ProtectedRoute>} />
                   <Route path="/staff" element={<ProtectedRoute requiredRole="manager"><StaffPage /></ProtectedRoute>} />
