@@ -78,7 +78,7 @@ const RosterPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [publicHolidays, setPublicHolidays] = useState<Record<string, string>>({});
+  
 
   const { isManager } = useUserRole();
   const { user } = useAuth();
