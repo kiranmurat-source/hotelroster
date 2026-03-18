@@ -84,13 +84,10 @@ const RosterPage = () => {
   const { user } = useAuth();
   const { shiftTypes, getById, getByCode } = useShiftTypes();
 
-  // Load saved roster shifts and public holidays from database
+  // Load saved roster shifts from database
   useEffect(() => {
     const loadShifts = async () => {
-      const [shiftsRes, holidaysRes] = await Promise.all([
-        supabase.from("roster_shifts").select("*, leave_requests(leave_type)"),
-        supabase.from("public_holidays").select("date, name"),
-      ]);
+      const shiftsRes = await supabase.from("roster_shifts").select("*, leave_requests(leave_type)");
 
       if (!shiftsRes.error && shiftsRes.data && shiftsRes.data.length > 0) {
         const assignments: RosterShift[] = shiftsRes.data.map((row: any) => ({
@@ -106,12 +103,6 @@ const RosterPage = () => {
           leave_type: row.leave_requests?.leave_type || null,
         }));
         setDbShifts(assignments);
-      }
-
-      if (!holidaysRes.error && holidaysRes.data) {
-        const map: Record<string, string> = {};
-        holidaysRes.data.forEach((h: any) => { map[h.date] = h.name; });
-        setPublicHolidays(map);
       }
     };
     loadShifts();
