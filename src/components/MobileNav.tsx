@@ -12,6 +12,7 @@ import {
   Shield,
   FileText,
   Star,
+  CalendarOff,
 } from "lucide-react";
 
 interface NavItem {
@@ -26,6 +27,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { to: "/roster", labelKey: "nav.roster", icon: CalendarDays },
+  { to: "/leave-requests", labelKey: "nav.leave", icon: CalendarOff, managerOnly: true },
   { to: "/forecast", labelKey: "nav.forecast", icon: BarChart3 },
   { to: "/staff", labelKey: "nav.staff", icon: Users },
   { to: "/extra-hours", labelKey: "nav.extraHours", icon: Clock },

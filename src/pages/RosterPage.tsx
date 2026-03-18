@@ -25,6 +25,8 @@ interface RosterShift extends ShiftAssignment {
   shift_type_id?: string | null;
   custom_start_time?: string | null;
   custom_end_time?: string | null;
+  leave_request_id?: string | null;
+  leave_type?: string | null;
 }
 
 const shiftConfig: Record<ShiftType, { bg: string; text: string; icon: typeof Sun }> = {
@@ -33,6 +35,13 @@ const shiftConfig: Record<ShiftType, { bg: string; text: string; icon: typeof Su
   Night: { bg: "bg-purple-100/50 dark:bg-purple-900/20", text: "text-purple-600", icon: Moon },
   "Day Off": { bg: "bg-muted", text: "text-muted-foreground", icon: Coffee },
   Break: { bg: "bg-emerald-100/50 dark:bg-emerald-900/20", text: "text-emerald-600", icon: Timer },
+};
+
+const LEAVE_BADGE: Record<string, { code: string; color: string; label: string }> = {
+  annual: { code: "YIL", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300", label: "Yıllık İzin" },
+  compensatory: { code: "OFF", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300", label: "Alacak Off" },
+  public_holiday: { code: "TAT", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300", label: "Resmi Tatil" },
+  sick: { code: "HST", color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300", label: "Hastalık İzni" },
 };
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -71,17 +80,22 @@ const RosterPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [publicHolidays, setPublicHolidays] = useState<Record<string, string>>({});
 
   const { isManager } = useUserRole();
   const { user } = useAuth();
   const { shiftTypes, getById, getByCode } = useShiftTypes();
 
-  // Load saved roster shifts from database
+  // Load saved roster shifts and public holidays from database
   useEffect(() => {
     const loadShifts = async () => {
-      const { data, error } = await supabase.from("roster_shifts").select("*");
-      if (!error && data && data.length > 0) {
-        const assignments: RosterShift[] = data.map((row: any) => ({
+      const [shiftsRes, holidaysRes] = await Promise.all([
+        supabase.from("roster_shifts").select("*, leave_requests(leave_type)"),
+        supabase.from("public_holidays").select("date, name"),
+      ]);
+
+      if (!shiftsRes.error && shiftsRes.data && shiftsRes.data.length > 0) {
+        const assignments: RosterShift[] = shiftsRes.data.map((row: any) => ({
           id: row.id,
           staffId: row.staff_name,
           date: row.date,
@@ -90,8 +104,16 @@ const RosterPage = () => {
           shift_type_id: row.shift_type_id,
           custom_start_time: row.custom_start_time,
           custom_end_time: row.custom_end_time,
+          leave_request_id: row.leave_request_id,
+          leave_type: row.leave_requests?.leave_type || null,
         }));
         setDbShifts(assignments);
+      }
+
+      if (!holidaysRes.error && holidaysRes.data) {
+        const map: Record<string, string> = {};
+        holidaysRes.data.forEach((h: any) => { map[h.date] = h.name; });
+        setPublicHolidays(map);
       }
     };
     loadShifts();
@@ -431,6 +453,7 @@ const RosterPage = () => {
                   const isHighOcc = fc && fc.occupancyRate >= 90;
                   const isMedOcc = fc && fc.occupancyRate >= 75 && fc.occupancyRate < 90;
                   const hasEvents = fc && fc.events.length > 0;
+                  const isHoliday = !!publicHolidays[dateStr];
 
                   const calButton = (
                     <button
@@ -455,6 +478,9 @@ const RosterPage = () => {
                       )}
                       {hasEvents && !isSelected && (
                         <Sparkles className="absolute top-0.5 left-0.5 h-2.5 w-2.5 text-accent" />
+                      )}
+                      {isHoliday && !isSelected && (
+                        <span className="absolute top-0 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-red-500" />
                       )}
                       <span className={cn("text-sm", isSelected ? "font-bold" : "font-medium")}>{day}</span>
                       {hasData && !isSelected && (
@@ -550,14 +576,31 @@ const RosterPage = () => {
                           </div>
                           <div className="space-y-1.5">
                             {items.map((a) => {
-                              const bgClass = shiftType
-                                ? shiftConfig[a.shift]?.bg || "bg-muted"
-                                : "bg-muted";
+                              const leaveBadge = a.leave_request_id && a.leave_type ? LEAVE_BADGE[a.leave_type] : null;
+                              const bgClass = leaveBadge
+                                ? leaveBadge.color
+                                : shiftType
+                                  ? shiftConfig[a.shift]?.bg || "bg-muted"
+                                  : "bg-muted";
                               return (
-                                <div key={a.id} className={cn("flex items-center justify-between py-1.5 px-3 rounded-md text-sm", bgClass)}>
-                                  <span className="font-medium">{resolveStaffName(a)}</span>
-                                  <span className="text-xs text-muted-foreground">{resolveStaffRole(a)}</span>
-                                </div>
+                                <Tooltip key={a.id}>
+                                  <TooltipTrigger asChild>
+                                    <div className={cn("flex items-center justify-between py-1.5 px-3 rounded-md text-sm", bgClass)}>
+                                      <div className="flex items-center gap-2">
+                                        {leaveBadge && (
+                                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-background/50">{leaveBadge.code}</span>
+                                        )}
+                                        <span className="font-medium">{resolveStaffName(a)}</span>
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">{resolveStaffRole(a)}</span>
+                                    </div>
+                                  </TooltipTrigger>
+                                  {leaveBadge && (
+                                    <TooltipContent side="top" className="text-xs">
+                                      <p className="font-semibold">{leaveBadge.label}</p>
+                                    </TooltipContent>
+                                  )}
+                                </Tooltip>
                               );
                             })}
                           </div>
