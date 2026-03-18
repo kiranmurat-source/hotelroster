@@ -12,6 +12,7 @@ import {
   Shield,
   FileText,
   Star,
+  CalendarOff,
 } from "lucide-react";
 
 interface NavItem {
