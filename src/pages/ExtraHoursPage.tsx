@@ -144,14 +144,14 @@ const ExtraHoursPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label>{t("extraHours.staffMember")}</Label>
-                  <Select value={staffId} onValueChange={setStaffId}>
+                  <Select value={staffId || undefined} onValueChange={setStaffId}>
                     <SelectTrigger><SelectValue placeholder={t("extraHours.selectStaff")} /></SelectTrigger>
                     <SelectContent>{filteredStaff.map((s) => <SelectItem key={s.user_id} value={s.user_id}>{s.display_name || "Unnamed"}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>{t("extraHours.department")}</Label>
-                   <Select value={department} onValueChange={(v) => setDepartment(v as Department)}>
+                  <Select value={department || undefined} onValueChange={(v) => setDepartment(v as Department)}>
                     <SelectTrigger><SelectValue placeholder={t("extraHours.selectDept")} /></SelectTrigger>
                     <SelectContent>
                       {(canApprove ? departments : departments.filter((d) => !userDepartment || d === userDepartment)).map((d) => (

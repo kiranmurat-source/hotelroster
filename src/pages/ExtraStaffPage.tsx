@@ -98,7 +98,7 @@ const ExtraStaffPage = () => {
       console.error(error);
       return;
     }
-    setDepartment(undefined); setDate(""); setShift(undefined); setNumberOfStaff(""); setReason(""); setRequestedBy("");
+    setDepartment(""); setDate(""); setShift(""); setNumberOfStaff(""); setReason(""); setRequestedBy("");
     toast.success(t("extraStaff.submitted"));
     fetchRequests();
   };
