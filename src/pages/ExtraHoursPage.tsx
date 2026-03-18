@@ -151,7 +151,7 @@ const ExtraHoursPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>{t("extraHours.department")}</Label>
-                  <Select value={department || undefined} onValueChange={(v) => setDepartment(v as Department)}>
+                  <Select onValueChange={(v) => setDepartment(v as Department)}>
                     <SelectTrigger><SelectValue placeholder={t("extraHours.selectDept")} /></SelectTrigger>
                     <SelectContent>
                       {(canApprove ? departments : departments.filter((d) => !userDepartment || d === userDepartment)).map((d) => (

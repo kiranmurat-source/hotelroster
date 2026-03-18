@@ -151,7 +151,7 @@ const ExtraStaffPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>{t("extraStaff.shift")}</Label>
-                  <Select value={shift || undefined} onValueChange={(v) => setShift(v as ShiftType)}>
+                  <Select onValueChange={(v) => setShift(v as ShiftType)}>
                     <SelectTrigger><SelectValue placeholder={t("extraStaff.selectShift")} /></SelectTrigger>
                     <SelectContent>{shifts.map((s) => <SelectItem key={s} value={s}>{shiftLabels[s]}</SelectItem>)}</SelectContent>
                   </Select>
