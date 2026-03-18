@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -13,7 +14,8 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { Upload, GraduationCap, CheckCircle2, Circle, TrendingUp, CalendarDays, Users, AlertTriangle } from "lucide-react";
+import { Upload, GraduationCap, CheckCircle2, Circle, TrendingUp, CalendarDays, Users, AlertTriangle, LayoutGrid } from "lucide-react";
+import TrainingCalendarView from "@/components/training/TrainingCalendarView";
 import * as XLSX from "@e965/xlsx";
 
 interface TrainingTopic {
@@ -450,110 +452,134 @@ const TrainingPage = () => {
           </div>
         )}
 
-        {/* Training Matrix */}
+        {/* Training Matrix / Calendar Views */}
         {deptTopics.length > 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Users className="h-4 w-4" />
+          <Tabs defaultValue="matrix" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="matrix" className="gap-1.5">
+                <Users className="h-3.5 w-3.5" />
                 {t("training.matrix")}
-                <span className="text-xs font-normal text-muted-foreground ml-2">— {activeDept}</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b bg-muted/30">
-                      <th className="sticky left-0 z-10 bg-muted/30 px-3 py-2 text-left text-xs font-semibold text-muted-foreground min-w-[150px]">
-                        {t("training.staff")}
-                      </th>
-                      {categories.map((cat) => (
-                        <th
-                          key={cat.name}
-                          colSpan={cat.topics.length}
-                          className="px-1 py-1.5 text-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-l"
-                        >
-                          {cat.name}
-                        </th>
-                      ))}
-                      <th className="px-3 py-2 text-center text-xs font-semibold text-muted-foreground border-l min-w-[60px]">
-                        {t("training.progress")}
-                      </th>
-                    </tr>
-                    <tr className="border-b">
-                      <th className="sticky left-0 z-10 bg-card px-3 py-1.5" />
-                      {deptTopics.map((topic) => (
-                        <Tooltip key={topic.id}>
-                          <TooltipTrigger asChild>
-                            <th className="px-1 py-1.5 text-center text-[10px] font-mono text-muted-foreground border-l cursor-help min-w-[36px]">
-                              {topic.code}
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="gap-1.5">
+                <LayoutGrid className="h-3.5 w-3.5" />
+                {t("training.calendarView")}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="matrix">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {t("training.matrix")}
+                    <span className="text-xs font-normal text-muted-foreground ml-2">— {activeDept}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <thead>
+                        <tr className="border-b bg-muted/30">
+                          <th className="sticky left-0 z-10 bg-muted/30 px-3 py-2 text-left text-xs font-semibold text-muted-foreground min-w-[150px]">
+                            {t("training.staff")}
+                          </th>
+                          {categories.map((cat) => (
+                            <th
+                              key={cat.name}
+                              colSpan={cat.topics.length}
+                              className="px-1 py-1.5 text-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-l"
+                            >
+                              {cat.name}
                             </th>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-xs">
-                            <p className="font-semibold text-xs">{topic.title}</p>
-                            {topic.key_info && <p className="text-[10px] text-muted-foreground mt-1">{topic.key_info}</p>}
-                          </TooltipContent>
-                        </Tooltip>
-                      ))}
-                      <th className="border-l" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(isManager ? deptStaff : deptStaff.filter((s) => s.id === myProfile?.id)).map((staff) => {
-                      const count = staffCompletionCount(staff.id);
-                      return (
-                        <tr key={staff.id} className="border-b hover:bg-muted/20 transition-colors">
-                          <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-sm whitespace-nowrap">
-                            {staff.display_name}
-                          </td>
-                          {deptTopics.map((topic) => {
-                            const done = isCompleted(topic.id, staff.id);
-                            return (
-                              <td
-                                key={topic.id}
-                                className={cn(
-                                  "px-1 py-2 text-center border-l",
-                                  isManager && "cursor-pointer hover:bg-muted/40"
-                                )}
-                                onClick={isManager ? () => toggleCompletion(topic.id, staff.id) : undefined}
-                              >
-                                {done ? (
-                                  <CheckCircle2 className="h-4 w-4 text-success mx-auto" />
-                                ) : (
-                                  <Circle className="h-4 w-4 text-muted-foreground/30 mx-auto" />
-                                )}
-                              </td>
-                            );
-                          })}
-                          <td className="px-3 py-2 text-center border-l text-xs font-semibold">
-                            <span className={cn(
-                              count === deptTopics.length ? "text-success" : "text-muted-foreground"
-                            )}>
-                              {count} / {deptTopics.length}
-                            </span>
-                          </td>
+                          ))}
+                          <th className="px-3 py-2 text-center text-xs font-semibold text-muted-foreground border-l min-w-[60px]">
+                            {t("training.progress")}
+                          </th>
                         </tr>
-                      );
-                    })}
-                    {isManager && (
-                      <tr className="border-t-2 bg-muted/20">
-                        <td className="sticky left-0 z-10 bg-muted/20 px-3 py-2 text-xs font-semibold text-muted-foreground">
-                          {t("training.total")}
-                        </td>
-                        {deptTopics.map((topic) => (
-                          <td key={topic.id} className="px-1 py-2 text-center border-l text-xs font-semibold text-muted-foreground">
-                            {topicCompletionCount(topic.id)}
-                          </td>
-                        ))}
-                        <td className="border-l" />
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+                        <tr className="border-b">
+                          <th className="sticky left-0 z-10 bg-card px-3 py-1.5" />
+                          {deptTopics.map((topic) => (
+                            <Tooltip key={topic.id}>
+                              <TooltipTrigger asChild>
+                                <th className="px-1 py-1.5 text-center text-[10px] font-mono text-muted-foreground border-l cursor-help min-w-[36px]">
+                                  {topic.code}
+                                </th>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">
+                                <p className="font-semibold text-xs">{topic.title}</p>
+                                {topic.key_info && <p className="text-[10px] text-muted-foreground mt-1">{topic.key_info}</p>}
+                              </TooltipContent>
+                            </Tooltip>
+                          ))}
+                          <th className="border-l" />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(isManager ? deptStaff : deptStaff.filter((s) => s.id === myProfile?.id)).map((staff) => {
+                          const count = staffCompletionCount(staff.id);
+                          return (
+                            <tr key={staff.id} className="border-b hover:bg-muted/20 transition-colors">
+                              <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-sm whitespace-nowrap">
+                                {staff.display_name}
+                              </td>
+                              {deptTopics.map((topic) => {
+                                const done = isCompleted(topic.id, staff.id);
+                                return (
+                                  <td
+                                    key={topic.id}
+                                    className={cn(
+                                      "px-1 py-2 text-center border-l",
+                                      isManager && "cursor-pointer hover:bg-muted/40"
+                                    )}
+                                    onClick={isManager ? () => toggleCompletion(topic.id, staff.id) : undefined}
+                                  >
+                                    {done ? (
+                                      <CheckCircle2 className="h-4 w-4 text-success mx-auto" />
+                                    ) : (
+                                      <Circle className="h-4 w-4 text-muted-foreground/30 mx-auto" />
+                                    )}
+                                  </td>
+                                );
+                              })}
+                              <td className="px-3 py-2 text-center border-l text-xs font-semibold">
+                                <span className={cn(
+                                  count === deptTopics.length ? "text-success" : "text-muted-foreground"
+                                )}>
+                                  {count} / {deptTopics.length}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {isManager && (
+                          <tr className="border-t-2 bg-muted/20">
+                            <td className="sticky left-0 z-10 bg-muted/20 px-3 py-2 text-xs font-semibold text-muted-foreground">
+                              {t("training.total")}
+                            </td>
+                            {deptTopics.map((topic) => (
+                              <td key={topic.id} className="px-1 py-2 text-center border-l text-xs font-semibold text-muted-foreground">
+                                {topicCompletionCount(topic.id)}
+                              </td>
+                            ))}
+                            <td className="border-l" />
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="calendar">
+              <TrainingCalendarView
+                topics={deptTopics}
+                completions={deptCompletions}
+                myProfileId={myProfile?.id}
+                isManager={isManager}
+              />
+            </TabsContent>
+          </Tabs>
         ) : (
           !isManager && (
             <Card>
