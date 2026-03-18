@@ -41,9 +41,9 @@ const ExtraStaffPage = () => {
 
   const [requests, setRequests] = useState<DbExtraStaffRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [department, setDepartment] = useState<Department | "">("");
+  const [department, setDepartment] = useState("");
   const [date, setDate] = useState("");
-  const [shift, setShift] = useState<ShiftType | "">("");
+  const [shift, setShift] = useState("");
   const [numberOfStaff, setNumberOfStaff] = useState("");
   const [reason, setReason] = useState("");
   const [requestedBy, setRequestedBy] = useState("");
@@ -136,7 +136,7 @@ const ExtraStaffPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label>{t("extraStaff.department")}</Label>
-                  <Select value={department} onValueChange={(v) => setDepartment(v as Department)}>
+                  <Select onValueChange={(v) => setDepartment(v as Department)}>
                     <SelectTrigger><SelectValue placeholder={t("extraStaff.selectDept")} /></SelectTrigger>
                     <SelectContent>
                       {(canApprove ? departments : departments.filter((d) => !userDepartment || d === userDepartment)).map((d) => (
@@ -151,7 +151,7 @@ const ExtraStaffPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>{t("extraStaff.shift")}</Label>
-                  <Select value={shift} onValueChange={(v) => setShift(v as ShiftType)}>
+                  <Select onValueChange={(v) => setShift(v as ShiftType)}>
                     <SelectTrigger><SelectValue placeholder={t("extraStaff.selectShift")} /></SelectTrigger>
                     <SelectContent>{shifts.map((s) => <SelectItem key={s} value={s}>{shiftLabels[s]}</SelectItem>)}</SelectContent>
                   </Select>
