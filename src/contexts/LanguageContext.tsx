@@ -296,6 +296,27 @@ const translations: Record<Language, Record<string, string>> = {
     "leave.cancel": "İptal",
     "leave.confirm": "Onayla",
     "leave.holidayApplied": "{count} personele tatil uygulandı",
+
+    // Training
+    "training.title": "Eğitim Matrisi",
+    "training.subtitle": "Personel eğitim takibi ve ilerleme",
+    "training.importTitle": "Excel ile Konu Yükle",
+    "training.departmentPlaceholder": "Departman adı (ör: Önbüro)",
+    "training.uploadBtn": "Excel Yükle (.xlsx)",
+    "training.day": "Gün",
+    "training.code": "Kod",
+    "training.category": "Kategori",
+    "training.topicTitle": "Konu",
+    "training.importBtn": "İçe Aktar",
+    "training.totalCompleted": "Toplam Tamamlanan",
+    "training.teamCompletion": "Ekip Tamamlama",
+    "training.thisMonth": "Bu Ay",
+    "training.matrix": "Eğitim Matrisi",
+    "training.staff": "Personel",
+    "training.progress": "İlerleme",
+    "training.total": "Toplam",
+    "training.noTopics": "Departmanınız için henüz eğitim konusu yüklenmedi",
+    "training.topicsCompleted": "konu tamamlandı",
   },
   en: {
     // Login
