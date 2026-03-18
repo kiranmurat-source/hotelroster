@@ -78,7 +78,7 @@ const RosterPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [trainingCompletions, setTrainingCompletions] = useState<{ staff_name: string; date: string; title: string }[]>([]);
+  
 
   const { isManager } = useUserRole();
   const { user } = useAuth();
@@ -108,23 +108,6 @@ const RosterPage = () => {
     loadShifts();
   }, []);
 
-  // Load training completions with topic titles
-  useEffect(() => {
-    const loadTraining = async () => {
-      const { data } = await supabase
-        .from("training_completions")
-        .select("completed_at, staff_id, training_topics(title)")
-      if (data) {
-        const mapped = data.map((c: any) => ({
-          staff_name: c.staff_id,
-          date: c.completed_at ? c.completed_at.substring(0, 10) : "",
-          title: c.training_topics?.title || "",
-        }));
-        setTrainingCompletions(mapped);
-      }
-    };
-    loadTraining();
-  }, []);
 
   useEffect(() => {
     const dateParam = searchParams.get("date");
@@ -299,15 +282,6 @@ const RosterPage = () => {
     return counts;
   }, [year, month, daysInMonth, activeAssignments, resolveShiftType]);
 
-  // Training completions lookup by date
-  const trainingByDate = useMemo(() => {
-    const map: Record<string, { staff_name: string; title: string }[]> = {};
-    trainingCompletions.forEach((tc) => {
-      if (!map[tc.date]) map[tc.date] = [];
-      map[tc.date].push(tc);
-    });
-    return map;
-  }, [trainingCompletions]);
 
   const selectedAssignments = selectedDate
     ? activeAssignments.filter((a) => a.date === selectedDate)
@@ -470,7 +444,7 @@ const RosterPage = () => {
                   const isHighOcc = fc && fc.occupancyRate >= 90;
                   const isMedOcc = fc && fc.occupancyRate >= 75 && fc.occupancyRate < 90;
                   const hasEvents = fc && fc.events.length > 0;
-                  const hasTraining = !!trainingByDate[dateStr];
+                  
                   const calButton = (
                     <button
                       key={day}
@@ -494,9 +468,6 @@ const RosterPage = () => {
                       )}
                       {hasEvents && !isSelected && (
                         <Sparkles className="absolute top-0.5 left-0.5 h-2.5 w-2.5 text-accent" />
-                      )}
-                      {hasTraining && !isSelected && (
-                        <span className="absolute bottom-0.5 right-0.5 h-2 w-2 rounded-full bg-purple-500" />
                       )}
                       <span className={cn("text-sm", isSelected ? "font-bold" : "font-medium")}>{day}</span>
                       {hasData && !isSelected && (
@@ -546,11 +517,6 @@ const RosterPage = () => {
                     </div>
                   </>
                 )}
-                <span className="text-muted-foreground/40">|</span>
-                <div className="flex items-center gap-1.5 text-xs">
-                  <span className="h-2.5 w-2.5 rounded-full bg-purple-500" />
-                  <span className="text-muted-foreground">{language === "tr" ? "Eğitim" : "Training"}</span>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -630,24 +596,6 @@ const RosterPage = () => {
                     })}
                     {selectedAssignments.length === 0 && (
                       <p className="text-sm text-muted-foreground text-center py-4">{t("roster.noShifts")}</p>
-                    )}
-                    {/* Training completions for this date */}
-                    {selectedDate && trainingByDate[selectedDate] && trainingByDate[selectedDate].length > 0 && (
-                      <div className="mt-4 pt-3 border-t">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-purple-500" />
-                          <span className="text-xs font-semibold text-muted-foreground">
-                            {language === "tr" ? "Eğitim" : "Training"}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          {trainingByDate[selectedDate].map((tc, i) => (
-                            <p key={i} className="text-xs text-muted-foreground pl-4">
-                              Eğitim: {tc.title}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
                     )}
                   </div>
                 </>
