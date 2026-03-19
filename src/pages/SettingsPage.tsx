@@ -176,13 +176,31 @@ const SettingsPage = () => {
                       {field.type === "percent" && " (%)"}
                     </Label>
                     {editing ? (
-                      <Input
-                        type={field.type === "text" ? "text" : "number"}
-                        value={form[field.key] ?? ""}
-                        onChange={(e) => handleChange(field.key, e.target.value)}
-                        step={field.key === "guest_per_room" ? "0.1" : "1"}
-                        className="h-9"
-                      />
+                      field.type === "select" && field.options ? (
+                        <Select
+                          value={String(form[field.key] ?? "")}
+                          onValueChange={(val) => handleChange(field.key, val)}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {field.options.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          type={field.type === "text" ? "text" : "number"}
+                          value={form[field.key] ?? ""}
+                          onChange={(e) => handleChange(field.key, e.target.value)}
+                          step={field.key === "guest_per_room" ? "0.1" : "1"}
+                          className="h-9"
+                        />
+                      )
                     ) : (
                       <p className="text-sm font-medium py-1.5">
                         {field.type === "percent"
