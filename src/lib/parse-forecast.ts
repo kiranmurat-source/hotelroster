@@ -4,6 +4,14 @@ import { ForecastDay, WeeklyForecast } from "./forecast-types";
 const SHORT_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const FIXED_TOTAL_ROOMS = 144;
 
+/** Format a Date to yyyy-MM-dd using local timezone (avoids UTC shift from toISOString) */
+function toLocalISODate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 /**
  * Parses an Excel file into a WeeklyForecast.
  */
