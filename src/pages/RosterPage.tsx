@@ -91,6 +91,7 @@ const RosterPage = () => {
   const { isManager } = useUserRole();
   const { user } = useAuth();
   const { shiftTypes, getById, getByCode } = useShiftTypes();
+  const { calcGuests, calcBreakfast } = useHotelCalculations();
 
   // Load saved roster shifts from database
   useEffect(() => {
