@@ -269,14 +269,15 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
           ) : (
             <span className="text-sm font-medium text-muted-foreground">{activeDepartment}</span>
           )}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o - 1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm font-medium">{formatMonthLabel(weekDates)}</span>
-          <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o + 1)}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1 ml-auto">
+            <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o - 1)}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-medium">{formatMonthLabel(weekDates)}</span>
+            <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o + 1)}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Grid */}
