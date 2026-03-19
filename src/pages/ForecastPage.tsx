@@ -5,10 +5,10 @@ import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { parseExcelForecast, generateSampleExcel } from "@/lib/parse-forecast";
+import { parseExcelForecast, generateSampleExcel, formatDateDDMMYYYY } from "@/lib/parse-forecast";
 import { useForecast } from "@/contexts/ForecastContext";
 import { cn } from "@/lib/utils";
-import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut, LayoutGrid, Table as TableIcon, Users, Coffee, ChevronDown } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut, LayoutGrid, Table as TableIcon, Users, Coffee, UtensilsCrossed, ChevronDown } from "lucide-react";
 import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } from "@/components/ui/table";
@@ -117,6 +117,8 @@ const ForecastPage = () => {
   const totalEvents = forecast ? forecast.days.reduce((sum, d) => sum + d.events.length, 0) : 0;
   const totalGuests = forecast ? forecast.days.reduce((sum, d) => sum + calcGuests(d.roomNights), 0) : 0;
   const totalBreakfast = forecast ? forecast.days.reduce((sum, d) => sum + calcBreakfast(calcGuests(d.roomNights)), 0) : 0;
+  const totalLunchCovers = forecast ? forecast.days.reduce((sum, d) => sum + (d.lunchCovers || 0), 0) : 0;
+  const totalDinnerCovers = forecast ? forecast.days.reduce((sum, d) => sum + (d.dinnerCovers || 0), 0) : 0;
   const peakDay = forecast
     ? forecast.days.reduce((max, d) => (calcOccupancy(d.roomNights, d.totalRooms) > calcOccupancy(max.roomNights, max.totalRooms) ? d : max), forecast.days[0])
     : null;
@@ -187,7 +189,7 @@ const ForecastPage = () => {
         ) : (
           <>
             {/* Summary stats */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
               <Card className="animate-fade-in">
                 <CardContent className="p-5 flex items-center gap-4">
                   <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
@@ -229,6 +231,28 @@ const ForecastPage = () => {
                   <div>
                     <p className="text-2xl font-bold">{totalBreakfast.toLocaleString()}</p>
                     <p className="text-xs text-muted-foreground">{t("forecast.totalBreakfast")}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="animate-fade-in">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <UtensilsCrossed className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{totalLunchCovers.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.lunchCovers") || "Öğlen Kuver"}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="animate-fade-in">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <UtensilsCrossed className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{totalDinnerCovers.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.dinnerCovers") || "Akşam Kuver"}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -282,6 +306,8 @@ const ForecastPage = () => {
                           if (name === "calcOcc") return [`${value}%`, t("forecast.occupancy")];
                           if (name === "arrivals") return [value, t("forecast.arrivals")];
                           if (name === "departures") return [value, t("forecast.departures")];
+                          if (name === "lunchCovers") return [value, t("forecast.lunchCovers") || "Öğlen Kuver"];
+                          if (name === "dinnerCovers") return [value, t("forecast.dinnerCovers") || "Akşam Kuver"];
                           return [value, name];
                         }}
                       />
@@ -290,6 +316,8 @@ const ForecastPage = () => {
                           if (value === "calcOcc") return t("forecast.occupancy");
                           if (value === "arrivals") return t("forecast.arrivals");
                           if (value === "departures") return t("forecast.departures");
+                          if (value === "lunchCovers") return t("forecast.lunchCovers") || "Öğlen Kuver";
+                          if (value === "dinnerCovers") return t("forecast.dinnerCovers") || "Akşam Kuver";
                           return value;
                         }}
                       />
@@ -300,6 +328,8 @@ const ForecastPage = () => {
                       </Bar>
                       <Line yAxisId="right" type="monotone" dataKey="arrivals" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
                       <Line yAxisId="right" type="monotone" dataKey="departures" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--accent))" }} strokeDasharray="5 5" />
+                      <Line yAxisId="right" type="monotone" dataKey="lunchCovers" stroke="hsl(var(--warning))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--warning))" }} />
+                      <Line yAxisId="right" type="monotone" dataKey="dinnerCovers" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--destructive))" }} />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
@@ -345,7 +375,7 @@ const ForecastPage = () => {
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="font-semibold text-sm">{day.dayLabel}</p>
-                              <p className="text-xs text-muted-foreground">{day.date}</p>
+                              <p className="text-xs text-muted-foreground">{formatDateDDMMYYYY(day.date)}</p>
                             </div>
                             <div className="flex flex-col items-end gap-1">
                               <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", badge.className)}>
@@ -389,6 +419,14 @@ const ForecastPage = () => {
                             <span className="text-muted-foreground">{t("forecast.breakfast")}</span>
                             <span className="font-medium">{calcBreakfast(calcGuests(day.roomNights))}</span>
                           </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">{t("forecast.lunchCovers") || "Öğlen Kuver"}</span>
+                            <span className="font-medium">{day.lunchCovers || 0}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">{t("forecast.dinnerCovers") || "Akşam Kuver"}</span>
+                            <span className="font-medium">{day.dinnerCovers || 0}</span>
+                          </div>
                           {day.events.length > 0 && (
                             <div className="pt-1 border-t space-y-1">
                               {day.events.map((ev, i) => (
@@ -415,6 +453,8 @@ const ForecastPage = () => {
                         <TableHead className="text-right">{t("forecast.totalRooms")}</TableHead>
                         <TableHead className="text-right">{t("forecast.guests")}</TableHead>
                         <TableHead className="text-right">{t("forecast.breakfast")}</TableHead>
+                        <TableHead className="text-right">{t("forecast.lunchCovers") || "Öğlen Kuver"}</TableHead>
+                        <TableHead className="text-right">{t("forecast.dinnerCovers") || "Akşam Kuver"}</TableHead>
                         <TableHead>{t("forecast.events")}</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -427,7 +467,7 @@ const ForecastPage = () => {
                             <TableCell className="font-medium">{day.dayLabel}</TableCell>
                             <TableCell className="text-muted-foreground">
                               <div className="flex items-center gap-1.5">
-                                {day.date}
+                                {formatDateDDMMYYYY(day.date)}
                                 {holidayMap[day.date] && (
                                   <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
                                     {holidayMap[day.date]}
@@ -445,6 +485,8 @@ const ForecastPage = () => {
                             <TableCell className="text-right">{day.totalRooms}</TableCell>
                             <TableCell className="text-right">{calcGuests(day.roomNights)}</TableCell>
                             <TableCell className="text-right">{calcBreakfast(calcGuests(day.roomNights))}</TableCell>
+                            <TableCell className="text-right">{day.lunchCovers || 0}</TableCell>
+                            <TableCell className="text-right">{day.dinnerCovers || 0}</TableCell>
                             <TableCell>
                               {day.events.length > 0 ? (
                                 <div className="flex flex-wrap gap-1">
