@@ -183,14 +183,14 @@ const SettingsPage = () => {
               <Field label="Misafir/Oda Çarpanı" helper="Satılan Oda × ? = Misafir">
                 <Input type="number" step={0.1} min={1} max={5} value={guestPerRoom} onChange={(e) => setGuestPerRoom(Number(e.target.value))} className="h-9" />
               </Field>
-              <Field label="Kahvaltı Capture Rate" helper="Misafir × ? = Kahvaltı Cover">
-                <Input type="number" step={0.01} min={0} max={1} value={breakfastRate} onChange={(e) => setBreakfastRate(Number(e.target.value))} className="h-9" />
+              <Field label="Kahvaltı Capture Rate (%)" helper="Misafir × % = Kahvaltı Cover">
+                <Input type="number" step={1} min={0} max={100} value={Math.round(breakfastRate * 100)} onChange={(e) => setBreakfastRate(Number(e.target.value) / 100)} className="h-9" />
               </Field>
-              <Field label="Öğle Capture Rate" helper="0 = Forecast'ta Excel'den gelir">
-                <Input type="number" step={0.01} min={0} max={1} value={lunchRate} onChange={(e) => setLunchRate(Number(e.target.value))} className="h-9" />
+              <Field label="Öğle Capture Rate (%)" helper="0 = Forecast'ta Excel'den gelir">
+                <Input type="number" step={1} min={0} max={100} value={Math.round(lunchRate * 100)} onChange={(e) => setLunchRate(Number(e.target.value) / 100)} className="h-9" />
               </Field>
-              <Field label="Akşam Capture Rate" helper="0 = Forecast'ta Excel'den gelir">
-                <Input type="number" step={0.01} min={0} max={1} value={dinnerRate} onChange={(e) => setDinnerRate(Number(e.target.value))} className="h-9" />
+              <Field label="Akşam Capture Rate (%)" helper="0 = Forecast'ta Excel'den gelir">
+                <Input type="number" step={1} min={0} max={100} value={Math.round(dinnerRate * 100)} onChange={(e) => setDinnerRate(Number(e.target.value) / 100)} className="h-9" />
               </Field>
             </div>
           </CardContent>
