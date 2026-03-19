@@ -17,7 +17,7 @@ import {
   FileText,
   Star,
   CalendarOff,
-  Settings,
+  Settings2,
 } from "lucide-react";
 
 interface NavItem {
