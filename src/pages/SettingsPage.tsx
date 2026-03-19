@@ -21,7 +21,12 @@ interface FieldConfig {
 const FIELDS: FieldConfig[] = [
   { key: "hotel_name", label: "Otel Adı", type: "text", group: "Genel" },
   { key: "total_rooms", label: "Toplam Oda", type: "number", group: "Genel" },
-  { key: "segment", label: "Segment", type: "text", group: "Genel" },
+  { key: "segment", label: "Segment", type: "select", group: "Genel", options: [
+    { value: "economy", label: "Economy" },
+    { value: "midscale", label: "Midscale" },
+    { value: "premium", label: "Premium" },
+    { value: "luxury", label: "Luxury" },
+  ] },
   { key: "guest_per_room", label: "Oda Başı Misafir", type: "number", group: "Genel" },
   { key: "breakfast_capture_rate", label: "Kahvaltı Yakalama Oranı", type: "percent", group: "Kuver Oranları" },
   { key: "lunch_capture_rate", label: "Öğle Yakalama Oranı", type: "percent", group: "Kuver Oranları" },
