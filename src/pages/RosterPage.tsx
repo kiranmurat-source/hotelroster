@@ -16,10 +16,13 @@ import { ShiftPill, ShiftDot } from "@/components/ShiftPill";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { maskPhone } from "@/lib/privacy";
-import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Sparkles, Mail, Phone, Timer, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Sparkles, Mail, Phone, Timer, Plus, Activity, AlertTriangle, Info } from "lucide-react";
 import ManualShiftDialog from "@/components/ManualShiftDialog";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useWorkload, WorkloadResult } from "@/hooks/useWorkload";
+import { useHotelCalculations } from "@/hooks/useHotelCalculations";
+import { Progress } from "@/components/ui/progress";
 
 // Extended assignment type to hold shift_type_id
 interface RosterShift extends ShiftAssignment {
@@ -88,6 +91,7 @@ const RosterPage = () => {
   const { isManager } = useUserRole();
   const { user } = useAuth();
   const { shiftTypes, getById, getByCode } = useShiftTypes();
+  const { calcGuests, calcBreakfast } = useHotelCalculations();
 
   // Load saved roster shifts from database
   useEffect(() => {
@@ -329,6 +333,23 @@ const RosterPage = () => {
     return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [selectedAssignments]);
 
+  // Workload calculation
+  const forecastDayInput = useMemo(() => {
+    if (!selectedDate || !forecast) return null;
+    const day = forecast.days.find((d) => d.date === selectedDate);
+    if (!day) return null;
+    return {
+      roomNights: day.roomNights,
+      breakfastCovers: calcBreakfast(calcGuests(day.roomNights)),
+      lunchCovers: day.lunchCovers || 0,
+      dinnerCovers: day.dinnerCovers || 0,
+    };
+  }, [selectedDate, forecast, calcBreakfast, calcGuests]);
+
+  const workload = useWorkload(
+    selectedAssignments as { shift_type_id?: string | null; custom_start_time?: string | null; department: string; shift: string }[],
+    forecastDayInput
+  );
   const modalAssignments = modalDate
     ? (activeAssignments as RosterShift[]).filter((a) => a.date === modalDate)
     : [];
@@ -567,6 +588,71 @@ const RosterPage = () => {
                       ))}
                     </div>
                   )}
+                  {/* Workload Panel */}
+                  {selectedDate && workload && (() => {
+                    const groups = [
+                      { key: "sabah", label: "Sabah", data: workload.sabah },
+                      { key: "aksam", label: "Akşam", data: workload.aksam },
+                      { key: "gece", label: "Gece", data: workload.gece },
+                    ].filter(g => g.data.roomsWorkload !== null || g.data.fnbWorkload !== null);
+
+                    if (groups.length === 0) return null;
+
+                    const allValues = groups.flatMap(g => [g.data.roomsWorkload, g.data.fnbWorkload]).filter((v): v is number => v !== null);
+                    const hasOverload = allValues.some(v => v > 100);
+                    const allLow = allValues.length > 0 && allValues.every(v => v < 70);
+
+                    const getBarColor = (v: number) => v > 100 ? "bg-red-500" : v >= 80 ? "bg-yellow-500" : "bg-emerald-500";
+
+                    return (
+                      <div className="mb-5 p-3 rounded-lg border bg-card space-y-2">
+                        <div className="flex items-center gap-1.5 text-sm font-semibold mb-2">
+                          <Activity className="h-4 w-4" />
+                          İş Yükü
+                        </div>
+                        {hasOverload && (
+                          <div className="flex items-center gap-1.5 text-xs p-2 rounded bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            Aşırı yüklü vardiya tespit edildi
+                          </div>
+                        )}
+                        {allLow && !hasOverload && (
+                          <div className="flex items-center gap-1.5 text-xs p-2 rounded bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+                            <Info className="h-3.5 w-3.5" />
+                            Düşük personel kullanımı
+                          </div>
+                        )}
+                        <div className="space-y-1.5">
+                          {groups.map(({ key, label, data }) => (
+                            <div key={key}>
+                              {data.roomsWorkload !== null && (
+                                <div className="flex items-center gap-2 text-xs py-1">
+                                  <span className="w-12 font-medium">{label}</span>
+                                  <span className="w-12 text-muted-foreground">Rooms</span>
+                                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                                    <div className={cn("h-full rounded-full transition-all", getBarColor(data.roomsWorkload))} style={{ width: `${Math.min(data.roomsWorkload, 100)}%` }} />
+                                  </div>
+                                  <span className="w-10 text-right font-medium">{data.roomsWorkload}%</span>
+                                  {data.roomsWorkload > 100 && <AlertTriangle className="h-3 w-3 text-red-500" />}
+                                </div>
+                              )}
+                              {data.fnbWorkload !== null && (
+                                <div className="flex items-center gap-2 text-xs py-1">
+                                  <span className="w-12 font-medium">{data.roomsWorkload !== null ? "" : label}</span>
+                                  <span className="w-12 text-muted-foreground">F&B</span>
+                                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                                    <div className={cn("h-full rounded-full transition-all", getBarColor(data.fnbWorkload))} style={{ width: `${Math.min(data.fnbWorkload, 100)}%` }} />
+                                  </div>
+                                  <span className="w-10 text-right font-medium">{data.fnbWorkload}%</span>
+                                  {data.fnbWorkload > 100 && <AlertTriangle className="h-3 w-3 text-red-500" />}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <div className="space-y-5">
                     {groupedByDepartment.map(([dept, deptItems]) => (
                       <div key={dept}>
