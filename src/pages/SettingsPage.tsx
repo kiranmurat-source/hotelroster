@@ -35,6 +35,7 @@ const SettingsPage = () => {
   const [fbBreakfast, setFbBreakfast] = useState(45);
   const [fbLunch, setFbLunch] = useState(35);
   const [fbDinner, setFbDinner] = useState(35);
+  const [foArrivalsPerFte, setFoArrivalsPerFte] = useState(20);
   const [roomsDepts, setRoomsDepts] = useState("");
   const [fnbDepts, setFnbDepts] = useState("");
 
