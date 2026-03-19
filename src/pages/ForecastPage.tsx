@@ -111,7 +111,7 @@ const ForecastPage = () => {
   const calcBreakfast = (guests: number) => Math.ceil(guests * 0.8);
 
   const avgOccupancy = forecast
-    ? Math.round(forecast.days.reduce((sum, d) => sum + d.occupancyRate, 0) / forecast.days.length)
+    ? Math.round(forecast.days.reduce((sum, d) => sum + calcOccupancy(d.roomNights, d.totalRooms), 0) / forecast.days.length)
     : 0;
   const totalBookings = forecast ? forecast.days.reduce((sum, d) => sum + d.roomNights, 0) : 0;
   const totalEvents = forecast ? forecast.days.reduce((sum, d) => sum + d.events.length, 0) : 0;
