@@ -328,8 +328,8 @@ const ForecastPage = () => {
                       </Bar>
                       <Line yAxisId="right" type="monotone" dataKey="arrivals" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
                       <Line yAxisId="right" type="monotone" dataKey="departures" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--accent))" }} strokeDasharray="5 5" />
-                      <Line yAxisId="right" type="monotone" dataKey="lunchCovers" stroke="hsl(var(--warning))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--warning))" }} />
-                      <Line yAxisId="right" type="monotone" dataKey="dinnerCovers" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--destructive))" }} />
+                      <Line yAxisId="right" type="monotone" dataKey="lunchCovers" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3, fill: "#f59e0b" }} />
+                      <Line yAxisId="right" type="monotone" dataKey="dinnerCovers" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3, fill: "#8b5cf6" }} strokeDasharray="4 3" />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
