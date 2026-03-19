@@ -467,7 +467,7 @@ const ForecastPage = () => {
                             <TableCell className="font-medium">{day.dayLabel}</TableCell>
                             <TableCell className="text-muted-foreground">
                               <div className="flex items-center gap-1.5">
-                                {day.date}
+                                {formatDateDDMMYYYY(day.date)}
                                 {holidayMap[day.date] && (
                                   <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
                                     {holidayMap[day.date]}
