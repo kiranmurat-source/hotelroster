@@ -342,18 +342,15 @@ const RosterPage = () => {
     if (dayIndex < 0) return null;
     const day = forecast.days[dayIndex];
     const prevDay = dayIndex > 0 ? forecast.days[dayIndex - 1] : day;
-    const totalRooms = settings?.total_rooms ?? 144;
-    const getRN = (d: typeof day) =>
-      Math.round((d.occupancyRate / 100) * totalRooms);
     return {
-      roomNights: getRN(day),
-      prevDayRoomNights: getRN(prevDay),
+      roomNights: day.roomNights,
+      prevDayRoomNights: prevDay.roomNights,
       arrivals: day.arrivals,
-      breakfastCovers: calcBreakfast(calcGuests(getRN(prevDay))),
-      lunchCovers: calcLunch(calcGuests(getRN(day)), day.lunchCovers || 0),
-      dinnerCovers: calcDinner(calcGuests(getRN(day)), day.dinnerCovers || 0),
+      breakfastCovers: calcBreakfast(calcGuests(prevDay.roomNights)),
+      lunchCovers: calcLunch(calcGuests(day.roomNights), day.lunchCovers || 0),
+      dinnerCovers: calcDinner(calcGuests(day.roomNights), day.dinnerCovers || 0),
     };
-  }, [selectedDate, forecast, calcBreakfast, calcGuests, calcLunch, calcDinner, settings]);
+  }, [selectedDate, forecast, calcBreakfast, calcGuests, calcLunch, calcDinner]);
 
   const workload = useWorkload(
     selectedAssignments as { shift_type_id?: string | null; custom_start_time?: string | null; department: string; shift: string }[],
