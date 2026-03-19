@@ -359,7 +359,7 @@ const RosterPage = () => {
   }, [selectedDate, forecast, calcBreakfast, calcGuests, calcLunch, calcDinner]);
 
   const workload = useWorkload(
-    selectedAssignments as { shift_type_id?: string | null; custom_start_time?: string | null; department: string; shift: string }[],
+    selectedAssignments as { shift_type_id?: string | null; custom_start_time?: string | null; department: string; shift: string; position?: string | null }[],
     forecastDayInput
   );
   const modalAssignments = modalDate
