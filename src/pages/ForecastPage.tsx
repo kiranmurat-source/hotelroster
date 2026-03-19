@@ -375,7 +375,7 @@ const ForecastPage = () => {
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="font-semibold text-sm">{day.dayLabel}</p>
-                              <p className="text-xs text-muted-foreground">{day.date}</p>
+                              <p className="text-xs text-muted-foreground">{formatDateDDMMYYYY(day.date)}</p>
                             </div>
                             <div className="flex flex-col items-end gap-1">
                               <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", badge.className)}>
