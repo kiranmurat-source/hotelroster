@@ -15,6 +15,7 @@ export interface HotelSettings {
   fb_breakfast_covers_per_fte: number;
   fb_lunch_covers_per_fte: number;
   fb_dinner_covers_per_fte: number;
+  fo_arrivals_per_fte: number;
   rooms_departments: string[];
   fnb_departments: string[];
   updated_at: string;
