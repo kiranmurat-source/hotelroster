@@ -333,7 +333,8 @@ const ForecastPage = () => {
                 {viewMode === "cards" ? (
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {forecast.days.map((day) => {
-                      const badge = getOccupancyBadge(day.occupancyRate);
+                      const occ = calcOccupancy(day.roomNights, day.totalRooms);
+                      const badge = getOccupancyBadge(occ);
                       return (
                         <div
                           key={day.date}
@@ -360,14 +361,14 @@ const ForecastPage = () => {
                           <div className="space-y-1">
                             <div className="flex justify-between text-xs">
                               <span className="text-muted-foreground">{t("forecast.occupancy")}</span>
-                              <span className="font-semibold">{day.occupancyRate}%</span>
+                              <span className="font-semibold">{occ}%</span>
                             </div>
                             <div className="h-2 bg-muted rounded-full overflow-hidden">
                               <div
                                 className="h-full rounded-full transition-all"
                                 style={{
-                                  width: `${day.occupancyRate}%`,
-                                  backgroundColor: getOccupancyColor(day.occupancyRate),
+                                  width: `${occ}%`,
+                                  backgroundColor: getOccupancyColor(occ),
                                 }}
                               />
                             </div>
@@ -379,10 +380,6 @@ const ForecastPage = () => {
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{t("forecast.departures")}</span>
                             <span className="font-medium">{day.departures}</span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">{t("forecast.roomNights")}</span>
-                            <span className="font-medium">{day.roomNights} / {day.totalRooms}</span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{t("forecast.guests")}</span>
