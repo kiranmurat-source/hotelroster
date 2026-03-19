@@ -118,7 +118,7 @@ const ForecastPage = () => {
   const totalGuests = forecast ? forecast.days.reduce((sum, d) => sum + calcGuests(d.roomNights), 0) : 0;
   const totalBreakfast = forecast ? forecast.days.reduce((sum, d) => sum + calcBreakfast(calcGuests(d.roomNights)), 0) : 0;
   const peakDay = forecast
-    ? forecast.days.reduce((max, d) => (d.occupancyRate > max.occupancyRate ? d : max), forecast.days[0])
+    ? forecast.days.reduce((max, d) => (calcOccupancy(d.roomNights, d.totalRooms) > calcOccupancy(max.roomNights, max.totalRooms) ? d : max), forecast.days[0])
     : null;
 
   return (
