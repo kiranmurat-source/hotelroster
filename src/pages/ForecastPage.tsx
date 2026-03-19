@@ -109,9 +109,10 @@ const ForecastPage = () => {
     return { label: t("forecast.normal"), className: "bg-success/15 text-success" };
   };
 
-  const getRoomNights = useCallback((day: { occupancyRate: number; totalRooms: number }) =>
-    Math.round((day.occupancyRate / 100) * (settings?.total_rooms ?? 144)),
-  [settings]);
+  const getOcc = useCallback((day: { roomNights: number }) => {
+    const totalRooms = settings?.total_rooms ?? 144;
+    return totalRooms > 0 ? Math.round((day.roomNights / totalRooms) * 100) : 0;
+  }, [settings]);
 
   const forecastTotals = useMemo(() => {
     if (!forecast?.days?.length) return {
@@ -119,27 +120,23 @@ const ForecastPage = () => {
       totalLunchCovers: 0, totalDinnerCovers: 0,
       avgOccupancy: 0, peakDay: null as any,
     };
-    const totalRooms = settings?.total_rooms ?? 144;
-    const getRN = (d: { occupancyRate: number }) =>
-      Math.round((d.occupancyRate / 100) * totalRooms);
 
-    const totalBookings = forecast.days.reduce((s, d) => s + getRN(d), 0);
-    const totalGuests = forecast.days.reduce((s, d) => s + calcGuests(getRN(d)), 0);
+    const totalBookings = forecast.days.reduce((s, d) => s + d.roomNights, 0);
+    const totalGuests = forecast.days.reduce((s, d) => s + calcGuests(d.roomNights), 0);
     const totalBreakfast = forecast.days.reduce((s, d, i) => {
       const prev = i > 0 ? forecast.days[i - 1] : d;
-      return s + calcBreakfast(calcGuests(getRN(prev)));
+      return s + calcBreakfast(calcGuests(prev.roomNights));
     }, 0);
     const totalLunchCovers = forecast.days.reduce((s, d) =>
-      s + calcLunch(calcGuests(getRN(d)), d.lunchCovers || 0), 0);
+      s + calcLunch(calcGuests(d.roomNights), d.lunchCovers || 0), 0);
     const totalDinnerCovers = forecast.days.reduce((s, d) =>
-      s + calcDinner(calcGuests(getRN(d)), d.dinnerCovers || 0), 0);
-    const avgOccupancy = Math.round(
-      forecast.days.reduce((s, d) =>
-        s + (totalRooms > 0 ? Math.round((getRN(d) / totalRooms) * 100) : 0), 0
-      ) / forecast.days.length
-    );
+      s + calcDinner(calcGuests(d.roomNights), d.dinnerCovers || 0), 0);
+    const totalRooms = settings?.total_rooms ?? 144;
+    const avgOccupancy = totalRooms > 0
+      ? Math.round(forecast.days.reduce((s, d) => s + d.roomNights, 0) / forecast.days.length / totalRooms * 100)
+      : 0;
     const peakDay = forecast.days.reduce((max, d) =>
-      getRN(d) > getRN(max) ? d : max, forecast.days[0]);
+      d.roomNights > max.roomNights ? d : max, forecast.days[0]);
 
     return { totalBookings, totalGuests, totalBreakfast,
              totalLunchCovers, totalDinnerCovers, avgOccupancy, peakDay };
