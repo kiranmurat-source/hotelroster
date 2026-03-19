@@ -219,6 +219,7 @@ function parseVerticalRoster(rows: Record<string, unknown>[]): ParsedRoster {
   const dateCol = findCol(sample, ["date", "day", "tarih"]);
   const shiftCol = findCol(sample, ["shift", "shifttype", "type", "vardiya"]);
   const deptCol = findCol(sample, ["department", "dept", "departman"]);
+  const posCol = findCol(sample, ["position", "görev", "gorev", "role", "unvan", "pozisyon"]);
 
   if (!nameCol) throw new Error("Missing 'Staff Name' column");
   if (!dateCol) throw new Error("Missing 'Date' column");
@@ -233,6 +234,7 @@ function parseVerticalRoster(rows: Record<string, unknown>[]): ParsedRoster {
     const shiftRaw = String(row[shiftCol] || "").trim();
     const shift = normalizeShift(shiftRaw);
     const dept = deptCol ? normalizeDepartment(String(row[deptCol] || "")) : null;
+    const position = posCol ? String(row[posCol] || "").trim() : undefined;
 
     let dateStr = "";
     if (dateCol) {
@@ -243,7 +245,6 @@ function parseVerticalRoster(rows: Record<string, unknown>[]): ParsedRoster {
         const dd = String(val.getDate()).padStart(2, "0");
         dateStr = `${y}-${m}-${dd}`;
       } else if (typeof val === "number") {
-        // Excel serial date
         const excelEpoch = new Date(1899, 11, 30);
         const d = new Date(excelEpoch.getTime() + val * 86400000);
         dateStr = d.toISOString().split("T")[0];
@@ -270,6 +271,7 @@ function parseVerticalRoster(rows: Record<string, unknown>[]): ParsedRoster {
       date: dateStr,
       shift,
       department: dept || "Front Desk",
+      position: position || undefined,
     });
   });
 
