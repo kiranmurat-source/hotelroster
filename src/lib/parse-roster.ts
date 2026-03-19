@@ -162,12 +162,13 @@ function parseHorizontalRoster(rows: Record<string, unknown>[]): ParsedRoster {
   const keys = Object.keys(rows[0]);
   const nameCol = findCol(rows[0], ["staffname", "name", "staff", "employee", "personel"]);
   const deptCol = findCol(rows[0], ["department", "dept", "departman", "bölüm", "bolum"]);
+  const posCol = findCol(rows[0], ["position", "görev", "gorev", "role", "unvan", "pozisyon"]);
 
   if (!nameCol) throw new Error("Missing 'Staff Name' column");
 
   const dateColumns: { key: string; date: string }[] = [];
   for (const key of keys) {
-    if (key === nameCol || key === deptCol) continue;
+    if (key === nameCol || key === deptCol || key === posCol) continue;
     const dateStr = parseDateHeader(key);
     if (dateStr) dateColumns.push({ key, date: dateStr });
   }
@@ -184,6 +185,7 @@ function parseHorizontalRoster(rows: Record<string, unknown>[]): ParsedRoster {
     if (!name) { skipped++; continue; }
 
     const dept = deptCol ? normalizeDepartment(String(row[deptCol] || "")) : null;
+    const position = posCol ? String(row[posCol] || "").trim() : undefined;
     staffSet.add(name);
 
     for (const { key, date } of dateColumns) {
@@ -199,6 +201,7 @@ function parseHorizontalRoster(rows: Record<string, unknown>[]): ParsedRoster {
         date,
         shift,
         department: dept || "Front Desk",
+        position: position || undefined,
       });
     }
     rowIdx++;
