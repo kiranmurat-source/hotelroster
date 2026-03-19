@@ -41,7 +41,7 @@ export const useWorkload = (
   const { getById } = useShiftTypes();
   const { calcIdealRoomsFTE, calcIdealFnbFTE, calcBreakfast, calcGuests } = useHotelCalculations();
 
-  const roomsDepts = settings?.rooms_departments ?? ["Housekeeping", "Front Office"];
+  const roomsDepts = settings?.rooms_departments ?? ["Housekeeping", "Front Office", "Front Desk"];
   const fnbDepts = settings?.fnb_departments ?? ["F&B", "Kitchen"];
 
   return useMemo(() => {
@@ -56,10 +56,11 @@ export const useWorkload = (
       }
       if (!code) code = a.shift;
 
-      if (code === "A") return "sabah";
-      if (code === "B") return "aksam";
-      if (code === "C") return "gece";
-      if (code === "OFF") return null;
+      const upper = code.toUpperCase();
+      if (upper === "A" || upper === "MORNING") return "sabah";
+      if (upper === "B" || upper === "AFTERNOON") return "aksam";
+      if (upper === "C" || upper === "NIGHT") return "gece";
+      if (upper === "OFF" || upper === "DAY OFF") return null;
 
       if (code.startsWith("MID")) {
         const start = a.custom_start_time;
