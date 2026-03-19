@@ -296,7 +296,7 @@ const ForecastPage = () => {
               <CardContent>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={forecast.days.map(d => ({ ...d, calcOcc: calcOccupancy(d.roomNights, d.totalRooms) }))} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                    <ComposedChart data={forecast.days.map(d => ({ ...d, calcOcc: calcOccupancy(getRoomNights(d), settings?.total_rooms ?? 144) }))} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="dayLabel" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
                       <YAxis yAxisId="left" domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
