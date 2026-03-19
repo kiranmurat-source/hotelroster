@@ -340,6 +340,7 @@ const RosterPage = () => {
     if (!day) return null;
     return {
       roomNights: day.roomNights,
+      arrivals: day.arrivals,
       breakfastCovers: calcBreakfast(calcGuests(day.roomNights)),
       lunchCovers: day.lunchCovers || 0,
       dinnerCovers: day.dinnerCovers || 0,

@@ -12,6 +12,7 @@ interface RosterShiftInput {
 
 interface ForecastDayInput {
   roomNights: number;
+  arrivals: number;
   breakfastCovers: number;
   lunchCovers: number;
   dinnerCovers: number;
@@ -104,7 +105,8 @@ export const useWorkload = (
     const sabahRoomsIdeal = calcIdealRoomsFTE(roomNights);
     const sabahFnbIdeal = calcIdealFnbFTE(breakfastCovers, 0, 0);
 
-    // AKŞAM: no HK, lunch + dinner
+    // AKŞAM: arrivals for FO, lunch + dinner
+    const aksamRoomsIdeal = forecast?.arrivals ?? 0;
     const aksamFnbIdeal = calcIdealFnbFTE(0, lunchCovers, dinnerCovers);
 
     // GECE: no workload calc
@@ -116,7 +118,7 @@ export const useWorkload = (
       },
       aksam: {
         ...groups.aksam,
-        roomsWorkload: null, // HK doesn't work afternoon
+        roomsWorkload: calcWorkload(aksamRoomsIdeal, groups.aksam.roomsActual),
         fnbWorkload: calcWorkload(aksamFnbIdeal, groups.aksam.fnbActual),
       },
       gece: {
