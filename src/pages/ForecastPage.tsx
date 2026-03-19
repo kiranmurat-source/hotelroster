@@ -330,7 +330,7 @@ const ForecastPage = () => {
                       />
                       <Bar yAxisId="left" dataKey="calcOcc" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(data: any) => { if (data?.date) handleDayDoubleClick(data.date); }}>
                         {forecast.days.map((day, i) => (
-                          <Cell key={i} fill={getOccupancyColor(calcOccupancy(day.roomNights, day.totalRooms))} />
+                          <Cell key={i} fill={getOccupancyColor(calcOccupancy(getRoomNights(day), settings?.total_rooms ?? 144))} />
                         ))}
                       </Bar>
                       <Line yAxisId="right" type="monotone" dataKey="arrivals" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
