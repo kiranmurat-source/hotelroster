@@ -63,6 +63,17 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
   const { user } = useAuth();
   const { profile: myProfile } = useUserProfile();
   const { shiftTypes } = useShiftTypes();
+  const { forecast } = useForecast();
+
+  const forecastByDate = useMemo(() => {
+    if (!forecast) return {};
+    const map: Record<string, { occupancyRate: number; events: string[] }> = {};
+    forecast.days.forEach((d) => {
+      const occ = d.totalRooms > 0 ? Math.round((d.roomNights / d.totalRooms) * 100) : 0;
+      map[d.date] = { occupancyRate: occ, events: d.events };
+    });
+    return map;
+  }, [forecast]);
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [saving, setSaving] = useState(false);
