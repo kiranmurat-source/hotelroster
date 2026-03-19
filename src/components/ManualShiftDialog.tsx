@@ -140,13 +140,6 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
       return { ...prev, [key]: clearVal };
     });
   }, []);
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      }
-      return { ...prev, [key]: shiftTypeId };
-    });
-  }, []);
 
   const handleSave = async () => {
     if (!user || !myDepartment) return;
