@@ -63,20 +63,20 @@ export async function parseExcelForecast(data: ArrayBuffer): Promise<WeeklyForec
     if (dateColIdx !== null) {
       const val = getCellValue(dateColIdx);
       if (val instanceof Date) {
-        dateStr = val.toISOString().split("T")[0];
+        dateStr = toLocalISODate(val);
         dayLabel = SHORT_DAYS[val.getDay()];
       } else if (typeof val === "string") {
         // Try dd.mm.yyyy format first
         const ddmmMatch = val.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
         if (ddmmMatch) {
           const [, dd, mm, yyyy] = ddmmMatch;
-          const d = new Date(`${yyyy}-${mm}-${dd}`);
-          dateStr = d.toISOString().split("T")[0];
+          const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+          dateStr = toLocalISODate(d);
           dayLabel = SHORT_DAYS[d.getDay()];
         } else {
           const parsed = new Date(val);
           if (!isNaN(parsed.getTime())) {
-            dateStr = parsed.toISOString().split("T")[0];
+            dateStr = toLocalISODate(parsed);
             dayLabel = SHORT_DAYS[parsed.getDay()];
           } else {
             dateStr = val;
@@ -87,7 +87,7 @@ export async function parseExcelForecast(data: ArrayBuffer): Promise<WeeklyForec
         // Excel serial date
         const excelEpoch = new Date(1899, 11, 30);
         const d = new Date(excelEpoch.getTime() + val * 86400000);
-        dateStr = d.toISOString().split("T")[0];
+        dateStr = toLocalISODate(d);
         dayLabel = SHORT_DAYS[d.getDay()];
       }
     } else {
