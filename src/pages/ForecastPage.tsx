@@ -189,7 +189,7 @@ const ForecastPage = () => {
         ) : (
           <>
             {/* Summary stats */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
               <Card className="animate-fade-in">
                 <CardContent className="p-5 flex items-center gap-4">
                   <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
@@ -231,6 +231,28 @@ const ForecastPage = () => {
                   <div>
                     <p className="text-2xl font-bold">{totalBreakfast.toLocaleString()}</p>
                     <p className="text-xs text-muted-foreground">{t("forecast.totalBreakfast")}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="animate-fade-in">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <UtensilsCrossed className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{totalLunchCovers.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.lunchCovers") || "Öğlen Kuver"}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="animate-fade-in">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <UtensilsCrossed className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{totalDinnerCovers.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.dinnerCovers") || "Akşam Kuver"}</p>
                   </div>
                 </CardContent>
               </Card>
