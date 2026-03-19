@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useShiftTypes, ShiftTypeRecord } from "@/hooks/useShiftTypes";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { ShiftPill } from "@/components/ShiftPill";
 import { useForecast } from "@/contexts/ForecastContext";
@@ -62,6 +63,7 @@ function cellKey(profileId: string, date: string): CellKey {
 const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualShiftDialogProps) => {
   const { user } = useAuth();
   const { profile: myProfile } = useUserProfile();
+  const { isAdmin } = useUserRole();
   const { shiftTypes } = useShiftTypes();
   const { forecast } = useForecast();
 
@@ -76,6 +78,8 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
   }, [forecast]);
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [allDepartments, setAllDepartments] = useState<string[]>([]);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   // Assignments: cellKey -> shift_type_id
@@ -94,19 +98,46 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
 
   const myDepartment = myProfile?.department;
 
-  // Load same-department profiles
+  // Set default department when profile loads
   useEffect(() => {
-    if (!open || !myDepartment) return;
+    if (myDepartment && !selectedDepartment) {
+      setSelectedDepartment(myDepartment);
+    }
+  }, [myDepartment, selectedDepartment]);
+
+  // Load all departments for admin
+  useEffect(() => {
+    if (!open || !isAdmin) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("department")
+        .not("department", "is", null);
+      if (data) {
+        const depts = [...new Set(data.map((d: any) => d.department as string).filter(Boolean))].sort();
+        setAllDepartments(depts);
+      }
+    };
+    load();
+  }, [open, isAdmin]);
+
+  const activeDepartment = selectedDepartment || myDepartment || "";
+
+  // Load department profiles
+  useEffect(() => {
+    if (!open || !activeDepartment) return;
     const load = async () => {
       const { data } = await supabase
         .from("profiles")
         .select("id, user_id, display_name, department")
-        .eq("department", myDepartment)
+        .eq("department", activeDepartment)
         .order("display_name");
       if (data) setProfiles(data as Profile[]);
     };
     load();
-  }, [open, myDepartment]);
+    setAssignments({});
+    setExistingShifts({});
+  }, [open, activeDepartment]);
 
   // Load existing shifts for the week
   useEffect(() => {
@@ -116,14 +147,13 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
         .from("roster_shifts")
         .select("id, staff_name, date, shift_type_id, department")
         .in("date", weekDates)
-        .eq("department", myDepartment || "");
+        .eq("department", activeDepartment);
 
       const asgn: Record<CellKey, string> = {};
       const existing: Record<CellKey, string> = {};
 
       if (data) {
         data.forEach((row: any) => {
-          // Match by staff_name to profile
           const prof = profiles.find(
             (p) => p.display_name === row.staff_name
           );
@@ -138,7 +168,7 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
       setExistingShifts(existing);
     };
     load();
-  }, [open, profiles, weekDates, myDepartment]);
+  }, [open, profiles, weekDates, activeDepartment]);
 
   const setCell = useCallback((profileId: string, date: string, shiftTypeId: string) => {
     const key = cellKey(profileId, date);
@@ -154,7 +184,7 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
   }, []);
 
   const handleSave = async () => {
-    if (!user || !myDepartment) return;
+    if (!user || !activeDepartment) return;
     setSaving(true);
     try {
       // Collect all existing ids to delete for this week+department
@@ -179,7 +209,7 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
           staff_name: prof.display_name || "Unknown",
           date,
           shift: st.code,
-          department: myDepartment,
+          department: activeDepartment,
           shift_type_id: shiftTypeId,
         });
       });
@@ -219,19 +249,35 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
-            Haftalık Vardiya Atama — {myDepartment || ""}
+            Haftalık Vardiya Atama
           </DialogTitle>
         </DialogHeader>
 
-        {/* Week navigation */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o - 1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm font-medium">{formatMonthLabel(weekDates)}</span>
-          <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o + 1)}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+        {/* Department filter for admin */}
+        <div className="flex items-center gap-3">
+          {isAdmin && allDepartments.length > 0 ? (
+            <Select value={activeDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Departman seçin..." />
+              </SelectTrigger>
+              <SelectContent>
+                {allDepartments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <span className="text-sm font-medium text-muted-foreground">{activeDepartment}</span>
+          )}
+          <div className="flex items-center gap-1 ml-auto">
+            <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o - 1)}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-medium">{formatMonthLabel(weekDates)}</span>
+            <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o + 1)}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Grid */}
@@ -315,7 +361,7 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
               {profiles.length === 0 && (
                 <tr>
                   <td colSpan={8} className="text-center py-8 text-muted-foreground text-sm">
-                    {myDepartment ? "Bu departmanda personel bulunamadı" : "Departman bilgisi yükleniyor..."}
+                    {activeDepartment ? "Bu departmanda personel bulunamadı" : "Departman bilgisi yükleniyor..."}
                   </td>
                 </tr>
               )}
