@@ -349,6 +349,7 @@ export type Database = {
           department: string
           id: string
           leave_request_id: string | null
+          position: string | null
           shift: string
           shift_type_id: string | null
           staff_name: string
@@ -362,6 +363,7 @@ export type Database = {
           department: string
           id?: string
           leave_request_id?: string | null
+          position?: string | null
           shift: string
           shift_type_id?: string | null
           staff_name: string
@@ -375,6 +377,7 @@ export type Database = {
           department?: string
           id?: string
           leave_request_id?: string | null
+          position?: string | null
           shift?: string
           shift_type_id?: string | null
           staff_name?: string

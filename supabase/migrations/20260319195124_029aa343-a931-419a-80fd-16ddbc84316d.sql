@@ -1,0 +1,1 @@
+ALTER TABLE public.roster_shifts ADD COLUMN position text;
