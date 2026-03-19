@@ -31,12 +31,14 @@ const ReportsPage = () => {
   const [hoursData, setHoursData] = useState<ExtraHoursRow[]>([]);
   const [staffData, setStaffData] = useState<ExtraStaffRow[]>([]);
 
-  const shiftLabels: Record<ShiftType, string> = {
+  const shiftLabels: Partial<Record<ShiftType, string>> = {
     Morning: t("roster.morning"),
     Afternoon: t("roster.afternoon"),
     Night: t("roster.night"),
     "Day Off": t("roster.dayOff"),
     Break: t("roster.break"),
+    "MID-PM": "Akşam Ara",
+    "MID-NA": "Gece Ara",
   };
 
   const dateRange = useMemo(() => {

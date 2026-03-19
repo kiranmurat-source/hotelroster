@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ForecastProvider } from "@/contexts/ForecastContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -21,6 +22,7 @@ const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const RecognitionPage = lazy(() => import("./pages/RecognitionPage"));
 const LeaveRequestsPage = lazy(() => import("./pages/LeaveRequestsPage"));
 const ChangePasswordPage = lazy(() => import("./pages/ChangePasswordPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -31,6 +33,7 @@ const App = () => (
     <TooltipProvider>
       <LanguageProvider>
         <AuthProvider>
+          <SettingsProvider>
           <ForecastProvider>
             <Toaster />
             <Sonner />
@@ -49,12 +52,14 @@ const App = () => (
                   <Route path="/recognition" element={<ProtectedRoute><RecognitionPage /></ProtectedRoute>} />
                   <Route path="/leave-requests" element={<ProtectedRoute requiredRole="manager"><LeaveRequestsPage /></ProtectedRoute>} />
                   
+                  <Route path="/settings" element={<ProtectedRoute requiredRole="admin"><SettingsPage /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
             </BrowserRouter>
           </ForecastProvider>
+          </SettingsProvider>
         </AuthProvider>
       </LanguageProvider>
     </TooltipProvider>

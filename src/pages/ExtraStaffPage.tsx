@@ -48,12 +48,14 @@ const ExtraStaffPage = () => {
   const [reason, setReason] = useState("");
   const [requestedBy, setRequestedBy] = useState("");
 
-  const shiftLabels: Record<ShiftType, string> = {
+  const shiftLabels: Partial<Record<ShiftType, string>> = {
     Morning: t("roster.morning"),
     Afternoon: t("roster.afternoon"),
     Night: t("roster.night"),
     "Day Off": t("roster.dayOff"),
     Break: t("roster.break"),
+    "MID-PM": "Akşam Ara",
+    "MID-NA": "Gece Ara",
   };
 
   const fetchRequests = async () => {
