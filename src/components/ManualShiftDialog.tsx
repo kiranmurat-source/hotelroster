@@ -184,7 +184,7 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
   }, []);
 
   const handleSave = async () => {
-    if (!user || !myDepartment) return;
+    if (!user || !activeDepartment) return;
     setSaving(true);
     try {
       // Collect all existing ids to delete for this week+department
