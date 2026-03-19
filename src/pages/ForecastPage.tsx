@@ -447,11 +447,11 @@ const ForecastPage = () => {
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{"Öğle Kuver"}</span>
-                            <span className="font-medium">{day.lunchCovers || 0}</span>
+                            <span className="font-medium">{calcLunch(calcGuests(getRoomNights(day)), day.lunchCovers || 0)}</span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{"Akşam Kuver"}</span>
-                            <span className="font-medium">{day.dinnerCovers || 0}</span>
+                            <span className="font-medium">{calcDinner(calcGuests(getRoomNights(day)), day.dinnerCovers || 0)}</span>
                           </div>
                           {day.events.length > 0 && (
                             <div className="pt-1 border-t space-y-1">
