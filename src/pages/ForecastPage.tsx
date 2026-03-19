@@ -547,6 +547,70 @@ const ForecastPage = () => {
                 </Card>
               </Collapsible>
             )}
+
+            {/* İdeal Kadro Card */}
+            {forecast && (
+              settingsLoading ? (
+                <Card className="animate-fade-in">
+                  <CardContent className="p-6 space-y-4">
+                    <Skeleton className="h-6 w-48" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <Skeleton className="h-24" />
+                      <Skeleton className="h-24" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (() => {
+                const dayCount = forecast.days.length;
+                const avgSoldRooms = totalBookings / dayCount;
+                const avgBreakfastCovers = totalBreakfast / dayCount;
+                const avgLunchCovers = totalLunchCovers / dayCount;
+                const avgDinnerCovers = totalDinnerCovers / dayCount;
+                const idealRooms = calcIdealRoomsFTE(avgSoldRooms);
+                const idealFnb = calcIdealFnbFTE(avgBreakfastCovers, avgLunchCovers, avgDinnerCovers);
+                const grandTotal = idealRooms + idealFnb;
+                const hkAttendant = Math.ceil(avgSoldRooms / (settings?.hk_rooms_per_fte ?? 17));
+                const hkSupervisor = Math.ceil(avgSoldRooms / (settings?.hk_supervisor_ratio ?? 40));
+                const fbBreakfastFte = Math.ceil(avgBreakfastCovers / (settings?.fb_breakfast_covers_per_fte ?? 45));
+                const fbLunchFte = avgLunchCovers > 0 ? Math.ceil(avgLunchCovers / (settings?.fb_lunch_covers_per_fte ?? 35)) : 0;
+                const fbDinnerFte = avgDinnerCovers > 0 ? Math.ceil(avgDinnerCovers / (settings?.fb_dinner_covers_per_fte ?? 35)) : 0;
+
+                return (
+                  <Card className="animate-fade-in">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        İdeal Kadro (Haftalık Ortalama)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold text-muted-foreground">Rooms Division</h4>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between"><span>HK Oda Görevlisi</span><span className="font-medium">{hkAttendant}</span></div>
+                            <div className="flex justify-between"><span>HK Supervisor</span><span className="font-medium">{hkSupervisor}</span></div>
+                          </div>
+                          <p className="text-sm font-bold pt-1 border-t">Rooms Toplam: {idealRooms} FTE</p>
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold text-muted-foreground">F&B</h4>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between"><span>Kahvaltı Servisi</span><span className="font-medium">{fbBreakfastFte}</span></div>
+                            {fbLunchFte > 0 && <div className="flex justify-between"><span>Öğle Servisi</span><span className="font-medium">{fbLunchFte}</span></div>}
+                            {fbDinnerFte > 0 && <div className="flex justify-between"><span>Akşam Servisi</span><span className="font-medium">{fbDinnerFte}</span></div>}
+                          </div>
+                          <p className="text-sm font-bold pt-1 border-t">F&B Toplam: {idealFnb} FTE</p>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-3 border-t">
+                        <p className="text-base font-bold text-center">Genel Toplam: {grandTotal} FTE</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()
+            )}
           </>
         )}
       </div>
