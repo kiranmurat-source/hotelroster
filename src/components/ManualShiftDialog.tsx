@@ -7,8 +7,9 @@ import { useShiftTypes, ShiftTypeRecord } from "@/hooks/useShiftTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { ShiftPill } from "@/components/ShiftPill";
+import { useForecast } from "@/contexts/ForecastContext";
 import { toast } from "sonner";
-import { CalendarDays, ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Save, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Profile {
@@ -62,6 +63,17 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
   const { user } = useAuth();
   const { profile: myProfile } = useUserProfile();
   const { shiftTypes } = useShiftTypes();
+  const { forecast } = useForecast();
+
+  const forecastByDate = useMemo(() => {
+    if (!forecast) return {};
+    const map: Record<string, { occupancyRate: number; events: string[] }> = {};
+    forecast.days.forEach((d) => {
+      const occ = d.totalRooms > 0 ? Math.round((d.roomNights / d.totalRooms) * 100) : 0;
+      map[d.date] = { occupancyRate: occ, events: d.events };
+    });
+    return map;
+  }, [forecast]);
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [saving, setSaving] = useState(false);
@@ -230,6 +242,9 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
                 <th className="text-left py-2 px-2 font-semibold text-muted-foreground min-w-[140px]">Personel</th>
                 {weekDates.map((d, i) => {
                   const isWeekend = i >= 5;
+                  const fc = forecastByDate[d];
+                  const isHighOcc = fc && fc.occupancyRate >= 90;
+                  const isMedOcc = fc && fc.occupancyRate >= 75 && fc.occupancyRate < 90;
                   return (
                     <th key={d} className={cn(
                       "text-center py-2 px-1 font-medium min-w-[90px]",
@@ -237,6 +252,19 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
                     )}>
                       <div className="text-xs">{DAY_LABELS_TR[i]}</div>
                       <div className="text-[10px] text-muted-foreground">{formatShort(d)}</div>
+                      {fc && (
+                        <div className="flex items-center justify-center gap-1 mt-0.5">
+                          <span className={cn(
+                            "text-[9px] font-bold px-1 rounded",
+                            isHighOcc ? "bg-destructive/10 text-destructive" : isMedOcc ? "bg-primary/10 text-primary" : "text-muted-foreground"
+                          )}>
+                            {fc.occupancyRate}%
+                          </span>
+                          {fc.events.length > 0 && (
+                            <Sparkles className="h-2.5 w-2.5 text-accent" />
+                          )}
+                        </div>
+                      )}
                     </th>
                   );
                 })}
