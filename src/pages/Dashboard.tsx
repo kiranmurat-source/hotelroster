@@ -29,6 +29,7 @@ interface ExtraStaffRow extends DashboardRequest {
 
 const Dashboard = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { isManager, isAdmin } = useUserRole();
   const { userDepartment } = useUserProfile();
   const canSeeAll = isManager || isAdmin;
