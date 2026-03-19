@@ -35,6 +35,7 @@ const SettingsPage = () => {
   const [fbBreakfast, setFbBreakfast] = useState(45);
   const [fbLunch, setFbLunch] = useState(35);
   const [fbDinner, setFbDinner] = useState(35);
+  const [foArrivalsPerFte, setFoArrivalsPerFte] = useState(20);
   const [roomsDepts, setRoomsDepts] = useState("");
   const [fnbDepts, setFnbDepts] = useState("");
 
@@ -54,6 +55,7 @@ const SettingsPage = () => {
       setFbDinner(settings.fb_dinner_covers_per_fte);
       setRoomsDepts((settings.rooms_departments || []).join(", "));
       setFnbDepts((settings.fnb_departments || []).join(", "));
+      setFoArrivalsPerFte(settings.fo_arrivals_per_fte ?? 20);
     }
   }, [settings]);
 
@@ -81,6 +83,7 @@ const SettingsPage = () => {
         fb_dinner_covers_per_fte: fbDinner,
         rooms_departments: roomsArr,
         fnb_departments: fnbArr,
+        fo_arrivals_per_fte: foArrivalsPerFte,
         updated_at: new Date().toISOString(),
         updated_by: user?.id || null,
       } as any)
@@ -206,6 +209,9 @@ const SettingsPage = () => {
               </Field>
               <Field label="HK Supervisor Oranı" helper="Oda / Supervisor">
                 <Input type="number" min={1} value={hkSupervisorRatio} onChange={(e) => setHkSupervisorRatio(Number(e.target.value))} className="h-9" />
+              </Field>
+              <Field label="Resepsiyonist Kapasite" helper="Bir resepsiyonistin karşılayabileceği arrival sayısı / vardiya">
+                <Input type="number" min={1} step={1} value={foArrivalsPerFte} onChange={(e) => setFoArrivalsPerFte(Number(e.target.value))} className="h-9" />
               </Field>
             </div>
           </CardContent>

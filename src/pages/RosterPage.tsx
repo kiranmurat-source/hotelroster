@@ -91,7 +91,7 @@ const RosterPage = () => {
   const { isManager } = useUserRole();
   const { user } = useAuth();
   const { shiftTypes, getById, getByCode } = useShiftTypes();
-  const { calcGuests, calcBreakfast } = useHotelCalculations();
+  const { calcGuests, calcBreakfast, settings } = useHotelCalculations();
 
   // Load saved roster shifts from database
   useEffect(() => {
@@ -336,16 +336,21 @@ const RosterPage = () => {
   // Workload calculation
   const forecastDayInput = useMemo(() => {
     if (!selectedDate || !forecast) return null;
-    const day = forecast.days.find((d) => d.date === selectedDate);
-    if (!day) return null;
+    const dayIndex = forecast.days.findIndex((d) => d.date === selectedDate);
+    if (dayIndex < 0) return null;
+    const day = forecast.days[dayIndex];
+    const prevDay = dayIndex > 0 ? forecast.days[dayIndex - 1] : day;
+    const getRN = (d: typeof day) =>
+      Math.round((d.occupancyRate / 100) * (settings?.total_rooms ?? 144));
     return {
-      roomNights: day.roomNights,
+      roomNights: getRN(day),
+      prevDayRoomNights: getRN(prevDay),
       arrivals: day.arrivals,
-      breakfastCovers: calcBreakfast(calcGuests(day.roomNights)),
+      breakfastCovers: calcBreakfast(calcGuests(getRN(prevDay))),
       lunchCovers: day.lunchCovers || 0,
       dinnerCovers: day.dinnerCovers || 0,
     };
-  }, [selectedDate, forecast, calcBreakfast, calcGuests]);
+  }, [selectedDate, forecast, calcBreakfast, calcGuests, settings]);
 
   const workload = useWorkload(
     selectedAssignments as { shift_type_id?: string | null; custom_start_time?: string | null; department: string; shift: string }[],

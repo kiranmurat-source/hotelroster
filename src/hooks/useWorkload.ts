@@ -12,6 +12,7 @@ interface RosterShiftInput {
 
 interface ForecastDayInput {
   roomNights: number;
+  prevDayRoomNights: number;
   arrivals: number;
   breakfastCovers: number;
   lunchCovers: number;
@@ -102,12 +103,15 @@ export const useWorkload = (
     const lunchCovers = forecast?.lunchCovers ?? 0;
     const dinnerCovers = forecast?.dinnerCovers ?? 0;
 
-    // SABAH: HK + breakfast
-    const sabahRoomsIdeal = calcIdealRoomsFTE(roomNights);
+    // SABAH: HK cleans rooms occupied the PREVIOUS night
+    const sabahRoomsIdeal = calcIdealRoomsFTE(forecast?.prevDayRoomNights ?? 0);
     const sabahFnbIdeal = calcIdealFnbFTE(breakfastCovers, 0, 0);
 
-    // AKŞAM: arrivals for FO, lunch + dinner
-    const aksamRoomsIdeal = forecast?.arrivals ?? 0;
+    // AKŞAM: FO handles today's arrivals
+    const foArrivalsPerFte = settings?.fo_arrivals_per_fte ?? 20;
+    const aksamRoomsIdeal = forecast?.arrivals
+      ? Math.ceil(forecast.arrivals / foArrivalsPerFte)
+      : 0;
     const aksamFnbIdeal = calcIdealFnbFTE(0, lunchCovers, dinnerCovers);
 
     // GECE: no workload calc

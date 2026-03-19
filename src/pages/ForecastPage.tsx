@@ -109,17 +109,25 @@ const ForecastPage = () => {
     return { label: t("forecast.normal"), className: "bg-success/15 text-success" };
   };
 
+  const getRoomNights = (day: { occupancyRate: number; totalRooms: number }) =>
+    Math.round((day.occupancyRate / 100) * (settings?.total_rooms ?? 144));
+
   const avgOccupancy = forecast
-    ? Math.round(forecast.days.reduce((sum, d) => sum + calcOccupancy(d.roomNights, d.totalRooms), 0) / forecast.days.length)
+    ? Math.round(forecast.days.reduce((sum, d) => sum + calcOccupancy(getRoomNights(d), settings?.total_rooms ?? 144), 0) / forecast.days.length)
     : 0;
-  const totalBookings = forecast ? forecast.days.reduce((sum, d) => sum + d.roomNights, 0) : 0;
+  const totalBookings = forecast ? forecast.days.reduce((sum, d) => sum + getRoomNights(d), 0) : 0;
   const totalEvents = forecast ? forecast.days.reduce((sum, d) => sum + d.events.length, 0) : 0;
-  const totalGuests = forecast ? forecast.days.reduce((sum, d) => sum + calcGuests(d.roomNights), 0) : 0;
-  const totalBreakfast = forecast ? forecast.days.reduce((sum, d) => sum + calcBreakfast(calcGuests(d.roomNights)), 0) : 0;
-  const totalLunchCovers = forecast ? forecast.days.reduce((sum, d) => sum + calcLunch(calcGuests(d.roomNights), d.lunchCovers || 0), 0) : 0;
-  const totalDinnerCovers = forecast ? forecast.days.reduce((sum, d) => sum + calcDinner(calcGuests(d.roomNights), d.dinnerCovers || 0), 0) : 0;
+  const totalGuests = forecast ? forecast.days.reduce((sum, d) => sum + calcGuests(getRoomNights(d)), 0) : 0;
+  const totalBreakfast = forecast
+    ? forecast.days.reduce((sum, d, i) => {
+        const prevDay = i > 0 ? forecast.days[i - 1] : d;
+        return sum + calcBreakfast(calcGuests(getRoomNights(prevDay)));
+      }, 0)
+    : 0;
+  const totalLunchCovers = forecast ? forecast.days.reduce((sum, d) => sum + calcLunch(calcGuests(getRoomNights(d)), d.lunchCovers || 0), 0) : 0;
+  const totalDinnerCovers = forecast ? forecast.days.reduce((sum, d) => sum + calcDinner(calcGuests(getRoomNights(d)), d.dinnerCovers || 0), 0) : 0;
   const peakDay = forecast
-    ? forecast.days.reduce((max, d) => (calcOccupancy(d.roomNights, d.totalRooms) > calcOccupancy(max.roomNights, max.totalRooms) ? d : max), forecast.days[0])
+    ? forecast.days.reduce((max, d) => (calcOccupancy(getRoomNights(d), settings?.total_rooms ?? 144) > calcOccupancy(getRoomNights(max), settings?.total_rooms ?? 144) ? d : max), forecast.days[0])
     : null;
 
   return (
@@ -273,7 +281,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{peakDay?.dayLabel}</p>
-                    <p className="text-xs text-muted-foreground">{t("forecast.peakDay")} ({peakDay ? calcOccupancy(peakDay.roomNights, peakDay.totalRooms) : 0}%)</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.peakDay")} ({peakDay ? calcOccupancy(getRoomNights(peakDay), settings?.total_rooms ?? 144) : 0}%)</p>
                   </div>
                 </CardContent>
               </Card>
@@ -288,7 +296,7 @@ const ForecastPage = () => {
               <CardContent>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={forecast.days.map(d => ({ ...d, calcOcc: calcOccupancy(d.roomNights, d.totalRooms) }))} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                    <ComposedChart data={forecast.days.map(d => ({ ...d, calcOcc: calcOccupancy(getRoomNights(d), settings?.total_rooms ?? 144) }))} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="dayLabel" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
                       <YAxis yAxisId="left" domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
@@ -322,7 +330,7 @@ const ForecastPage = () => {
                       />
                       <Bar yAxisId="left" dataKey="calcOcc" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(data: any) => { if (data?.date) handleDayDoubleClick(data.date); }}>
                         {forecast.days.map((day, i) => (
-                          <Cell key={i} fill={getOccupancyColor(calcOccupancy(day.roomNights, day.totalRooms))} />
+                          <Cell key={i} fill={getOccupancyColor(calcOccupancy(getRoomNights(day), settings?.total_rooms ?? 144))} />
                         ))}
                       </Bar>
                       <Line yAxisId="right" type="monotone" dataKey="arrivals" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
@@ -362,7 +370,7 @@ const ForecastPage = () => {
                 {viewMode === "cards" ? (
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {forecast.days.map((day) => {
-                      const occ = calcOccupancy(day.roomNights, day.totalRooms);
+                       const occ = calcOccupancy(getRoomNights(day), settings?.total_rooms ?? 144);
                       const badge = getOccupancyBadge(occ);
                       return (
                         <div
@@ -412,11 +420,11 @@ const ForecastPage = () => {
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{t("forecast.guests")}</span>
-                            <span className="font-medium">{calcGuests(day.roomNights)}</span>
+                            <span className="font-medium">{calcGuests(getRoomNights(day))}</span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{t("forecast.breakfast")}</span>
-                            <span className="font-medium">{calcBreakfast(calcGuests(day.roomNights))}</span>
+                            <span className="font-medium">{(() => { const idx = forecast!.days.indexOf(day); const prev = idx > 0 ? forecast!.days[idx - 1] : day; return calcBreakfast(calcGuests(getRoomNights(prev))); })()}</span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{"Öğle Kuver"}</span>
@@ -459,7 +467,7 @@ const ForecastPage = () => {
                     </TableHeader>
                     <TableBody>
                       {forecast.days.map((day) => {
-                        const occ = calcOccupancy(day.roomNights, day.totalRooms);
+                        const occ = calcOccupancy(getRoomNights(day), settings?.total_rooms ?? 144);
                         const badge = getOccupancyBadge(occ);
                         return (
                           <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title={t("forecast.doubleClickHint")}>
@@ -482,8 +490,8 @@ const ForecastPage = () => {
                             <TableCell className="text-right">{day.arrivals}</TableCell>
                             <TableCell className="text-right">{day.departures}</TableCell>
                             <TableCell className="text-right">{day.totalRooms}</TableCell>
-                            <TableCell className="text-right">{calcGuests(day.roomNights)}</TableCell>
-                            <TableCell className="text-right">{calcBreakfast(calcGuests(day.roomNights))}</TableCell>
+                            <TableCell className="text-right">{calcGuests(getRoomNights(day))}</TableCell>
+                            <TableCell className="text-right">{(() => { const idx = forecast!.days.indexOf(day); const prev = idx > 0 ? forecast!.days[idx - 1] : day; return calcBreakfast(calcGuests(getRoomNights(prev))); })()}</TableCell>
                             <TableCell className="text-right">{day.lunchCovers || 0}</TableCell>
                             <TableCell className="text-right">{day.dinnerCovers || 0}</TableCell>
                             <TableCell>

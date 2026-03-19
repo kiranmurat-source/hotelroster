@@ -1,0 +1,1 @@
+ALTER TABLE public.hotel_settings ADD COLUMN fo_arrivals_per_fte integer NOT NULL DEFAULT 20;
