@@ -327,15 +327,16 @@ export async function generateSampleRoster(): Promise<ArrayBuffer> {
   ];
 
   const sampleData = [
-    { name: "Maria Santos", dept: "Front Desk", shifts: ["Sabah", "Sabah", "Sabah", "Sabah", "Off", "Gece", "Gece"] },
-    { name: "James Chen", dept: "Housekeeping", shifts: ["Gece", "Gece", "Gece", "Gece", "Gece", "Off", "Akşam"] },
-    { name: "Sofia Rodriguez", dept: "F&B", shifts: ["Off", "Akşam", "Akşam", "Akşam", "Akşam", "Akşam", "Akşam"] },
-    { name: "David Kim", dept: "Kitchen", shifts: ["Akşam", "Off", "Ara", "Ara", "Sabah", "Sabah", "Sabah"] },
-    { name: "Ahmed Hassan", dept: "Security", shifts: ["Gece", "Gece", "Off", "Sabah", "Sabah", "Sabah", "Off"] },
+    { name: "Maria Santos", dept: "Front Desk", position: "Resepsiyonist", shifts: ["Sabah", "Sabah", "Sabah", "Sabah", "Off", "Gece", "Gece"] },
+    { name: "James Chen", dept: "Housekeeping", position: "Oda Görevlisi", shifts: ["Gece", "Gece", "Gece", "Gece", "Gece", "Off", "Akşam"] },
+    { name: "Ayşe Yılmaz", dept: "Housekeeping", position: "Kat Amiri", shifts: ["Sabah", "Sabah", "Off", "Sabah", "Sabah", "Sabah", "Off"] },
+    { name: "Sofia Rodriguez", dept: "F&B", position: "Garson", shifts: ["Off", "Akşam", "Akşam", "Akşam", "Akşam", "Akşam", "Akşam"] },
+    { name: "David Kim", dept: "Kitchen", position: "Aşçı", shifts: ["Akşam", "Off", "Ara", "Ara", "Sabah", "Sabah", "Sabah"] },
+    { name: "Ahmed Hassan", dept: "Security", position: "Güvenlik", shifts: ["Gece", "Gece", "Off", "Sabah", "Sabah", "Sabah", "Off"] },
   ];
 
   for (const row of sampleData) {
-    const rowData: Record<string, string> = { name: row.name, dept: row.dept };
+    const rowData: Record<string, string> = { name: row.name, dept: row.dept, position: row.position };
     dates.forEach((d, i) => {
       rowData[formatDateHeader(d)] = row.shifts[i];
     });
@@ -353,8 +354,8 @@ export async function generateSampleRoster(): Promise<ArrayBuffer> {
       allowBlank: true,
       formulae: [deptOptions],
     };
-    // Shift validation for each date column (columns C onwards)
-    for (let c = 3; c <= 2 + dates.length; c++) {
+    // Shift validation for each date column (columns D onwards, position is C)
+    for (let c = 4; c <= 3 + dates.length; c++) {
       ws.getCell(r, c).dataValidation = {
         type: "list",
         allowBlank: true,
