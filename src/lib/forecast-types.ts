@@ -6,6 +6,8 @@ export interface ForecastDay {
   departures: number;
   roomNights: number;
   totalRooms: number;
+  lunchCovers: number;
+  dinnerCovers: number;
   events: string[];
 }
 
