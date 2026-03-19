@@ -16,7 +16,8 @@ import { ShiftPill, ShiftDot } from "@/components/ShiftPill";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { maskPhone } from "@/lib/privacy";
-import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Sparkles, Mail, Phone, Timer } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Sparkles, Mail, Phone, Timer, Plus } from "lucide-react";
+import ManualShiftDialog from "@/components/ManualShiftDialog";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -78,7 +79,7 @@ const RosterPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  
+  const [manualShiftOpen, setManualShiftOpen] = useState(false);
 
   const { isManager } = useUserRole();
   const { user } = useAuth();
@@ -367,6 +368,10 @@ const RosterPage = () => {
           </div>
           {isManager && (
             <div className="flex gap-2">
+              <Button variant="default" size="sm" onClick={() => setManualShiftOpen(true)}>
+                <Plus className="h-4 w-4 mr-1.5" />
+                Vardiya Ata
+              </Button>
               <Button variant="outline" size="sm" onClick={downloadTemplate}>
                 <Download className="h-4 w-4 mr-1.5" />
                 {t("roster.template")}
@@ -683,6 +688,29 @@ const RosterPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Manual shift dialog */}
+      <ManualShiftDialog
+        open={manualShiftOpen}
+        onOpenChange={setManualShiftOpen}
+        defaultDate={selectedDate || formatDate(year, month, today.getDate() <= daysInMonth ? today.getDate() : 1)}
+        onSaved={async () => {
+          const { data } = await supabase.from("roster_shifts").select("*, leave_requests(leave_type)");
+          if (data) {
+            setDbShifts(data.map((row: any) => ({
+              id: row.id,
+              staffId: row.staff_name,
+              date: row.date,
+              shift: row.shift,
+              department: row.department,
+              shift_type_id: row.shift_type_id,
+              custom_start_time: row.custom_start_time,
+              custom_end_time: row.custom_end_time,
+              leave_request_id: row.leave_request_id,
+              leave_type: row.leave_requests?.leave_type || null,
+            })));
+          }
+        }}
+      />
     </AppLayout>
   );
 };
