@@ -31,6 +31,7 @@ interface RosterShift extends ShiftAssignment {
   custom_end_time?: string | null;
   leave_request_id?: string | null;
   leave_type?: string | null;
+  position?: string | null;
 }
 
 const shiftConfig: Partial<Record<ShiftType, { bg: string; text: string; icon: typeof Sun }>> = {
