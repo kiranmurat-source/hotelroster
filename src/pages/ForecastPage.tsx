@@ -265,7 +265,7 @@ const ForecastPage = () => {
               <CardContent>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={forecast.days} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                    <ComposedChart data={forecast.days.map(d => ({ ...d, calcOcc: calcOccupancy(d.roomNights, d.totalRooms) }))} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="dayLabel" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
                       <YAxis yAxisId="left" domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
@@ -279,7 +279,7 @@ const ForecastPage = () => {
                           color: "hsl(var(--foreground))",
                         }}
                         formatter={(value: number, name: string) => {
-                          if (name === "occupancyRate") return [`${value}%`, t("forecast.occupancy")];
+                          if (name === "calcOcc") return [`${value}%`, t("forecast.occupancy")];
                           if (name === "arrivals") return [value, t("forecast.arrivals")];
                           if (name === "departures") return [value, t("forecast.departures")];
                           return [value, name];
@@ -287,15 +287,15 @@ const ForecastPage = () => {
                       />
                       <Legend
                         formatter={(value: string) => {
-                          if (value === "occupancyRate") return t("forecast.occupancy");
+                          if (value === "calcOcc") return t("forecast.occupancy");
                           if (value === "arrivals") return t("forecast.arrivals");
                           if (value === "departures") return t("forecast.departures");
                           return value;
                         }}
                       />
-                      <Bar yAxisId="left" dataKey="occupancyRate" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(data: any) => { if (data?.date) handleDayDoubleClick(data.date); }}>
+                      <Bar yAxisId="left" dataKey="calcOcc" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(data: any) => { if (data?.date) handleDayDoubleClick(data.date); }}>
                         {forecast.days.map((day, i) => (
-                          <Cell key={i} fill={getOccupancyColor(day.occupancyRate)} />
+                          <Cell key={i} fill={getOccupancyColor(calcOccupancy(day.roomNights, day.totalRooms))} />
                         ))}
                       </Bar>
                       <Line yAxisId="right" type="monotone" dataKey="arrivals" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
