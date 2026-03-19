@@ -281,7 +281,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{peakDay?.dayLabel}</p>
-                    <p className="text-xs text-muted-foreground">{t("forecast.peakDay")} ({peakDay ? calcOccupancy(peakDay.roomNights, peakDay.totalRooms) : 0}%)</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.peakDay")} ({peakDay ? calcOccupancy(getRoomNights(peakDay), settings?.total_rooms ?? 144) : 0}%)</p>
                   </div>
                 </CardContent>
               </Card>
