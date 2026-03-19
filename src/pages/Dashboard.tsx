@@ -75,8 +75,8 @@ const Dashboard = () => {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title={t("dashboard.totalStaff")} value={profileCount} icon={<Users className="h-5 w-5" />} description={t("dashboard.activeEmployees")} trend="up" />
-          <StatCard title={t("dashboard.pendingHours")} value={pendingHours.length} icon={<Clock className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} trend={pendingHours.length > 0 ? "up" : "down"} />
-          <StatCard title={t("dashboard.pendingStaff")} value={pendingStaff.length} icon={<UserPlus className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} trend={pendingStaff.length > 0 ? "up" : "down"} />
+          <StatCard title={t("dashboard.pendingHours")} value={pendingHours.length} icon={<Clock className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} trend={pendingHours.length > 0 ? "up" : "down"} onClick={() => navigate("/extra-hours")} />
+          <StatCard title={t("dashboard.pendingStaff")} value={pendingStaff.length} icon={<UserPlus className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} trend={pendingStaff.length > 0 ? "up" : "down"} onClick={() => navigate("/extra-staff")} />
           <StatCard title={t("dashboard.totalPending")} value={pendingHours.length + pendingStaff.length} icon={<AlertCircle className="h-5 w-5" />} description={t("dashboard.actionRequired")} />
         </div>
 
