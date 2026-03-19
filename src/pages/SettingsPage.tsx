@@ -55,6 +55,7 @@ const SettingsPage = () => {
       setFbDinner(settings.fb_dinner_covers_per_fte);
       setRoomsDepts((settings.rooms_departments || []).join(", "));
       setFnbDepts((settings.fnb_departments || []).join(", "));
+      setFoArrivalsPerFte(settings.fo_arrivals_per_fte ?? 20);
     }
   }, [settings]);
 
