@@ -12,6 +12,7 @@ interface RosterShiftInput {
 
 interface ForecastDayInput {
   roomNights: number;
+  prevDayRoomNights: number;
   arrivals: number;
   breakfastCovers: number;
   lunchCovers: number;
