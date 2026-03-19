@@ -41,6 +41,7 @@ export async function parseExcelForecast(data: ArrayBuffer): Promise<WeeklyForec
 
   const dateColIdx = findCol(["date", "day", "tarih"]);
   const occColIdx = findCol(["occupancy", "occ", "doluluk"]);
+  const roomNightsColIdx = findCol(["roomnights", "soldrooms", "satılanoda", "rooms", "oda"]);
   const arrivalColIdx = findCol(["arrival", "checkin", "arriving", "giriş", "geliş"]);
   const departureColIdx = findCol(["departure", "checkout", "departing", "çıkış"]);
   const lunchColIdx = findCol(["öğlen", "lunch", "öğlenkuver"]);
