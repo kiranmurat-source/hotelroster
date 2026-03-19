@@ -322,6 +322,7 @@ export async function generateSampleRoster(): Promise<ArrayBuffer> {
   ws.columns = [
     { header: "Staff Name", key: "name", width: 20 },
     { header: "Department", key: "dept", width: 16 },
+    { header: "Görev", key: "position", width: 16 },
     ...dates.map((d) => ({ header: formatDateHeader(d), key: formatDateHeader(d), width: 10 })),
   ];
 
