@@ -412,7 +412,6 @@ const ForecastPage = () => {
                         <TableHead className="text-right">{t("forecast.occupancy")}</TableHead>
                         <TableHead className="text-right">{t("forecast.arrivals")}</TableHead>
                         <TableHead className="text-right">{t("forecast.departures")}</TableHead>
-                        <TableHead className="text-right">{t("forecast.roomNights")}</TableHead>
                         <TableHead className="text-right">{t("forecast.totalRooms")}</TableHead>
                         <TableHead className="text-right">{t("forecast.guests")}</TableHead>
                         <TableHead className="text-right">{t("forecast.breakfast")}</TableHead>
@@ -421,7 +420,8 @@ const ForecastPage = () => {
                     </TableHeader>
                     <TableBody>
                       {forecast.days.map((day) => {
-                        const badge = getOccupancyBadge(day.occupancyRate);
+                        const occ = calcOccupancy(day.roomNights, day.totalRooms);
+                        const badge = getOccupancyBadge(occ);
                         return (
                           <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title={t("forecast.doubleClickHint")}>
                             <TableCell className="font-medium">{day.dayLabel}</TableCell>
@@ -437,12 +437,11 @@ const ForecastPage = () => {
                             </TableCell>
                             <TableCell className="text-right">
                               <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", badge.className)}>
-                                {day.occupancyRate}%
+                                {occ}%
                               </span>
                             </TableCell>
                             <TableCell className="text-right">{day.arrivals}</TableCell>
                             <TableCell className="text-right">{day.departures}</TableCell>
-                            <TableCell className="text-right">{day.roomNights}</TableCell>
                             <TableCell className="text-right">{day.totalRooms}</TableCell>
                             <TableCell className="text-right">{calcGuests(day.roomNights)}</TableCell>
                             <TableCell className="text-right">{calcBreakfast(calcGuests(day.roomNights))}</TableCell>
