@@ -368,6 +368,10 @@ const RosterPage = () => {
           </div>
           {isManager && (
             <div className="flex gap-2">
+              <Button variant="default" size="sm" onClick={() => setManualShiftOpen(true)}>
+                <Plus className="h-4 w-4 mr-1.5" />
+                Vardiya Ata
+              </Button>
               <Button variant="outline" size="sm" onClick={downloadTemplate}>
                 <Download className="h-4 w-4 mr-1.5" />
                 {t("roster.template")}
