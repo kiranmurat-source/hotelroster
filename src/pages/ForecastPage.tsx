@@ -485,6 +485,8 @@ const ForecastPage = () => {
                             <TableCell className="text-right">{day.totalRooms}</TableCell>
                             <TableCell className="text-right">{calcGuests(day.roomNights)}</TableCell>
                             <TableCell className="text-right">{calcBreakfast(calcGuests(day.roomNights))}</TableCell>
+                            <TableCell className="text-right">{day.lunchCovers || 0}</TableCell>
+                            <TableCell className="text-right">{day.dinnerCovers || 0}</TableCell>
                             <TableCell>
                               {day.events.length > 0 ? (
                                 <div className="flex flex-wrap gap-1">
