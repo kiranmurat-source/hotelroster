@@ -467,7 +467,7 @@ const ForecastPage = () => {
                     </TableHeader>
                     <TableBody>
                       {forecast.days.map((day) => {
-                        const occ = calcOccupancy(day.roomNights, day.totalRooms);
+                        const occ = calcOccupancy(getRoomNights(day), settings?.total_rooms ?? 144);
                         const badge = getOccupancyBadge(occ);
                         return (
                           <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title={t("forecast.doubleClickHint")}>
