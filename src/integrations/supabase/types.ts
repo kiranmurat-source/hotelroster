@@ -160,6 +160,7 @@ export type Database = {
           fb_dinner_covers_per_fte: number
           fb_lunch_covers_per_fte: number
           fnb_departments: string[]
+          fo_arrivals_per_fte: number
           guest_per_room: number
           hk_rooms_per_fte: number
           hk_supervisor_ratio: number
@@ -179,6 +180,7 @@ export type Database = {
           fb_dinner_covers_per_fte?: number
           fb_lunch_covers_per_fte?: number
           fnb_departments?: string[]
+          fo_arrivals_per_fte?: number
           guest_per_room?: number
           hk_rooms_per_fte?: number
           hk_supervisor_ratio?: number
@@ -198,6 +200,7 @@ export type Database = {
           fb_dinner_covers_per_fte?: number
           fb_lunch_covers_per_fte?: number
           fnb_departments?: string[]
+          fo_arrivals_per_fte?: number
           guest_per_room?: number
           hk_rooms_per_fte?: number
           hk_supervisor_ratio?: number
