@@ -111,6 +111,7 @@ const RosterPage = () => {
           custom_end_time: row.custom_end_time,
           leave_request_id: row.leave_request_id,
           leave_type: row.leave_requests?.leave_type || null,
+          position: row.position,
         }));
         setDbShifts(assignments);
       }
