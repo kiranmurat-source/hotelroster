@@ -424,7 +424,7 @@ const ForecastPage = () => {
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{t("forecast.breakfast")}</span>
-                            <span className="font-medium">{calcBreakfast(calcGuests(day.roomNights))}</span>
+                            <span className="font-medium">{(() => { const idx = forecast!.days.indexOf(day); const prev = idx > 0 ? forecast!.days[idx - 1] : day; return calcBreakfast(calcGuests(getRoomNights(prev))); })()}</span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{"Öğle Kuver"}</span>
