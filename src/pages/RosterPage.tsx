@@ -64,7 +64,7 @@ const SHIFT_TO_CODE: Record<ShiftType, string> = {
   Afternoon: "B",
   Night: "C",
   "Day Off": "OFF",
-  Break: "MID",
+  Break: "MID-AM",
 };
 
 const RosterPage = () => {
@@ -308,6 +308,17 @@ const RosterPage = () => {
     });
   }, [selectedAssignments, resolveShiftType]);
 
+  // Group selected day assignments by department
+  const groupedByDepartment = useMemo(() => {
+    const groups: Map<string, RosterShift[]> = new Map();
+    (selectedAssignments as RosterShift[]).forEach((a) => {
+      const dept = a.department || "Other";
+      if (!groups.has(dept)) groups.set(dept, []);
+      groups.get(dept)!.push(a);
+    });
+    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [selectedAssignments]);
+
   const modalAssignments = modalDate
     ? (activeAssignments as RosterShift[]).filter((a) => a.date === modalDate)
     : [];
@@ -542,52 +553,53 @@ const RosterPage = () => {
                       ))}
                     </div>
                   )}
-                  <div className="space-y-4">
-                    {groupedByShiftType.map(({ shiftType, items }) => {
-                      if (items.length === 0) return null;
-                      return (
-                        <div key={shiftType?.id || "unknown"}>
-                          <div className="flex items-center gap-2 mb-2">
-                            {shiftType ? (
-                              <ShiftPill shiftType={shiftType} size="md" />
-                            ) : (
-                              <span className="text-sm font-semibold text-muted-foreground">{items[0]?.shift}</span>
-                            )}
-                            <span className="text-xs text-muted-foreground">({items.length})</span>
-                          </div>
-                          <div className="space-y-1.5">
-                            {items.map((a) => {
-                              const leaveBadge = a.leave_request_id && a.leave_type ? LEAVE_BADGE[a.leave_type] : null;
-                              const bgClass = leaveBadge
-                                ? leaveBadge.color
-                                : shiftType
-                                  ? shiftConfig[a.shift]?.bg || "bg-muted"
-                                  : "bg-muted";
-                              return (
-                                <Tooltip key={a.id}>
-                                  <TooltipTrigger asChild>
-                                    <div className={cn("flex items-center justify-between py-1.5 px-3 rounded-md text-sm", bgClass)}>
-                                      <div className="flex items-center gap-2">
-                                        {leaveBadge && (
-                                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-background/50">{leaveBadge.code}</span>
-                                        )}
-                                        <span className="font-medium">{resolveStaffName(a)}</span>
-                                      </div>
-                                      <span className="text-xs text-muted-foreground">{resolveStaffRole(a)}</span>
-                                    </div>
-                                  </TooltipTrigger>
-                                  {leaveBadge && (
-                                    <TooltipContent side="top" className="text-xs">
-                                      <p className="font-semibold">{leaveBadge.label}</p>
-                                    </TooltipContent>
-                                  )}
-                                </Tooltip>
-                              );
-                            })}
-                          </div>
+                  <div className="space-y-5">
+                    {groupedByDepartment.map(([dept, deptItems]) => (
+                      <div key={dept}>
+                        <div className="flex items-center gap-2 mb-3 pb-1 border-b">
+                          <span className="text-sm font-bold text-foreground">{dept}</span>
+                          <span className="text-xs text-muted-foreground">({deptItems.length})</span>
                         </div>
-                      );
-                    })}
+                        <div className="space-y-1.5">
+                          {deptItems.map((a) => {
+                            const st = resolveShiftType(a);
+                            const leaveBadge = a.leave_request_id && a.leave_type ? LEAVE_BADGE[a.leave_type] : null;
+                            const bgClass = leaveBadge
+                              ? leaveBadge.color
+                              : st
+                                ? shiftConfig[a.shift]?.bg || "bg-muted"
+                                : "bg-muted";
+                            return (
+                              <Tooltip key={a.id}>
+                                <TooltipTrigger asChild>
+                                  <div className={cn("flex items-center justify-between py-1.5 px-3 rounded-md text-sm", bgClass)}>
+                                    <div className="flex items-center gap-2">
+                                      {leaveBadge && (
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-background/50">{leaveBadge.code}</span>
+                                      )}
+                                      <span className="font-medium">{resolveStaffName(a)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {st && <ShiftPill shiftType={st} size="sm" />}
+                                      {a.custom_start_time && (
+                                        <span className="text-[10px] text-muted-foreground">
+                                          {a.custom_start_time?.slice(0,5)}-{a.custom_end_time?.slice(0,5)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </TooltipTrigger>
+                                {leaveBadge && (
+                                  <TooltipContent side="top" className="text-xs">
+                                    <p className="font-semibold">{leaveBadge.label}</p>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                     {selectedAssignments.length === 0 && (
                       <p className="text-sm text-muted-foreground text-center py-4">{t("roster.noShifts")}</p>
                     )}
