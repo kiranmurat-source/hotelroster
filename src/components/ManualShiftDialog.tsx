@@ -249,11 +249,26 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
-            Haftalık Vardiya Atama — {myDepartment || ""}
+            Haftalık Vardiya Atama
           </DialogTitle>
         </DialogHeader>
 
-        {/* Week navigation */}
+        {/* Department filter for admin */}
+        <div className="flex items-center gap-3">
+          {isAdmin && allDepartments.length > 0 ? (
+            <Select value={activeDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Departman seçin..." />
+              </SelectTrigger>
+              <SelectContent>
+                {allDepartments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <span className="text-sm font-medium text-muted-foreground">{activeDepartment}</span>
+          )}
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o - 1)}>
             <ChevronLeft className="h-4 w-4" />
