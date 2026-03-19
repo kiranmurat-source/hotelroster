@@ -370,7 +370,7 @@ const ForecastPage = () => {
                 {viewMode === "cards" ? (
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {forecast.days.map((day) => {
-                      const occ = calcOccupancy(day.roomNights, day.totalRooms);
+                       const occ = calcOccupancy(getRoomNights(day), settings?.total_rooms ?? 144);
                       const badge = getOccupancyBadge(occ);
                       return (
                         <div
