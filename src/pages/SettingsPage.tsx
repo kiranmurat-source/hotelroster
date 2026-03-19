@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Settings, Save, X, Pencil } from "lucide-react";
@@ -12,14 +13,20 @@ import { Settings, Save, X, Pencil } from "lucide-react";
 interface FieldConfig {
   key: keyof HotelSettings;
   label: string;
-  type: "text" | "number" | "percent";
+  type: "text" | "number" | "percent" | "select";
   group: string;
+  options?: { value: string; label: string }[];
 }
 
 const FIELDS: FieldConfig[] = [
   { key: "hotel_name", label: "Otel Adı", type: "text", group: "Genel" },
   { key: "total_rooms", label: "Toplam Oda", type: "number", group: "Genel" },
-  { key: "segment", label: "Segment", type: "text", group: "Genel" },
+  { key: "segment", label: "Segment", type: "select", group: "Genel", options: [
+    { value: "economy", label: "Economy" },
+    { value: "midscale", label: "Midscale" },
+    { value: "premium", label: "Premium" },
+    { value: "luxury", label: "Luxury" },
+  ] },
   { key: "guest_per_room", label: "Oda Başı Misafir", type: "number", group: "Genel" },
   { key: "breakfast_capture_rate", label: "Kahvaltı Yakalama Oranı", type: "percent", group: "Kuver Oranları" },
   { key: "lunch_capture_rate", label: "Öğle Yakalama Oranı", type: "percent", group: "Kuver Oranları" },
@@ -169,13 +176,31 @@ const SettingsPage = () => {
                       {field.type === "percent" && " (%)"}
                     </Label>
                     {editing ? (
-                      <Input
-                        type={field.type === "text" ? "text" : "number"}
-                        value={form[field.key] ?? ""}
-                        onChange={(e) => handleChange(field.key, e.target.value)}
-                        step={field.key === "guest_per_room" ? "0.1" : "1"}
-                        className="h-9"
-                      />
+                      field.type === "select" && field.options ? (
+                        <Select
+                          value={String(form[field.key] ?? "")}
+                          onValueChange={(val) => handleChange(field.key, val)}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {field.options.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          type={field.type === "text" ? "text" : "number"}
+                          value={form[field.key] ?? ""}
+                          onChange={(e) => handleChange(field.key, e.target.value)}
+                          step={field.key === "guest_per_room" ? "0.1" : "1"}
+                          className="h-9"
+                        />
+                      )
                     ) : (
                       <p className="text-sm font-medium py-1.5">
                         {field.type === "percent"
