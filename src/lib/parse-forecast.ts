@@ -144,6 +144,7 @@ export async function generateSampleExcel(): Promise<ArrayBuffer> {
 
   ws.columns = [
     { header: "Tarih", key: "date", width: 14 },
+    { header: "Satılan Oda", key: "roomNights", width: 14 },
     { header: "Doluluk %", key: "occ", width: 14 },
     { header: "Giriş", key: "arrival", width: 10 },
     { header: "Çıkış", key: "departure", width: 12 },
@@ -153,13 +154,13 @@ export async function generateSampleExcel(): Promise<ArrayBuffer> {
   ];
 
   const data = [
-    { date: "09.03.2026", occ: 72, arrival: 32, departure: 45, lunch: 85, dinner: 120, events: "" },
-    { date: "10.03.2026", occ: 78, arrival: 33, departure: 65, lunch: 95, dinner: 140, events: "Corporate Seminar" },
-    { date: "11.03.2026", occ: 85, arrival: 23, departure: 23, lunch: 110, dinner: 160, events: "Wedding Reception" },
-    { date: "12.03.2026", occ: 90, arrival: 11, departure: 56, lunch: 130, dinner: 180, events: "Wedding Reception, Board Dinner" },
-    { date: "13.03.2026", occ: 95, arrival: 55, departure: 32, lunch: 140, dinner: 200, events: "Conference Day 1" },
-    { date: "14.03.2026", occ: 98, arrival: 22, departure: 55, lunch: 150, dinner: 210, events: "Conference Day 2, Gala Night" },
-    { date: "15.03.2026", occ: 82, arrival: 11, departure: 77, lunch: 90, dinner: 130, events: "" },
+    { date: "09.03.2026", roomNights: 104, occ: 72, arrival: 32, departure: 45, lunch: 85, dinner: 120, events: "" },
+    { date: "10.03.2026", roomNights: 112, occ: 78, arrival: 33, departure: 65, lunch: 95, dinner: 140, events: "Corporate Seminar" },
+    { date: "11.03.2026", roomNights: 122, occ: 85, arrival: 23, departure: 23, lunch: 110, dinner: 160, events: "Wedding Reception" },
+    { date: "12.03.2026", roomNights: 130, occ: 90, arrival: 11, departure: 56, lunch: 130, dinner: 180, events: "Wedding Reception, Board Dinner" },
+    { date: "13.03.2026", roomNights: 137, occ: 95, arrival: 55, departure: 32, lunch: 140, dinner: 200, events: "Conference Day 1" },
+    { date: "14.03.2026", roomNights: 141, occ: 98, arrival: 22, departure: 55, lunch: 150, dinner: 210, events: "Conference Day 2, Gala Night" },
+    { date: "15.03.2026", roomNights: 118, occ: 82, arrival: 11, departure: 77, lunch: 90, dinner: 130, events: "" },
   ];
 
   data.forEach((row) => ws.addRow(row));
