@@ -96,11 +96,15 @@ export async function parseExcelForecast(data: ArrayBuffer): Promise<WeeklyForec
       dayLabel = `Day ${rowNumber - 1}`;
     }
 
-    const occupancyRate = occColIdx !== null ? Number(getCellValue(occColIdx)) || 0 : 0;
+    const rawOcc = occColIdx !== null ? Number(getCellValue(occColIdx)) || 0 : 0;
+    // Handle Excel percentage cells (0.72 means 72%)
+    const occupancyRate = rawOcc > 0 && rawOcc < 1 ? Math.round(rawOcc * 100) : rawOcc;
+    const rawRoomNights = roomNightsColIdx !== null ? Number(getCellValue(roomNightsColIdx)) || 0 : 0;
     const arrivals = arrivalColIdx !== null ? Number(getCellValue(arrivalColIdx)) || 0 : 0;
     const departures = departureColIdx !== null ? Number(getCellValue(departureColIdx)) || 0 : 0;
     const totalRooms = FIXED_TOTAL_ROOMS;
-    const roomNights = Math.round((occupancyRate / 100) * totalRooms);
+    // Prefer explicit room nights column; fall back to deriving from occupancy
+    const roomNights = rawRoomNights > 0 ? rawRoomNights : Math.round((occupancyRate / 100) * totalRooms);
     const lunchCovers = lunchColIdx !== null ? Number(getCellValue(lunchColIdx)) || 0 : 0;
     const dinnerCovers = dinnerColIdx !== null ? Number(getCellValue(dinnerColIdx)) || 0 : 0;
 
