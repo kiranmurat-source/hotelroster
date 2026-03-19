@@ -149,13 +149,14 @@ const RosterPage = () => {
 
   const forecastByDate = useMemo(() => {
     if (!forecast) return {};
+    const totalRooms = settings?.total_rooms ?? 144;
     const map: Record<string, { occupancyRate: number; events: string[] }> = {};
     forecast.days.forEach((d) => {
-      const occ = d.totalRooms > 0 ? Math.round((d.roomNights / d.totalRooms) * 100) : 0;
+      const occ = totalRooms > 0 ? Math.round((d.roomNights / totalRooms) * 100) : 0;
       map[d.date] = { occupancyRate: occ, events: d.events };
     });
     return map;
-  }, [forecast]);
+  }, [forecast, settings]);
 
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfWeek(year, month);
