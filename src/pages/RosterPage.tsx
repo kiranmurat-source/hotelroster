@@ -66,6 +66,8 @@ const SHIFT_TO_CODE: Record<ShiftType, string> = {
   Night: "C",
   "Day Off": "OFF",
   Break: "MID-AM",
+  "MID-PM": "MID-PM",
+  "MID-NA": "MID-NA",
 };
 
 const RosterPage = () => {

@@ -22,6 +22,7 @@ const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const RecognitionPage = lazy(() => import("./pages/RecognitionPage"));
 const LeaveRequestsPage = lazy(() => import("./pages/LeaveRequestsPage"));
 const ChangePasswordPage = lazy(() => import("./pages/ChangePasswordPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 
