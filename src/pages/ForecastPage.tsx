@@ -419,6 +419,14 @@ const ForecastPage = () => {
                             <span className="text-muted-foreground">{t("forecast.breakfast")}</span>
                             <span className="font-medium">{calcBreakfast(calcGuests(day.roomNights))}</span>
                           </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">{t("forecast.lunchCovers") || "Öğlen Kuver"}</span>
+                            <span className="font-medium">{day.lunchCovers || 0}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">{t("forecast.dinnerCovers") || "Akşam Kuver"}</span>
+                            <span className="font-medium">{day.dinnerCovers || 0}</span>
+                          </div>
                           {day.events.length > 0 && (
                             <div className="pt-1 border-t space-y-1">
                               {day.events.map((ev, i) => (
