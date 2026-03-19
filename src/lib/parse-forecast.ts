@@ -41,6 +41,7 @@ export async function parseExcelForecast(data: ArrayBuffer): Promise<WeeklyForec
 
   const dateColIdx = findCol(["date", "day", "tarih"]);
   const occColIdx = findCol(["occupancy", "occ", "doluluk"]);
+  const roomNightsColIdx = findCol(["roomnights", "soldrooms", "satılanoda", "rooms", "oda"]);
   const arrivalColIdx = findCol(["arrival", "checkin", "arriving", "giriş", "geliş"]);
   const departureColIdx = findCol(["departure", "checkout", "departing", "çıkış"]);
   const lunchColIdx = findCol(["öğlen", "lunch", "öğlenkuver"]);
@@ -95,11 +96,15 @@ export async function parseExcelForecast(data: ArrayBuffer): Promise<WeeklyForec
       dayLabel = `Day ${rowNumber - 1}`;
     }
 
-    const occupancyRate = occColIdx !== null ? Number(getCellValue(occColIdx)) || 0 : 0;
+    const rawOcc = occColIdx !== null ? Number(getCellValue(occColIdx)) || 0 : 0;
+    // Handle Excel percentage cells (0.72 means 72%)
+    const occupancyRate = rawOcc > 0 && rawOcc < 1 ? Math.round(rawOcc * 100) : rawOcc;
+    const rawRoomNights = roomNightsColIdx !== null ? Number(getCellValue(roomNightsColIdx)) || 0 : 0;
     const arrivals = arrivalColIdx !== null ? Number(getCellValue(arrivalColIdx)) || 0 : 0;
     const departures = departureColIdx !== null ? Number(getCellValue(departureColIdx)) || 0 : 0;
     const totalRooms = FIXED_TOTAL_ROOMS;
-    const roomNights = Math.round((occupancyRate / 100) * totalRooms);
+    // Prefer explicit room nights column; fall back to deriving from occupancy
+    const roomNights = rawRoomNights > 0 ? rawRoomNights : Math.round((occupancyRate / 100) * totalRooms);
     const lunchCovers = lunchColIdx !== null ? Number(getCellValue(lunchColIdx)) || 0 : 0;
     const dinnerCovers = dinnerColIdx !== null ? Number(getCellValue(dinnerColIdx)) || 0 : 0;
 
@@ -139,6 +144,7 @@ export async function generateSampleExcel(): Promise<ArrayBuffer> {
 
   ws.columns = [
     { header: "Tarih", key: "date", width: 14 },
+    { header: "Satılan Oda", key: "roomNights", width: 14 },
     { header: "Doluluk %", key: "occ", width: 14 },
     { header: "Giriş", key: "arrival", width: 10 },
     { header: "Çıkış", key: "departure", width: 12 },
@@ -148,13 +154,13 @@ export async function generateSampleExcel(): Promise<ArrayBuffer> {
   ];
 
   const data = [
-    { date: "09.03.2026", occ: 72, arrival: 32, departure: 45, lunch: 85, dinner: 120, events: "" },
-    { date: "10.03.2026", occ: 78, arrival: 33, departure: 65, lunch: 95, dinner: 140, events: "Corporate Seminar" },
-    { date: "11.03.2026", occ: 85, arrival: 23, departure: 23, lunch: 110, dinner: 160, events: "Wedding Reception" },
-    { date: "12.03.2026", occ: 90, arrival: 11, departure: 56, lunch: 130, dinner: 180, events: "Wedding Reception, Board Dinner" },
-    { date: "13.03.2026", occ: 95, arrival: 55, departure: 32, lunch: 140, dinner: 200, events: "Conference Day 1" },
-    { date: "14.03.2026", occ: 98, arrival: 22, departure: 55, lunch: 150, dinner: 210, events: "Conference Day 2, Gala Night" },
-    { date: "15.03.2026", occ: 82, arrival: 11, departure: 77, lunch: 90, dinner: 130, events: "" },
+    { date: "09.03.2026", roomNights: 104, occ: 72, arrival: 32, departure: 45, lunch: 85, dinner: 120, events: "" },
+    { date: "10.03.2026", roomNights: 112, occ: 78, arrival: 33, departure: 65, lunch: 95, dinner: 140, events: "Corporate Seminar" },
+    { date: "11.03.2026", roomNights: 122, occ: 85, arrival: 23, departure: 23, lunch: 110, dinner: 160, events: "Wedding Reception" },
+    { date: "12.03.2026", roomNights: 130, occ: 90, arrival: 11, departure: 56, lunch: 130, dinner: 180, events: "Wedding Reception, Board Dinner" },
+    { date: "13.03.2026", roomNights: 137, occ: 95, arrival: 55, departure: 32, lunch: 140, dinner: 200, events: "Conference Day 1" },
+    { date: "14.03.2026", roomNights: 141, occ: 98, arrival: 22, departure: 55, lunch: 150, dinner: 210, events: "Conference Day 2, Gala Night" },
+    { date: "15.03.2026", roomNights: 118, occ: 82, arrival: 11, departure: 77, lunch: 90, dinner: 130, events: "" },
   ];
 
   data.forEach((row) => ws.addRow(row));
