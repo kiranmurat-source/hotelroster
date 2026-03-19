@@ -166,18 +166,17 @@ export const useWorkload = (
     const arrivals = forecast?.arrivals ?? 0;
 
     // ── SABAH ──
-    // HK: önceki gece satılan oda / HK oda kapasitesi (attendant)
+    // HK combined: attendant + supervisor
     const hkAttIdeal = prevRN > 0 ? Math.ceil(prevRN / hkRoomsPerFte) : 0;
-    const hkAttActual = counts.sabah.hk_attendant;
-    const hkAttDetail = prevRN > 0
-      ? `${prevRN} oda ÷ ${hkRoomsPerFte} = ${hkAttIdeal} ideal | Mevcut: ${hkAttActual}`
-      : null;
-
-    // HK Supervisor: çıkış / supervisor oranı
     const hkSupIdeal = departures > 0 ? Math.ceil(departures / hkSupervisorRatio) : 0;
-    const hkSupActual = counts.sabah.hk_supervisor;
-    const hkSupDetail = departures > 0
-      ? `${departures} çıkış ÷ ${hkSupervisorRatio} = ${hkSupIdeal} ideal | Mevcut: ${hkSupActual}`
+    const hkIdeal = hkAttIdeal + hkSupIdeal;
+    const hkActual = counts.sabah.hk_attendant + counts.sabah.hk_supervisor;
+
+    const hkDetailParts: string[] = [];
+    if (prevRN > 0) hkDetailParts.push(`${prevRN} oda ÷ ${hkRoomsPerFte} = ${hkAttIdeal}`);
+    if (departures > 0) hkDetailParts.push(`${departures} çıkış ÷ ${hkSupervisorRatio} = ${hkSupIdeal}`);
+    const hkDetail = hkDetailParts.length > 0
+      ? `${hkDetailParts.join(" + ")} = ${hkIdeal} ideal | Mevcut: ${hkActual}`
       : null;
 
     // FO Sabah: çıkış / resepsiyon kapasitesi
@@ -196,11 +195,8 @@ export const useWorkload = (
       : null;
 
     const sabahLines: DeptLine[] = [];
-    if (hkAttIdeal > 0 || hkAttActual > 0) {
-      sabahLines.push({ label: "HK", actual: hkAttActual, ideal: hkAttIdeal, workload: calcWl(hkAttIdeal, hkAttActual), detail: hkAttDetail });
-    }
-    if (hkSupIdeal > 0 || hkSupActual > 0) {
-      sabahLines.push({ label: "HK Sup", actual: hkSupActual, ideal: hkSupIdeal, workload: calcWl(hkSupIdeal, hkSupActual), detail: hkSupDetail });
+    if (hkIdeal > 0 || hkActual > 0) {
+      sabahLines.push({ label: "HK", actual: hkActual, ideal: hkIdeal, workload: calcWl(hkIdeal, hkActual), detail: hkDetail });
     }
     if (foSabahIdeal > 0 || foSabahActual > 0) {
       sabahLines.push({ label: "FO", actual: foSabahActual, ideal: foSabahIdeal, workload: calcWl(foSabahIdeal, foSabahActual), detail: foSabahDetail });
