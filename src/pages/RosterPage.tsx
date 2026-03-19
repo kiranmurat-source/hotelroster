@@ -31,6 +31,7 @@ interface RosterShift extends ShiftAssignment {
   custom_end_time?: string | null;
   leave_request_id?: string | null;
   leave_type?: string | null;
+  position?: string | null;
 }
 
 const shiftConfig: Partial<Record<ShiftType, { bg: string; text: string; icon: typeof Sun }>> = {
@@ -110,6 +111,7 @@ const RosterPage = () => {
           custom_end_time: row.custom_end_time,
           leave_request_id: row.leave_request_id,
           leave_type: row.leave_requests?.leave_type || null,
+          position: row.position,
         }));
         setDbShifts(assignments);
       }
@@ -190,6 +192,7 @@ const RosterPage = () => {
         shift: a.shift,
         department: a.department,
         shift_type_id: resolveShiftTypeId(a.shift) || null,
+        position: a.position || null,
       }));
 
       for (let i = 0; i < rows.length; i += 500) {
@@ -209,6 +212,7 @@ const RosterPage = () => {
           shift_type_id: row.shift_type_id,
           custom_start_time: row.custom_start_time,
           custom_end_time: row.custom_end_time,
+          position: row.position,
         })));
       }
       setUploadedRoster(null);
@@ -355,7 +359,7 @@ const RosterPage = () => {
   }, [selectedDate, forecast, calcBreakfast, calcGuests, calcLunch, calcDinner]);
 
   const workload = useWorkload(
-    selectedAssignments as { shift_type_id?: string | null; custom_start_time?: string | null; department: string; shift: string }[],
+    selectedAssignments as { shift_type_id?: string | null; custom_start_time?: string | null; department: string; shift: string; position?: string | null }[],
     forecastDayInput
   );
   const modalAssignments = modalDate
@@ -807,6 +811,7 @@ const RosterPage = () => {
               custom_end_time: row.custom_end_time,
               leave_request_id: row.leave_request_id,
               leave_type: row.leave_requests?.leave_type || null,
+              position: row.position,
             })));
           }
         }}

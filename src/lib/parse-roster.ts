@@ -162,12 +162,13 @@ function parseHorizontalRoster(rows: Record<string, unknown>[]): ParsedRoster {
   const keys = Object.keys(rows[0]);
   const nameCol = findCol(rows[0], ["staffname", "name", "staff", "employee", "personel"]);
   const deptCol = findCol(rows[0], ["department", "dept", "departman", "bölüm", "bolum"]);
+  const posCol = findCol(rows[0], ["position", "görev", "gorev", "role", "unvan", "pozisyon"]);
 
   if (!nameCol) throw new Error("Missing 'Staff Name' column");
 
   const dateColumns: { key: string; date: string }[] = [];
   for (const key of keys) {
-    if (key === nameCol || key === deptCol) continue;
+    if (key === nameCol || key === deptCol || key === posCol) continue;
     const dateStr = parseDateHeader(key);
     if (dateStr) dateColumns.push({ key, date: dateStr });
   }
@@ -184,6 +185,7 @@ function parseHorizontalRoster(rows: Record<string, unknown>[]): ParsedRoster {
     if (!name) { skipped++; continue; }
 
     const dept = deptCol ? normalizeDepartment(String(row[deptCol] || "")) : null;
+    const position = posCol ? String(row[posCol] || "").trim() : undefined;
     staffSet.add(name);
 
     for (const { key, date } of dateColumns) {
@@ -199,6 +201,7 @@ function parseHorizontalRoster(rows: Record<string, unknown>[]): ParsedRoster {
         date,
         shift,
         department: dept || "Front Desk",
+        position: position || undefined,
       });
     }
     rowIdx++;
@@ -216,6 +219,7 @@ function parseVerticalRoster(rows: Record<string, unknown>[]): ParsedRoster {
   const dateCol = findCol(sample, ["date", "day", "tarih"]);
   const shiftCol = findCol(sample, ["shift", "shifttype", "type", "vardiya"]);
   const deptCol = findCol(sample, ["department", "dept", "departman"]);
+  const posCol = findCol(sample, ["position", "görev", "gorev", "role", "unvan", "pozisyon"]);
 
   if (!nameCol) throw new Error("Missing 'Staff Name' column");
   if (!dateCol) throw new Error("Missing 'Date' column");
@@ -230,6 +234,7 @@ function parseVerticalRoster(rows: Record<string, unknown>[]): ParsedRoster {
     const shiftRaw = String(row[shiftCol] || "").trim();
     const shift = normalizeShift(shiftRaw);
     const dept = deptCol ? normalizeDepartment(String(row[deptCol] || "")) : null;
+    const position = posCol ? String(row[posCol] || "").trim() : undefined;
 
     let dateStr = "";
     if (dateCol) {
@@ -240,7 +245,6 @@ function parseVerticalRoster(rows: Record<string, unknown>[]): ParsedRoster {
         const dd = String(val.getDate()).padStart(2, "0");
         dateStr = `${y}-${m}-${dd}`;
       } else if (typeof val === "number") {
-        // Excel serial date
         const excelEpoch = new Date(1899, 11, 30);
         const d = new Date(excelEpoch.getTime() + val * 86400000);
         dateStr = d.toISOString().split("T")[0];
@@ -267,6 +271,7 @@ function parseVerticalRoster(rows: Record<string, unknown>[]): ParsedRoster {
       date: dateStr,
       shift,
       department: dept || "Front Desk",
+      position: position || undefined,
     });
   });
 
@@ -317,19 +322,21 @@ export async function generateSampleRoster(): Promise<ArrayBuffer> {
   ws.columns = [
     { header: "Staff Name", key: "name", width: 20 },
     { header: "Department", key: "dept", width: 16 },
+    { header: "Görev", key: "position", width: 16 },
     ...dates.map((d) => ({ header: formatDateHeader(d), key: formatDateHeader(d), width: 10 })),
   ];
 
   const sampleData = [
-    { name: "Maria Santos", dept: "Front Desk", shifts: ["Sabah", "Sabah", "Sabah", "Sabah", "Off", "Gece", "Gece"] },
-    { name: "James Chen", dept: "Housekeeping", shifts: ["Gece", "Gece", "Gece", "Gece", "Gece", "Off", "Akşam"] },
-    { name: "Sofia Rodriguez", dept: "F&B", shifts: ["Off", "Akşam", "Akşam", "Akşam", "Akşam", "Akşam", "Akşam"] },
-    { name: "David Kim", dept: "Kitchen", shifts: ["Akşam", "Off", "Ara", "Ara", "Sabah", "Sabah", "Sabah"] },
-    { name: "Ahmed Hassan", dept: "Security", shifts: ["Gece", "Gece", "Off", "Sabah", "Sabah", "Sabah", "Off"] },
+    { name: "Maria Santos", dept: "Front Desk", position: "Resepsiyonist", shifts: ["Sabah", "Sabah", "Sabah", "Sabah", "Off", "Gece", "Gece"] },
+    { name: "James Chen", dept: "Housekeeping", position: "Oda Görevlisi", shifts: ["Gece", "Gece", "Gece", "Gece", "Gece", "Off", "Akşam"] },
+    { name: "Ayşe Yılmaz", dept: "Housekeeping", position: "Kat Amiri", shifts: ["Sabah", "Sabah", "Off", "Sabah", "Sabah", "Sabah", "Off"] },
+    { name: "Sofia Rodriguez", dept: "F&B", position: "Garson", shifts: ["Off", "Akşam", "Akşam", "Akşam", "Akşam", "Akşam", "Akşam"] },
+    { name: "David Kim", dept: "Kitchen", position: "Aşçı", shifts: ["Akşam", "Off", "Ara", "Ara", "Sabah", "Sabah", "Sabah"] },
+    { name: "Ahmed Hassan", dept: "Security", position: "Güvenlik", shifts: ["Gece", "Gece", "Off", "Sabah", "Sabah", "Sabah", "Off"] },
   ];
 
   for (const row of sampleData) {
-    const rowData: Record<string, string> = { name: row.name, dept: row.dept };
+    const rowData: Record<string, string> = { name: row.name, dept: row.dept, position: row.position };
     dates.forEach((d, i) => {
       rowData[formatDateHeader(d)] = row.shifts[i];
     });
@@ -347,8 +354,8 @@ export async function generateSampleRoster(): Promise<ArrayBuffer> {
       allowBlank: true,
       formulae: [deptOptions],
     };
-    // Shift validation for each date column (columns C onwards)
-    for (let c = 3; c <= 2 + dates.length; c++) {
+    // Shift validation for each date column (columns D onwards, position is C)
+    for (let c = 4; c <= 3 + dates.length; c++) {
       ws.getCell(r, c).dataValidation = {
         type: "list",
         allowBlank: true,

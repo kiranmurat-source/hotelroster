@@ -20,6 +20,7 @@ export interface ShiftAssignment {
   date: string;
   shift: ShiftType;
   department: Department;
+  position?: string;
 }
 
 export interface ExtraHoursRequest {
