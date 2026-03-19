@@ -41,7 +41,7 @@ export const useWorkload = (
   const { getById } = useShiftTypes();
   const { calcIdealRoomsFTE, calcIdealFnbFTE, calcBreakfast, calcGuests } = useHotelCalculations();
 
-  const roomsDepts = settings?.rooms_departments ?? ["Housekeeping", "Front Office"];
+  const roomsDepts = settings?.rooms_departments ?? ["Housekeeping", "Front Office", "Front Desk"];
   const fnbDepts = settings?.fnb_departments ?? ["F&B", "Kitchen"];
 
   return useMemo(() => {
