@@ -31,6 +31,7 @@ const ForecastPage = () => {
   const { forecast, loading: forecastLoading, saveForecast, clearForecast } = useForecast();
   const { t } = useLanguage();
   const { isManager } = useUserRole();
+  const { calcGuests, calcBreakfast, calcLunch, calcDinner, calcOccupancy, calcIdealRoomsFTE, calcIdealFnbFTE, settings, settingsLoading } = useHotelCalculations();
   const [isDragging, setIsDragging] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
   const [holidays, setHolidays] = useState<PublicHolidayAPI[]>([]);
