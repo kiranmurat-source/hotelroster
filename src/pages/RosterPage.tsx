@@ -211,6 +211,7 @@ const RosterPage = () => {
           shift_type_id: row.shift_type_id,
           custom_start_time: row.custom_start_time,
           custom_end_time: row.custom_end_time,
+          position: row.position,
         })));
       }
       setUploadedRoster(null);
