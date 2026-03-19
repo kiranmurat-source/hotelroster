@@ -7,8 +7,9 @@ import { useShiftTypes, ShiftTypeRecord } from "@/hooks/useShiftTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { ShiftPill } from "@/components/ShiftPill";
+import { useForecast } from "@/contexts/ForecastContext";
 import { toast } from "sonner";
-import { CalendarDays, ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Save, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Profile {
