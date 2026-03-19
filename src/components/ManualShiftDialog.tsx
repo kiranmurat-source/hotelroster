@@ -147,14 +147,13 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
         .from("roster_shifts")
         .select("id, staff_name, date, shift_type_id, department")
         .in("date", weekDates)
-        .eq("department", myDepartment || "");
+        .eq("department", activeDepartment);
 
       const asgn: Record<CellKey, string> = {};
       const existing: Record<CellKey, string> = {};
 
       if (data) {
         data.forEach((row: any) => {
-          // Match by staff_name to profile
           const prof = profiles.find(
             (p) => p.display_name === row.staff_name
           );
@@ -169,7 +168,7 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
       setExistingShifts(existing);
     };
     load();
-  }, [open, profiles, weekDates, myDepartment]);
+  }, [open, profiles, weekDates, activeDepartment]);
 
   const setCell = useCallback((profileId: string, date: string, shiftTypeId: string) => {
     const key = cellKey(profileId, date);
