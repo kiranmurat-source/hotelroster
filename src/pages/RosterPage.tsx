@@ -139,7 +139,10 @@ const RosterPage = () => {
   const forecastByDate = useMemo(() => {
     if (!forecast) return {};
     const map: Record<string, { occupancyRate: number; events: string[] }> = {};
-    forecast.days.forEach((d) => { map[d.date] = { occupancyRate: d.occupancyRate, events: d.events }; });
+    forecast.days.forEach((d) => {
+      const occ = d.totalRooms > 0 ? Math.round((d.roomNights / d.totalRooms) * 100) : 0;
+      map[d.date] = { occupancyRate: occ, events: d.events };
+    });
     return map;
   }, [forecast]);
 
