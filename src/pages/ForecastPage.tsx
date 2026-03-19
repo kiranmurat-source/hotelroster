@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { parseExcelForecast, generateSampleExcel, formatDateDDMMYYYY } from "@/lib/parse-forecast";
 import { useForecast } from "@/contexts/ForecastContext";
+import { useHotelCalculations } from "@/hooks/useHotelCalculations";
 import { cn } from "@/lib/utils";
 import { Upload, Download, FileSpreadsheet, CalendarDays, BedDouble, Sparkles, X, LogIn, LogOut, LayoutGrid, Table as TableIcon, Users, Coffee, UtensilsCrossed, ChevronDown } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } from "@/components/ui/table";
