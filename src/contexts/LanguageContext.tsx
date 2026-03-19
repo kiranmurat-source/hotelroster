@@ -63,6 +63,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.extraStaff": "Ek Personel",
     "nav.reports": "Raporlar",
     "nav.recognition": "Takdir",
+    "nav.settings": "Ayarlar",
     "nav.admin": "Kullanıcı Yönetimi",
     "nav.signOut": "Çıkış Yap",
     "nav.staffMgmt": "Personel Yönetimi",
