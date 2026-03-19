@@ -633,26 +633,44 @@ const RosterPage = () => {
                           {groups.map(({ key, label, data }) => (
                             <div key={key}>
                               {data.roomsWorkload !== null && (
-                                <div className="flex items-center gap-2 text-xs py-1">
-                                  <span className="w-12 font-medium">{label}</span>
-                                  <span className="w-12 text-muted-foreground">Rooms</span>
-                                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                                    <div className={cn("h-full rounded-full transition-all", getBarColor(data.roomsWorkload))} style={{ width: `${Math.min(data.roomsWorkload, 100)}%` }} />
-                                  </div>
-                                  <span className="w-10 text-right font-medium">{data.roomsWorkload}%</span>
-                                  {data.roomsWorkload > 100 && <AlertTriangle className="h-3 w-3 text-red-500" />}
-                                </div>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center gap-2 text-xs py-1 cursor-help">
+                                      <span className="w-12 font-medium">{label}</span>
+                                      <span className="w-12 text-muted-foreground">Rooms</span>
+                                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                                        <div className={cn("h-full rounded-full transition-all", getBarColor(data.roomsWorkload))} style={{ width: `${Math.min(data.roomsWorkload, 100)}%` }} />
+                                      </div>
+                                      <span className="w-10 text-right font-medium">{data.roomsWorkload}%</span>
+                                      {data.roomsWorkload > 100 && <AlertTriangle className="h-3 w-3 text-red-500" />}
+                                    </div>
+                                  </TooltipTrigger>
+                                  {data.roomsDetail && (
+                                    <TooltipContent side="top" className="text-xs max-w-xs">
+                                      {data.roomsDetail}
+                                    </TooltipContent>
+                                  )}
+                                </Tooltip>
                               )}
                               {data.fnbWorkload !== null && (
-                                <div className="flex items-center gap-2 text-xs py-1">
-                                  <span className="w-12 font-medium">{data.roomsWorkload !== null ? "" : label}</span>
-                                  <span className="w-12 text-muted-foreground">F&B</span>
-                                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                                    <div className={cn("h-full rounded-full transition-all", getBarColor(data.fnbWorkload))} style={{ width: `${Math.min(data.fnbWorkload, 100)}%` }} />
-                                  </div>
-                                  <span className="w-10 text-right font-medium">{data.fnbWorkload}%</span>
-                                  {data.fnbWorkload > 100 && <AlertTriangle className="h-3 w-3 text-red-500" />}
-                                </div>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center gap-2 text-xs py-1 cursor-help">
+                                      <span className="w-12 font-medium">{data.roomsWorkload !== null ? "" : label}</span>
+                                      <span className="w-12 text-muted-foreground">F&B</span>
+                                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                                        <div className={cn("h-full rounded-full transition-all", getBarColor(data.fnbWorkload))} style={{ width: `${Math.min(data.fnbWorkload, 100)}%` }} />
+                                      </div>
+                                      <span className="w-10 text-right font-medium">{data.fnbWorkload}%</span>
+                                      {data.fnbWorkload > 100 && <AlertTriangle className="h-3 w-3 text-red-500" />}
+                                    </div>
+                                  </TooltipTrigger>
+                                  {data.fnbDetail && (
+                                    <TooltipContent side="top" className="text-xs max-w-xs">
+                                      {data.fnbDetail}
+                                    </TooltipContent>
+                                  )}
+                                </Tooltip>
                               )}
                             </div>
                           ))}
