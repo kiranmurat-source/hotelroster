@@ -361,7 +361,7 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
               {profiles.length === 0 && (
                 <tr>
                   <td colSpan={8} className="text-center py-8 text-muted-foreground text-sm">
-                    {myDepartment ? "Bu departmanda personel bulunamadı" : "Departman bilgisi yükleniyor..."}
+                    {activeDepartment ? "Bu departmanda personel bulunamadı" : "Departman bilgisi yükleniyor..."}
                   </td>
                 </tr>
               )}
