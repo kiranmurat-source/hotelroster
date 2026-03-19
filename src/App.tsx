@@ -59,6 +59,7 @@ const App = () => (
               </Suspense>
             </BrowserRouter>
           </ForecastProvider>
+          </SettingsProvider>
         </AuthProvider>
       </LanguageProvider>
     </TooltipProvider>
