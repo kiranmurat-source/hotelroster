@@ -152,6 +152,74 @@ export type Database = {
         }
         Relationships: []
       }
+      hotel_settings: {
+        Row: {
+          breakfast_capture_rate: number
+          dinner_capture_rate: number
+          fb_breakfast_covers_per_fte: number
+          fb_dinner_covers_per_fte: number
+          fb_lunch_covers_per_fte: number
+          fnb_departments: string[]
+          guest_per_room: number
+          hk_rooms_per_fte: number
+          hk_supervisor_ratio: number
+          hotel_name: string
+          id: string
+          lunch_capture_rate: number
+          rooms_departments: string[]
+          segment: string
+          total_rooms: number
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          breakfast_capture_rate?: number
+          dinner_capture_rate?: number
+          fb_breakfast_covers_per_fte?: number
+          fb_dinner_covers_per_fte?: number
+          fb_lunch_covers_per_fte?: number
+          fnb_departments?: string[]
+          guest_per_room?: number
+          hk_rooms_per_fte?: number
+          hk_supervisor_ratio?: number
+          hotel_name?: string
+          id?: string
+          lunch_capture_rate?: number
+          rooms_departments?: string[]
+          segment?: string
+          total_rooms?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          breakfast_capture_rate?: number
+          dinner_capture_rate?: number
+          fb_breakfast_covers_per_fte?: number
+          fb_dinner_covers_per_fte?: number
+          fb_lunch_covers_per_fte?: number
+          fnb_departments?: string[]
+          guest_per_room?: number
+          hk_rooms_per_fte?: number
+          hk_supervisor_ratio?: number
+          hotel_name?: string
+          id?: string
+          lunch_capture_rate?: number
+          rooms_departments?: string[]
+          segment?: string
+          total_rooms?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kudos: {
         Row: {
           category: string
