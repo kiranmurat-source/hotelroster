@@ -30,12 +30,14 @@ interface RosterShift extends ShiftAssignment {
   leave_type?: string | null;
 }
 
-const shiftConfig: Record<ShiftType, { bg: string; text: string; icon: typeof Sun }> = {
+const shiftConfig: Partial<Record<ShiftType, { bg: string; text: string; icon: typeof Sun }>> = {
   Morning: { bg: "bg-blue-100/50 dark:bg-blue-900/20", text: "text-blue-600", icon: Sun },
   Afternoon: { bg: "bg-orange-100/50 dark:bg-orange-900/20", text: "text-orange-600", icon: Sunset },
   Night: { bg: "bg-purple-100/50 dark:bg-purple-900/20", text: "text-purple-600", icon: Moon },
   "Day Off": { bg: "bg-muted", text: "text-muted-foreground", icon: Coffee },
   Break: { bg: "bg-emerald-100/50 dark:bg-emerald-900/20", text: "text-emerald-600", icon: Timer },
+  "MID-PM": { bg: "bg-orange-100/50 dark:bg-orange-900/20", text: "text-orange-600", icon: Timer },
+  "MID-NA": { bg: "bg-purple-100/50 dark:bg-purple-900/20", text: "text-purple-600", icon: Timer },
 };
 
 const LEAVE_BADGE: Record<string, { code: string; color: string; label: string }> = {
