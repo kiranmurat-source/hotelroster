@@ -109,9 +109,10 @@ const ForecastPage = () => {
     return { label: t("forecast.normal"), className: "bg-success/15 text-success" };
   };
 
-  const getRoomNights = useCallback((day: { occupancyRate: number; totalRooms: number }) =>
-    Math.round((day.occupancyRate / 100) * (settings?.total_rooms ?? 144)),
-  [settings]);
+  const getOcc = useCallback((day: { roomNights: number }) => {
+    const totalRooms = settings?.total_rooms ?? 144;
+    return totalRooms > 0 ? Math.round((day.roomNights / totalRooms) * 100) : 0;
+  }, [settings]);
 
   const forecastTotals = useMemo(() => {
     if (!forecast?.days?.length) return {
@@ -119,27 +120,23 @@ const ForecastPage = () => {
       totalLunchCovers: 0, totalDinnerCovers: 0,
       avgOccupancy: 0, peakDay: null as any,
     };
-    const totalRooms = settings?.total_rooms ?? 144;
-    const getRN = (d: { occupancyRate: number }) =>
-      Math.round((d.occupancyRate / 100) * totalRooms);
 
-    const totalBookings = forecast.days.reduce((s, d) => s + getRN(d), 0);
-    const totalGuests = forecast.days.reduce((s, d) => s + calcGuests(getRN(d)), 0);
+    const totalBookings = forecast.days.reduce((s, d) => s + d.roomNights, 0);
+    const totalGuests = forecast.days.reduce((s, d) => s + calcGuests(d.roomNights), 0);
     const totalBreakfast = forecast.days.reduce((s, d, i) => {
       const prev = i > 0 ? forecast.days[i - 1] : d;
-      return s + calcBreakfast(calcGuests(getRN(prev)));
+      return s + calcBreakfast(calcGuests(prev.roomNights));
     }, 0);
     const totalLunchCovers = forecast.days.reduce((s, d) =>
-      s + calcLunch(calcGuests(getRN(d)), d.lunchCovers || 0), 0);
+      s + calcLunch(calcGuests(d.roomNights), d.lunchCovers || 0), 0);
     const totalDinnerCovers = forecast.days.reduce((s, d) =>
-      s + calcDinner(calcGuests(getRN(d)), d.dinnerCovers || 0), 0);
-    const avgOccupancy = Math.round(
-      forecast.days.reduce((s, d) =>
-        s + (totalRooms > 0 ? Math.round((getRN(d) / totalRooms) * 100) : 0), 0
-      ) / forecast.days.length
-    );
+      s + calcDinner(calcGuests(d.roomNights), d.dinnerCovers || 0), 0);
+    const totalRooms = settings?.total_rooms ?? 144;
+    const avgOccupancy = totalRooms > 0
+      ? Math.round(forecast.days.reduce((s, d) => s + d.roomNights, 0) / forecast.days.length / totalRooms * 100)
+      : 0;
     const peakDay = forecast.days.reduce((max, d) =>
-      getRN(d) > getRN(max) ? d : max, forecast.days[0]);
+      d.roomNights > max.roomNights ? d : max, forecast.days[0]);
 
     return { totalBookings, totalGuests, totalBreakfast,
              totalLunchCovers, totalDinnerCovers, avgOccupancy, peakDay };
@@ -300,7 +297,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{peakDay?.dayLabel}</p>
-                    <p className="text-xs text-muted-foreground">{t("forecast.peakDay")} ({peakDay ? calcOccupancy(getRoomNights(peakDay), settings?.total_rooms ?? 144) : 0}%)</p>
+                    <p className="text-xs text-muted-foreground">{t("forecast.peakDay")} ({peakDay ? getOcc(peakDay) : 0}%)</p>
                   </div>
                 </CardContent>
               </Card>
@@ -315,7 +312,7 @@ const ForecastPage = () => {
               <CardContent>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={forecast.days.map(d => ({ ...d, calcOcc: calcOccupancy(getRoomNights(d), settings?.total_rooms ?? 144) }))} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                    <ComposedChart data={forecast.days.map(d => ({ ...d, calcOcc: getOcc(d) }))} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="dayLabel" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
                       <YAxis yAxisId="left" domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
@@ -349,7 +346,7 @@ const ForecastPage = () => {
                       />
                       <Bar yAxisId="left" dataKey="calcOcc" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(data: any) => { if (data?.date) handleDayDoubleClick(data.date); }}>
                         {forecast.days.map((day, i) => (
-                          <Cell key={i} fill={getOccupancyColor(calcOccupancy(getRoomNights(day), settings?.total_rooms ?? 144))} />
+                          <Cell key={i} fill={getOccupancyColor(getOcc(day))} />
                         ))}
                       </Bar>
                       <Line yAxisId="right" type="monotone" dataKey="arrivals" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
@@ -389,7 +386,7 @@ const ForecastPage = () => {
                 {viewMode === "cards" ? (
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {forecast.days.map((day) => {
-                       const occ = calcOccupancy(getRoomNights(day), settings?.total_rooms ?? 144);
+                       const occ = getOcc(day);
                       const badge = getOccupancyBadge(occ);
                       return (
                         <div
@@ -439,19 +436,19 @@ const ForecastPage = () => {
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{t("forecast.guests")}</span>
-                            <span className="font-medium">{calcGuests(getRoomNights(day))}</span>
+                            <span className="font-medium">{calcGuests(day.roomNights)}</span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{t("forecast.breakfast")}</span>
-                            <span className="font-medium">{(() => { const idx = forecast!.days.indexOf(day); const prev = idx > 0 ? forecast!.days[idx - 1] : day; return calcBreakfast(calcGuests(getRoomNights(prev))); })()}</span>
+                            <span className="font-medium">{(() => { const idx = forecast!.days.indexOf(day); const prev = idx > 0 ? forecast!.days[idx - 1] : day; return calcBreakfast(calcGuests(prev.roomNights)); })()}</span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{"Öğle Kuver"}</span>
-                            <span className="font-medium">{calcLunch(calcGuests(getRoomNights(day)), day.lunchCovers || 0)}</span>
+                            <span className="font-medium">{calcLunch(calcGuests(day.roomNights), day.lunchCovers || 0)}</span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{"Akşam Kuver"}</span>
-                            <span className="font-medium">{calcDinner(calcGuests(getRoomNights(day)), day.dinnerCovers || 0)}</span>
+                            <span className="font-medium">{calcDinner(calcGuests(day.roomNights), day.dinnerCovers || 0)}</span>
                           </div>
                           {day.events.length > 0 && (
                             <div className="pt-1 border-t space-y-1">
@@ -486,7 +483,7 @@ const ForecastPage = () => {
                     </TableHeader>
                     <TableBody>
                       {forecast.days.map((day) => {
-                        const occ = calcOccupancy(getRoomNights(day), settings?.total_rooms ?? 144);
+                        const occ = getOcc(day);
                         const badge = getOccupancyBadge(occ);
                         return (
                           <TableRow key={day.date} onDoubleClick={() => handleDayDoubleClick(day.date)} className="cursor-pointer" title={t("forecast.doubleClickHint")}>
@@ -509,10 +506,10 @@ const ForecastPage = () => {
                             <TableCell className="text-right">{day.arrivals}</TableCell>
                             <TableCell className="text-right">{day.departures}</TableCell>
                             <TableCell className="text-right">{day.totalRooms}</TableCell>
-                            <TableCell className="text-right">{calcGuests(getRoomNights(day))}</TableCell>
-                            <TableCell className="text-right">{(() => { const idx = forecast!.days.indexOf(day); const prev = idx > 0 ? forecast!.days[idx - 1] : day; return calcBreakfast(calcGuests(getRoomNights(prev))); })()}</TableCell>
-                            <TableCell className="text-right">{calcLunch(calcGuests(getRoomNights(day)), day.lunchCovers || 0)}</TableCell>
-                            <TableCell className="text-right">{calcDinner(calcGuests(getRoomNights(day)), day.dinnerCovers || 0)}</TableCell>
+                            <TableCell className="text-right">{calcGuests(day.roomNights)}</TableCell>
+                            <TableCell className="text-right">{(() => { const idx = forecast!.days.indexOf(day); const prev = idx > 0 ? forecast!.days[idx - 1] : day; return calcBreakfast(calcGuests(prev.roomNights)); })()}</TableCell>
+                            <TableCell className="text-right">{calcLunch(calcGuests(day.roomNights), day.lunchCovers || 0)}</TableCell>
+                            <TableCell className="text-right">{calcDinner(calcGuests(day.roomNights), day.dinnerCovers || 0)}</TableCell>
                             <TableCell>
                               {day.events.length > 0 ? (
                                 <div className="flex flex-wrap gap-1">

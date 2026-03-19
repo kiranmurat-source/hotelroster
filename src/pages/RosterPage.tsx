@@ -149,13 +149,14 @@ const RosterPage = () => {
 
   const forecastByDate = useMemo(() => {
     if (!forecast) return {};
+    const totalRooms = settings?.total_rooms ?? 144;
     const map: Record<string, { occupancyRate: number; events: string[] }> = {};
     forecast.days.forEach((d) => {
-      const occ = d.totalRooms > 0 ? Math.round((d.roomNights / d.totalRooms) * 100) : 0;
+      const occ = totalRooms > 0 ? Math.round((d.roomNights / totalRooms) * 100) : 0;
       map[d.date] = { occupancyRate: occ, events: d.events };
     });
     return map;
-  }, [forecast]);
+  }, [forecast, settings]);
 
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfWeek(year, month);
@@ -342,18 +343,15 @@ const RosterPage = () => {
     if (dayIndex < 0) return null;
     const day = forecast.days[dayIndex];
     const prevDay = dayIndex > 0 ? forecast.days[dayIndex - 1] : day;
-    const totalRooms = settings?.total_rooms ?? 144;
-    const getRN = (d: typeof day) =>
-      Math.round((d.occupancyRate / 100) * totalRooms);
     return {
-      roomNights: getRN(day),
-      prevDayRoomNights: getRN(prevDay),
+      roomNights: day.roomNights,
+      prevDayRoomNights: prevDay.roomNights,
       arrivals: day.arrivals,
-      breakfastCovers: calcBreakfast(calcGuests(getRN(prevDay))),
-      lunchCovers: calcLunch(calcGuests(getRN(day)), day.lunchCovers || 0),
-      dinnerCovers: calcDinner(calcGuests(getRN(day)), day.dinnerCovers || 0),
+      breakfastCovers: calcBreakfast(calcGuests(prevDay.roomNights)),
+      lunchCovers: calcLunch(calcGuests(day.roomNights), day.lunchCovers || 0),
+      dinnerCovers: calcDinner(calcGuests(day.roomNights), day.dinnerCovers || 0),
     };
-  }, [selectedDate, forecast, calcBreakfast, calcGuests, calcLunch, calcDinner, settings]);
+  }, [selectedDate, forecast, calcBreakfast, calcGuests, calcLunch, calcDinner]);
 
   const workload = useWorkload(
     selectedAssignments as { shift_type_id?: string | null; custom_start_time?: string | null; department: string; shift: string }[],
