@@ -191,6 +191,7 @@ const RosterPage = () => {
         shift: a.shift,
         department: a.department,
         shift_type_id: resolveShiftTypeId(a.shift) || null,
+        position: a.position || null,
       }));
 
       for (let i = 0; i < rows.length; i += 500) {
