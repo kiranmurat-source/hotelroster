@@ -490,8 +490,8 @@ const ForecastPage = () => {
                             <TableCell className="text-right">{day.arrivals}</TableCell>
                             <TableCell className="text-right">{day.departures}</TableCell>
                             <TableCell className="text-right">{day.totalRooms}</TableCell>
-                            <TableCell className="text-right">{calcGuests(day.roomNights)}</TableCell>
-                            <TableCell className="text-right">{calcBreakfast(calcGuests(day.roomNights))}</TableCell>
+                            <TableCell className="text-right">{calcGuests(getRoomNights(day))}</TableCell>
+                            <TableCell className="text-right">{(() => { const idx = forecast!.days.indexOf(day); const prev = idx > 0 ? forecast!.days[idx - 1] : day; return calcBreakfast(calcGuests(getRoomNights(prev))); })()}</TableCell>
                             <TableCell className="text-right">{day.lunchCovers || 0}</TableCell>
                             <TableCell className="text-right">{day.dinnerCovers || 0}</TableCell>
                             <TableCell>
