@@ -130,8 +130,16 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
 
   const setCell = useCallback((profileId: string, date: string, shiftTypeId: string) => {
     const key = cellKey(profileId, date);
+    const clearVal = shiftTypeId === "__clear__" ? "" : shiftTypeId;
     setAssignments((prev) => {
-      if (shiftTypeId === "") {
+      if (!clearVal) {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      }
+      return { ...prev, [key]: clearVal };
+    });
+  }, []);
         const next = { ...prev };
         delete next[key];
         return next;
