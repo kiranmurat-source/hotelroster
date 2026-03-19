@@ -117,6 +117,8 @@ const ForecastPage = () => {
   const totalEvents = forecast ? forecast.days.reduce((sum, d) => sum + d.events.length, 0) : 0;
   const totalGuests = forecast ? forecast.days.reduce((sum, d) => sum + calcGuests(d.roomNights), 0) : 0;
   const totalBreakfast = forecast ? forecast.days.reduce((sum, d) => sum + calcBreakfast(calcGuests(d.roomNights)), 0) : 0;
+  const totalLunchCovers = forecast ? forecast.days.reduce((sum, d) => sum + (d.lunchCovers || 0), 0) : 0;
+  const totalDinnerCovers = forecast ? forecast.days.reduce((sum, d) => sum + (d.dinnerCovers || 0), 0) : 0;
   const peakDay = forecast
     ? forecast.days.reduce((max, d) => (calcOccupancy(d.roomNights, d.totalRooms) > calcOccupancy(max.roomNights, max.totalRooms) ? d : max), forecast.days[0])
     : null;
