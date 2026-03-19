@@ -123,19 +123,21 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
 
   const activeDepartment = selectedDepartment || myDepartment || "";
 
-  // Load same-department profiles
+  // Load department profiles
   useEffect(() => {
-    if (!open || !myDepartment) return;
+    if (!open || !activeDepartment) return;
     const load = async () => {
       const { data } = await supabase
         .from("profiles")
         .select("id, user_id, display_name, department")
-        .eq("department", myDepartment)
+        .eq("department", activeDepartment)
         .order("display_name");
       if (data) setProfiles(data as Profile[]);
     };
     load();
-  }, [open, myDepartment]);
+    setAssignments({});
+    setExistingShifts({});
+  }, [open, activeDepartment]);
 
   // Load existing shifts for the week
   useEffect(() => {
