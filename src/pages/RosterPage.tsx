@@ -347,6 +347,7 @@ const RosterPage = () => {
       roomNights: day.roomNights,
       prevDayRoomNights: prevDay.roomNights,
       arrivals: day.arrivals,
+      departures: day.departures,
       breakfastCovers: calcBreakfast(calcGuests(prevDay.roomNights)),
       lunchCovers: calcLunch(calcGuests(day.roomNights), day.lunchCovers || 0),
       dinnerCovers: calcDinner(calcGuests(day.roomNights), day.dinnerCovers || 0),

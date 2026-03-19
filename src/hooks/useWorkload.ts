@@ -13,6 +13,7 @@ interface ForecastDayInput {
   roomNights: number;
   prevDayRoomNights: number;
   arrivals: number;
+  departures: number;
   breakfastCovers: number;
   lunchCovers: number;
   dinnerCovers: number;
@@ -106,27 +107,35 @@ export const useWorkload = (
       return Math.round((ideal / actual) * 100);
     };
 
-    // SABAH: HK cleans previous night's rooms
     const prevRN = forecast?.prevDayRoomNights ?? 0;
-    const hkAttendant = prevRN > 0 ? Math.ceil(prevRN / hkRoomsPerFte) : 0;
-    const hkSupervisor = prevRN > 0 ? Math.ceil(prevRN / hkSupervisorRatio) : 0;
-    const sabahRoomsIdeal = hkAttendant + hkSupervisor;
+    const departures = forecast?.departures ?? 0;
+    const arrivals = forecast?.arrivals ?? 0;
 
-    const sabahRoomsDetail = prevRN > 0
-      ? `${prevRN} oda ÷ ${hkRoomsPerFte} = ${hkAttendant} HK + ${hkSupervisor} Sup = ${sabahRoomsIdeal} ideal | Mevcut: ${groups.sabah.roomsActual}`
+    // SABAH ideal = (önceki gece satılan oda / HK oda kapasitesi)
+    //             + (çıkış / supervisor oranı)
+    //             + (çıkış / resepsiyon kapasitesi)
+    const hkAttendant = prevRN > 0 ? Math.ceil(prevRN / hkRoomsPerFte) : 0;
+    const hkSupervisor = departures > 0 ? Math.ceil(departures / hkSupervisorRatio) : 0;
+    const foCheckout = departures > 0 ? Math.ceil(departures / foArrivalsPerFte) : 0;
+    const sabahRoomsIdeal = hkAttendant + hkSupervisor + foCheckout;
+
+    const sabahDetailParts: string[] = [];
+    if (prevRN > 0) sabahDetailParts.push(`${prevRN} oda ÷ ${hkRoomsPerFte} = ${hkAttendant} HK`);
+    if (departures > 0) sabahDetailParts.push(`${departures} çıkış ÷ ${hkSupervisorRatio} = ${hkSupervisor} Sup`);
+    if (departures > 0) sabahDetailParts.push(`${departures} çıkış ÷ ${foArrivalsPerFte} = ${foCheckout} FO`);
+    const sabahRoomsDetail = sabahDetailParts.length > 0
+      ? `${sabahDetailParts.join(" + ")} = ${sabahRoomsIdeal} ideal | Mevcut: ${groups.sabah.roomsActual}`
       : null;
 
     const breakfastCovers = forecast?.breakfastCovers ?? 0;
     const sabahFnbIdeal = breakfastCovers > 0
       ? Math.ceil(breakfastCovers / fbBreakfastPerFte)
       : 0;
-
     const sabahFnbDetail = breakfastCovers > 0
       ? `${breakfastCovers} kahvaltı ÷ ${fbBreakfastPerFte} = ${sabahFnbIdeal} ideal | Mevcut: ${groups.sabah.fnbActual}`
       : null;
 
-    // AKŞAM: FO handles arrivals
-    const arrivals = forecast?.arrivals ?? 0;
+    // AKŞAM ideal = (giriş / resepsiyon kapasitesi)
     const aksamRoomsIdeal = arrivals > 0
       ? Math.ceil(arrivals / foArrivalsPerFte)
       : 0;
@@ -135,6 +144,10 @@ export const useWorkload = (
       ? `${arrivals} giriş ÷ ${foArrivalsPerFte} = ${aksamRoomsIdeal} ideal | Mevcut: ${groups.aksam.roomsActual}`
       : groups.aksam.roomsActual > 0
       ? `Giriş verisi yok | Mevcut: ${groups.aksam.roomsActual}`
+      : null;
+
+    const aksamRoomsWorkload = groups.aksam.roomsActual > 0
+      ? (aksamRoomsIdeal > 0 ? Math.round((aksamRoomsIdeal / groups.aksam.roomsActual) * 100) : 0)
       : null;
 
     const lunchCovers = forecast?.lunchCovers ?? 0;
@@ -148,11 +161,6 @@ export const useWorkload = (
     if (dinnerCovers > 0) aksamFnbParts.push(`${dinnerCovers} akşam ÷ ${fbDinnerPerFte} = ${dinnerFte}`);
     const aksamFnbDetail = aksamFnbParts.length > 0
       ? `${aksamFnbParts.join(" + ")} = ${aksamFnbIdeal} ideal | Mevcut: ${groups.aksam.fnbActual}`
-      : null;
-
-    // For akşam rooms: show workload even if ideal is 0 but actual > 0
-    const aksamRoomsWorkload = groups.aksam.roomsActual > 0
-      ? (aksamRoomsIdeal > 0 ? Math.round((aksamRoomsIdeal / groups.aksam.roomsActual) * 100) : 0)
       : null;
 
     const result: WorkloadResult = {
