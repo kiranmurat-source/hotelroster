@@ -598,15 +598,15 @@ const RosterPage = () => {
                   )}
                   {/* Workload Panel */}
                   {selectedDate && workload && (() => {
-                    const groups = [
+                    const shiftGroups = [
                       { key: "sabah", label: "Sabah", data: workload.sabah },
                       { key: "aksam", label: "Akşam", data: workload.aksam },
                       { key: "gece", label: "Gece", data: workload.gece },
-                    ].filter(g => g.data.roomsWorkload !== null || g.data.fnbWorkload !== null);
+                    ].filter(g => g.data.lines.length > 0);
 
-                    if (groups.length === 0) return null;
+                    if (shiftGroups.length === 0) return null;
 
-                    const allValues = groups.flatMap(g => [g.data.roomsWorkload, g.data.fnbWorkload]).filter((v): v is number => v !== null);
+                    const allValues = shiftGroups.flatMap(g => g.data.lines.map(l => l.workload)).filter((v): v is number => v !== null);
                     const hasOverload = allValues.some(v => v > 100);
                     const allLow = allValues.length > 0 && allValues.every(v => v < 70);
 
@@ -631,48 +631,30 @@ const RosterPage = () => {
                           </div>
                         )}
                         <div className="space-y-1.5">
-                          {groups.map(({ key, label, data }) => (
+                          {shiftGroups.map(({ key, label, data }) => (
                             <div key={key}>
-                              {data.roomsWorkload !== null && (
-                                <Tooltip>
+                              {data.lines.map((line, idx) => (
+                                <Tooltip key={`${key}-${line.label}`}>
                                   <TooltipTrigger asChild>
                                     <div className="flex items-center gap-2 text-xs py-1 cursor-help">
-                                      <span className="w-12 font-medium">{label}</span>
-                                      <span className="w-12 text-muted-foreground">Rooms</span>
+                                      <span className="w-12 font-medium">{idx === 0 ? label : ""}</span>
+                                      <span className="w-10 text-muted-foreground">{line.label}</span>
                                       <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                                        <div className={cn("h-full rounded-full transition-all", getBarColor(data.roomsWorkload))} style={{ width: `${Math.min(data.roomsWorkload, 100)}%` }} />
+                                        {line.workload !== null && (
+                                          <div className={cn("h-full rounded-full transition-all", getBarColor(line.workload))} style={{ width: `${Math.min(line.workload, 100)}%` }} />
+                                        )}
                                       </div>
-                                      <span className="w-10 text-right font-medium">{data.roomsWorkload}%</span>
-                                      {data.roomsWorkload > 100 && <AlertTriangle className="h-3 w-3 text-red-500" />}
+                                      <span className="w-10 text-right font-medium">{line.workload !== null ? `${line.workload}%` : "—"}</span>
+                                      {line.workload !== null && line.workload > 100 && <AlertTriangle className="h-3 w-3 text-red-500" />}
                                     </div>
                                   </TooltipTrigger>
-                                  {data.roomsDetail && (
+                                  {line.detail && (
                                     <TooltipContent side="top" className="text-xs max-w-xs">
-                                      {data.roomsDetail}
+                                      {line.detail}
                                     </TooltipContent>
                                   )}
                                 </Tooltip>
-                              )}
-                              {data.fnbWorkload !== null && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className="flex items-center gap-2 text-xs py-1 cursor-help">
-                                      <span className="w-12 font-medium">{data.roomsWorkload !== null ? "" : label}</span>
-                                      <span className="w-12 text-muted-foreground">F&B</span>
-                                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                                        <div className={cn("h-full rounded-full transition-all", getBarColor(data.fnbWorkload))} style={{ width: `${Math.min(data.fnbWorkload, 100)}%` }} />
-                                      </div>
-                                      <span className="w-10 text-right font-medium">{data.fnbWorkload}%</span>
-                                      {data.fnbWorkload > 100 && <AlertTriangle className="h-3 w-3 text-red-500" />}
-                                    </div>
-                                  </TooltipTrigger>
-                                  {data.fnbDetail && (
-                                    <TooltipContent side="top" className="text-xs max-w-xs">
-                                      {data.fnbDetail}
-                                    </TooltipContent>
-                                  )}
-                                </Tooltip>
-                              )}
+                              ))}
                             </div>
                           ))}
                         </div>

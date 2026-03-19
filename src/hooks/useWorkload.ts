@@ -19,13 +19,16 @@ interface ForecastDayInput {
   dinnerCovers: number;
 }
 
-interface ShiftGroupStats {
-  roomsActual: number;
-  fnbActual: number;
-  roomsWorkload: number | null;
-  fnbWorkload: number | null;
-  roomsDetail: string | null;
-  fnbDetail: string | null;
+interface DeptLine {
+  label: string;
+  actual: number;
+  ideal: number;
+  workload: number | null;
+  detail: string | null;
+}
+
+export interface ShiftGroupStats {
+  lines: DeptLine[];
 }
 
 export interface WorkloadResult {
@@ -36,6 +39,19 @@ export interface WorkloadResult {
 
 type ShiftGroup = "sabah" | "aksam" | "gece" | null;
 
+const isHkDept = (d: string) => {
+  const l = d.toLowerCase();
+  return l.includes("housekeeping") || l === "hk";
+};
+
+const isFoDept = (d: string) => {
+  const l = d.toLowerCase();
+  return l.includes("front") || l === "fo" || l.includes("reception") || l.includes("resepsiyon");
+};
+
+const isFnbDept = (d: string, fnbDepts: string[]) =>
+  fnbDepts.some((fd) => fd.toLowerCase() === d.toLowerCase());
+
 export const useWorkload = (
   assignments: RosterShiftInput[],
   forecast: ForecastDayInput | null
@@ -43,7 +59,6 @@ export const useWorkload = (
   const { settings } = useSettings();
   const { getById } = useShiftTypes();
 
-  const roomsDepts = settings?.rooms_departments ?? ["Housekeeping", "Front Office", "Front Desk"];
   const fnbDepts = settings?.fnb_departments ?? ["F&B", "Kitchen"];
 
   const hkRoomsPerFte = settings?.hk_rooms_per_fte ?? 17;
@@ -83,25 +98,23 @@ export const useWorkload = (
       return "sabah";
     };
 
-    const groups: Record<"sabah" | "aksam" | "gece", { roomsActual: number; fnbActual: number }> = {
-      sabah: { roomsActual: 0, fnbActual: 0 },
-      aksam: { roomsActual: 0, fnbActual: 0 },
-      gece: { roomsActual: 0, fnbActual: 0 },
+    const counts: Record<"sabah" | "aksam" | "gece", { hk: number; fo: number; fnb: number }> = {
+      sabah: { hk: 0, fo: 0, fnb: 0 },
+      aksam: { hk: 0, fo: 0, fnb: 0 },
+      gece: { hk: 0, fo: 0, fnb: 0 },
     };
 
     for (const a of assignments) {
       const group = classifyShift(a);
       if (!group) continue;
 
-      const deptLower = a.department.toLowerCase();
-      const isRooms = roomsDepts.some((d) => d.toLowerCase() === deptLower);
-      const isFnb = fnbDepts.some((d) => d.toLowerCase() === deptLower);
+      if (isHkDept(a.department)) counts[group].hk++;
+      else if (isFoDept(a.department)) counts[group].fo++;
 
-      if (isRooms) groups[group].roomsActual++;
-      if (isFnb) groups[group].fnbActual++;
+      if (isFnbDept(a.department, fnbDepts)) counts[group].fnb++;
     }
 
-    const calcWorkload = (ideal: number, actual: number): number | null => {
+    const calcWl = (ideal: number, actual: number): number | null => {
       if (actual === 0 && ideal === 0) return null;
       if (actual === 0) return null;
       return Math.round((ideal / actual) * 100);
@@ -111,84 +124,82 @@ export const useWorkload = (
     const departures = forecast?.departures ?? 0;
     const arrivals = forecast?.arrivals ?? 0;
 
-    // SABAH ideal = (önceki gece satılan oda / HK oda kapasitesi)
-    //             + (çıkış / supervisor oranı)
-    //             + (çıkış / resepsiyon kapasitesi)
-    const hkAttendant = prevRN > 0 ? Math.ceil(prevRN / hkRoomsPerFte) : 0;
-    const hkSupervisor = departures > 0 ? Math.ceil(departures / hkSupervisorRatio) : 0;
-    const foCheckout = departures > 0 ? Math.ceil(departures / foArrivalsPerFte) : 0;
-    const sabahRoomsIdeal = hkAttendant + hkSupervisor + foCheckout;
-
-    const sabahDetailParts: string[] = [];
-    if (prevRN > 0) sabahDetailParts.push(`${prevRN} oda ÷ ${hkRoomsPerFte} = ${hkAttendant} HK`);
-    if (departures > 0) sabahDetailParts.push(`${departures} çıkış ÷ ${hkSupervisorRatio} = ${hkSupervisor} Sup`);
-    if (departures > 0) sabahDetailParts.push(`${departures} çıkış ÷ ${foArrivalsPerFte} = ${foCheckout} FO`);
-    const sabahRoomsDetail = sabahDetailParts.length > 0
-      ? `${sabahDetailParts.join(" + ")} = ${sabahRoomsIdeal} ideal | Mevcut: ${groups.sabah.roomsActual}`
+    // ── SABAH ──
+    // HK: önceki gece satılan oda / HK oda kapasitesi
+    const hkIdeal = prevRN > 0 ? Math.ceil(prevRN / hkRoomsPerFte) : 0;
+    const hkDetail = prevRN > 0
+      ? `${prevRN} oda ÷ ${hkRoomsPerFte} = ${hkIdeal} ideal | Mevcut: ${counts.sabah.hk}`
       : null;
 
+    // HK Supervisor: çıkış / supervisor oranı (Housekeeping departmanı)
+    const hkSupIdeal = departures > 0 ? Math.ceil(departures / hkSupervisorRatio) : 0;
+    const totalHkIdeal = hkIdeal + hkSupIdeal;
+    const hkFullDetail = prevRN > 0 || departures > 0
+      ? `${prevRN > 0 ? `${prevRN} oda ÷ ${hkRoomsPerFte} = ${hkIdeal} HK` : ""}${departures > 0 ? `${prevRN > 0 ? " + " : ""}${departures} çıkış ÷ ${hkSupervisorRatio} = ${hkSupIdeal} Sup` : ""} = ${totalHkIdeal} ideal | Mevcut: ${counts.sabah.hk}`
+      : null;
+
+    // FO Sabah: çıkış / resepsiyon kapasitesi
+    const foSabahIdeal = departures > 0 ? Math.ceil(departures / foArrivalsPerFte) : 0;
+    const foSabahDetail = departures > 0
+      ? `${departures} çıkış ÷ ${foArrivalsPerFte} = ${foSabahIdeal} ideal | Mevcut: ${counts.sabah.fo}`
+      : null;
+
+    // F&B Sabah: kahvaltı
     const breakfastCovers = forecast?.breakfastCovers ?? 0;
-    const sabahFnbIdeal = breakfastCovers > 0
-      ? Math.ceil(breakfastCovers / fbBreakfastPerFte)
-      : 0;
-    const sabahFnbDetail = breakfastCovers > 0
-      ? `${breakfastCovers} kahvaltı ÷ ${fbBreakfastPerFte} = ${sabahFnbIdeal} ideal | Mevcut: ${groups.sabah.fnbActual}`
+    const fnbSabahIdeal = breakfastCovers > 0 ? Math.ceil(breakfastCovers / fbBreakfastPerFte) : 0;
+    const fnbSabahDetail = breakfastCovers > 0
+      ? `${breakfastCovers} kahvaltı ÷ ${fbBreakfastPerFte} = ${fnbSabahIdeal} ideal | Mevcut: ${counts.sabah.fnb}`
       : null;
 
-    // AKŞAM ideal = (giriş / resepsiyon kapasitesi)
-    const aksamRoomsIdeal = arrivals > 0
-      ? Math.ceil(arrivals / foArrivalsPerFte)
-      : 0;
+    const sabahLines: DeptLine[] = [];
+    if (totalHkIdeal > 0 || counts.sabah.hk > 0) {
+      sabahLines.push({ label: "HK", actual: counts.sabah.hk, ideal: totalHkIdeal, workload: calcWl(totalHkIdeal, counts.sabah.hk), detail: hkFullDetail });
+    }
+    if (foSabahIdeal > 0 || counts.sabah.fo > 0) {
+      sabahLines.push({ label: "FO", actual: counts.sabah.fo, ideal: foSabahIdeal, workload: calcWl(foSabahIdeal, counts.sabah.fo), detail: foSabahDetail });
+    }
+    if (fnbSabahIdeal > 0 || counts.sabah.fnb > 0) {
+      sabahLines.push({ label: "F&B", actual: counts.sabah.fnb, ideal: fnbSabahIdeal, workload: calcWl(fnbSabahIdeal, counts.sabah.fnb), detail: fnbSabahDetail });
+    }
 
-    const aksamRoomsDetail = arrivals > 0
-      ? `${arrivals} giriş ÷ ${foArrivalsPerFte} = ${aksamRoomsIdeal} ideal | Mevcut: ${groups.aksam.roomsActual}`
-      : groups.aksam.roomsActual > 0
-      ? `Giriş verisi yok | Mevcut: ${groups.aksam.roomsActual}`
-      : null;
-
-    const aksamRoomsWorkload = groups.aksam.roomsActual > 0
-      ? (aksamRoomsIdeal > 0 ? Math.round((aksamRoomsIdeal / groups.aksam.roomsActual) * 100) : 0)
+    // ── AKŞAM ──
+    // FO Akşam: giriş / resepsiyon kapasitesi
+    const foAksamIdeal = arrivals > 0 ? Math.ceil(arrivals / foArrivalsPerFte) : 0;
+    const foAksamDetail = arrivals > 0
+      ? `${arrivals} giriş ÷ ${foArrivalsPerFte} = ${foAksamIdeal} ideal | Mevcut: ${counts.aksam.fo}`
+      : counts.aksam.fo > 0
+      ? `Giriş verisi yok | Mevcut: ${counts.aksam.fo}`
       : null;
 
     const lunchCovers = forecast?.lunchCovers ?? 0;
     const dinnerCovers = forecast?.dinnerCovers ?? 0;
     const lunchFte = lunchCovers > 0 ? Math.ceil(lunchCovers / fbLunchPerFte) : 0;
     const dinnerFte = dinnerCovers > 0 ? Math.ceil(dinnerCovers / fbDinnerPerFte) : 0;
-    const aksamFnbIdeal = lunchFte + dinnerFte;
+    const fnbAksamIdeal = lunchFte + dinnerFte;
 
     const aksamFnbParts: string[] = [];
     if (lunchCovers > 0) aksamFnbParts.push(`${lunchCovers} öğle ÷ ${fbLunchPerFte} = ${lunchFte}`);
     if (dinnerCovers > 0) aksamFnbParts.push(`${dinnerCovers} akşam ÷ ${fbDinnerPerFte} = ${dinnerFte}`);
-    const aksamFnbDetail = aksamFnbParts.length > 0
-      ? `${aksamFnbParts.join(" + ")} = ${aksamFnbIdeal} ideal | Mevcut: ${groups.aksam.fnbActual}`
+    const fnbAksamDetail = aksamFnbParts.length > 0
+      ? `${aksamFnbParts.join(" + ")} = ${fnbAksamIdeal} ideal | Mevcut: ${counts.aksam.fnb}`
       : null;
 
+    const aksamLines: DeptLine[] = [];
+    if (foAksamIdeal > 0 || counts.aksam.fo > 0) {
+      aksamLines.push({ label: "FO", actual: counts.aksam.fo, ideal: foAksamIdeal, workload: calcWl(foAksamIdeal, counts.aksam.fo), detail: foAksamDetail });
+    }
+    if (fnbAksamIdeal > 0 || counts.aksam.fnb > 0) {
+      aksamLines.push({ label: "F&B", actual: counts.aksam.fnb, ideal: fnbAksamIdeal, workload: calcWl(fnbAksamIdeal, counts.aksam.fnb), detail: fnbAksamDetail });
+    }
+
     const result: WorkloadResult = {
-      sabah: {
-        ...groups.sabah,
-        roomsWorkload: calcWorkload(sabahRoomsIdeal, groups.sabah.roomsActual),
-        fnbWorkload: calcWorkload(sabahFnbIdeal, groups.sabah.fnbActual),
-        roomsDetail: sabahRoomsDetail,
-        fnbDetail: sabahFnbDetail,
-      },
-      aksam: {
-        ...groups.aksam,
-        roomsWorkload: aksamRoomsWorkload,
-        fnbWorkload: calcWorkload(aksamFnbIdeal, groups.aksam.fnbActual),
-        roomsDetail: aksamRoomsDetail,
-        fnbDetail: aksamFnbDetail,
-      },
-      gece: {
-        ...groups.gece,
-        roomsWorkload: null,
-        fnbWorkload: null,
-        roomsDetail: null,
-        fnbDetail: null,
-      },
+      sabah: { lines: sabahLines },
+      aksam: { lines: aksamLines },
+      gece: { lines: [] },
     };
 
     return result;
-  }, [assignments, forecast, getById, roomsDepts, fnbDepts,
+  }, [assignments, forecast, getById, fnbDepts,
       hkRoomsPerFte, hkSupervisorRatio, fbBreakfastPerFte,
       fbLunchPerFte, fbDinnerPerFte, foArrivalsPerFte]);
 };
