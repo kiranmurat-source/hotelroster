@@ -240,7 +240,7 @@ const ForecastPage = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{totalLunchCovers.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">{"Öğlen Kuver"}</p>
+                    <p className="text-xs text-muted-foreground">{"Öğle Kuver"}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -305,7 +305,7 @@ const ForecastPage = () => {
                           if (name === "calcOcc") return [`${value}%`, t("forecast.occupancy")];
                           if (name === "arrivals") return [value, t("forecast.arrivals")];
                           if (name === "departures") return [value, t("forecast.departures")];
-                          if (name === "lunchCovers") return [value, "Öğlen Kuver"];
+                          if (name === "lunchCovers") return [value, "Öğle Kuver"];
                           if (name === "dinnerCovers") return [value, "Akşam Kuver"];
                           return [value, name];
                         }}
@@ -315,7 +315,7 @@ const ForecastPage = () => {
                           if (value === "calcOcc") return t("forecast.occupancy");
                           if (value === "arrivals") return t("forecast.arrivals");
                           if (value === "departures") return t("forecast.departures");
-                          if (value === "lunchCovers") return "Öğlen Kuver";
+                          if (value === "lunchCovers") return "Öğle Kuver";
                           if (value === "dinnerCovers") return "Akşam Kuver";
                           return value;
                         }}
@@ -419,7 +419,7 @@ const ForecastPage = () => {
                             <span className="font-medium">{calcBreakfast(calcGuests(day.roomNights))}</span>
                           </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">{"Öğlen Kuver"}</span>
+                            <span className="text-muted-foreground">{"Öğle Kuver"}</span>
                             <span className="font-medium">{day.lunchCovers || 0}</span>
                           </div>
                           <div className="flex justify-between text-xs">
@@ -452,7 +452,7 @@ const ForecastPage = () => {
                         <TableHead className="text-right">{t("forecast.totalRooms")}</TableHead>
                         <TableHead className="text-right">{t("forecast.guests")}</TableHead>
                         <TableHead className="text-right">{t("forecast.breakfast")}</TableHead>
-                        <TableHead className="text-right">{"Öğlen Kuver"}</TableHead>
+                        <TableHead className="text-right">{"Öğle Kuver"}</TableHead>
                         <TableHead className="text-right">{"Akşam Kuver"}</TableHead>
                         <TableHead>{t("forecast.events")}</TableHead>
                       </TableRow>
