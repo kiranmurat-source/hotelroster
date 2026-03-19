@@ -306,6 +306,8 @@ const ForecastPage = () => {
                           if (name === "calcOcc") return [`${value}%`, t("forecast.occupancy")];
                           if (name === "arrivals") return [value, t("forecast.arrivals")];
                           if (name === "departures") return [value, t("forecast.departures")];
+                          if (name === "lunchCovers") return [value, t("forecast.lunchCovers") || "Öğlen Kuver"];
+                          if (name === "dinnerCovers") return [value, t("forecast.dinnerCovers") || "Akşam Kuver"];
                           return [value, name];
                         }}
                       />
@@ -314,6 +316,8 @@ const ForecastPage = () => {
                           if (value === "calcOcc") return t("forecast.occupancy");
                           if (value === "arrivals") return t("forecast.arrivals");
                           if (value === "departures") return t("forecast.departures");
+                          if (value === "lunchCovers") return t("forecast.lunchCovers") || "Öğlen Kuver";
+                          if (value === "dinnerCovers") return t("forecast.dinnerCovers") || "Akşam Kuver";
                           return value;
                         }}
                       />
@@ -324,6 +328,8 @@ const ForecastPage = () => {
                       </Bar>
                       <Line yAxisId="right" type="monotone" dataKey="arrivals" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
                       <Line yAxisId="right" type="monotone" dataKey="departures" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--accent))" }} strokeDasharray="5 5" />
+                      <Line yAxisId="right" type="monotone" dataKey="lunchCovers" stroke="hsl(var(--warning))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--warning))" }} />
+                      <Line yAxisId="right" type="monotone" dataKey="dinnerCovers" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--destructive))" }} />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
