@@ -63,6 +63,7 @@ function cellKey(profileId: string, date: string): CellKey {
 const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualShiftDialogProps) => {
   const { user } = useAuth();
   const { profile: myProfile } = useUserProfile();
+  const { isAdmin } = useUserRole();
   const { shiftTypes } = useShiftTypes();
   const { forecast } = useForecast();
 
@@ -77,6 +78,8 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
   }, [forecast]);
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [allDepartments, setAllDepartments] = useState<string[]>([]);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   // Assignments: cellKey -> shift_type_id
@@ -94,6 +97,31 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
   }, [refDate, weekOffset]);
 
   const myDepartment = myProfile?.department;
+
+  // Set default department when profile loads
+  useEffect(() => {
+    if (myDepartment && !selectedDepartment) {
+      setSelectedDepartment(myDepartment);
+    }
+  }, [myDepartment, selectedDepartment]);
+
+  // Load all departments for admin
+  useEffect(() => {
+    if (!open || !isAdmin) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("department")
+        .not("department", "is", null);
+      if (data) {
+        const depts = [...new Set(data.map((d: any) => d.department as string).filter(Boolean))].sort();
+        setAllDepartments(depts);
+      }
+    };
+    load();
+  }, [open, isAdmin]);
+
+  const activeDepartment = selectedDepartment || myDepartment || "";
 
   // Load same-department profiles
   useEffect(() => {
