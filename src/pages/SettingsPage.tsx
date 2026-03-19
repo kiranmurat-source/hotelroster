@@ -62,7 +62,7 @@ const SettingsPage = () => {
   const handleChange = (key: string, value: string) => {
     const field = FIELDS.find((f) => f.key === key);
     if (!field) return;
-    if (field.type === "text") {
+    if (field.type === "text" || field.type === "select") {
       setForm((prev) => ({ ...prev, [key]: value }));
     } else {
       const num = value === "" ? 0 : Number(value);
