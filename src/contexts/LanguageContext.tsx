@@ -56,7 +56,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Nav & Sidebar
     "nav.dashboard": "Kontrol Paneli",
-    "nav.roster": "Vardiya Takvimi",
+    "nav.roster": "Vardiya Yönetimi",
     "nav.forecast": "Tahmin",
     "nav.staff": "Personel",
     "nav.extraHours": "Fazla Mesai",
@@ -92,7 +92,7 @@ const translations: Record<Language, Record<string, string>> = {
     "roster.clear": "Temizle",
     "roster.dropFile": "Bir vardiya Excel dosyası bırakın",
     "roster.orClick": "veya yüklemek için tıklayın — demo veriler aşağıda",
-    "roster.selectDate": "Vardiya detaylarını görmek için bir tarih seçin",
+    "roster.selectDate": "Tarih seçin",
     "roster.staffAssigned": "{count} personel atandı",
     "roster.noShifts": "Bu tarih için planlanmış vardiya yok",
     "roster.occupancyForecasted": "{rate}% doluluk öngörülüyor",

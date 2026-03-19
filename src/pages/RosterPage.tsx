@@ -614,7 +614,7 @@ const RosterPage = () => {
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">{t("roster.selectDay")}</p>
+                <p className="text-sm text-muted-foreground text-center py-8">{t("roster.selectDate")}</p>
               )}
             </CardContent>
           </Card>

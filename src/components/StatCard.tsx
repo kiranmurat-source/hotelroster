@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
@@ -8,10 +9,11 @@ interface StatCardProps {
   icon: ReactNode;
   description?: string;
   trend?: "up" | "down";
+  onClick?: () => void;
 }
 
-const StatCard = ({ title, value, icon, description, trend }: StatCardProps) => (
-  <Card className="animate-fade-in">
+const StatCard = ({ title, value, icon, description, trend, onClick }: StatCardProps) => (
+  <Card className={cn("animate-fade-in", onClick && "cursor-pointer hover:bg-muted/50 transition-colors")} onClick={onClick}>
     <CardHeader className="flex flex-row items-center justify-between pb-2">
       <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
       <div className="text-accent">{icon}</div>

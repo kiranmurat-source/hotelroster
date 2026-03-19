@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
@@ -28,6 +29,7 @@ interface ExtraStaffRow extends DashboardRequest {
 
 const Dashboard = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { isManager, isAdmin } = useUserRole();
   const { userDepartment } = useUserProfile();
   const canSeeAll = isManager || isAdmin;
@@ -73,8 +75,8 @@ const Dashboard = () => {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title={t("dashboard.totalStaff")} value={profileCount} icon={<Users className="h-5 w-5" />} description={t("dashboard.activeEmployees")} trend="up" />
-          <StatCard title={t("dashboard.pendingHours")} value={pendingHours.length} icon={<Clock className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} trend={pendingHours.length > 0 ? "up" : "down"} />
-          <StatCard title={t("dashboard.pendingStaff")} value={pendingStaff.length} icon={<UserPlus className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} trend={pendingStaff.length > 0 ? "up" : "down"} />
+          <StatCard title={t("dashboard.pendingHours")} value={pendingHours.length} icon={<Clock className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} trend={pendingHours.length > 0 ? "up" : "down"} onClick={() => navigate("/extra-hours")} />
+          <StatCard title={t("dashboard.pendingStaff")} value={pendingStaff.length} icon={<UserPlus className="h-5 w-5" />} description={t("dashboard.awaitingApproval")} trend={pendingStaff.length > 0 ? "up" : "down"} onClick={() => navigate("/extra-staff")} />
           <StatCard title={t("dashboard.totalPending")} value={pendingHours.length + pendingStaff.length} icon={<AlertCircle className="h-5 w-5" />} description={t("dashboard.actionRequired")} />
         </div>
 
@@ -91,7 +93,7 @@ const Dashboard = () => {
                 </div>
               )}
               {hoursRequests.slice(0, 4).map((req) => (
-                <div key={req.id} className="flex items-center justify-between py-2.5 border-b last:border-0">
+                <div key={req.id} className="flex items-center justify-between py-2.5 border-b last:border-0 cursor-pointer hover:bg-muted/50 rounded-md px-2 transition-colors" onClick={() => navigate("/extra-hours")}>
                   <div>
                     <p className="font-medium text-sm">{req.staff_name}</p>
                     <p className="text-xs text-muted-foreground">{req.department} · {req.hours}h · {req.date}</p>
@@ -114,7 +116,7 @@ const Dashboard = () => {
                 </div>
               )}
               {staffRequests.slice(0, 4).map((req) => (
-                <div key={req.id} className="flex items-center justify-between py-2.5 border-b last:border-0">
+                <div key={req.id} className="flex items-center justify-between py-2.5 border-b last:border-0 cursor-pointer hover:bg-muted/50 rounded-md px-2 transition-colors" onClick={() => navigate("/extra-staff")}>
                   <div>
                     <p className="font-medium text-sm">{req.department} — {req.shift}</p>
                     <p className="text-xs text-muted-foreground">{req.number_of_staff} {t("common.staff")} · {req.date}</p>
