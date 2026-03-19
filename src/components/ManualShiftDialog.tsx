@@ -1,16 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useShiftTypes, ShiftTypeRecord } from "@/hooks/useShiftTypes";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { ShiftPill } from "@/components/ShiftPill";
 import { toast } from "sonner";
-import { UserPlus } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Profile {
   id: string;
@@ -26,193 +25,287 @@ interface ManualShiftDialogProps {
   onSaved: () => void;
 }
 
+const DAY_LABELS_TR = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+
+function getWeekDates(refDate: string): string[] {
+  const d = new Date(refDate + "T00:00:00");
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // Monday
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diff);
+  return Array.from({ length: 7 }, (_, i) => {
+    const dt = new Date(monday);
+    dt.setDate(monday.getDate() + i);
+    return dt.toISOString().slice(0, 10);
+  });
+}
+
+function formatShort(dateStr: string) {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.getDate().toString();
+}
+
+function formatMonthLabel(dates: string[]) {
+  const first = new Date(dates[0] + "T00:00:00");
+  const last = new Date(dates[6] + "T00:00:00");
+  const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
+  return `${first.toLocaleDateString("tr-TR", opts)} — ${last.toLocaleDateString("tr-TR", opts)}`;
+}
+
+// Cell key: `profileId__date`
+type CellKey = string;
+function cellKey(profileId: string, date: string): CellKey {
+  return `${profileId}__${date}`;
+}
+
 const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualShiftDialogProps) => {
   const { user } = useAuth();
+  const { profile: myProfile } = useUserProfile();
   const { shiftTypes } = useShiftTypes();
-  const { t } = useLanguage();
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [selectedProfileId, setSelectedProfileId] = useState("");
-  const [selectedShiftTypeId, setSelectedShiftTypeId] = useState("");
-  const [date, setDate] = useState(defaultDate || new Date().toISOString().slice(0, 10));
-  const [customStart, setCustomStart] = useState("");
-  const [customEnd, setCustomEnd] = useState("");
+  // Assignments: cellKey -> shift_type_id
+  const [assignments, setAssignments] = useState<Record<CellKey, string>>({});
+  // Existing DB shift ids to track what needs delete/insert
+  const [existingShifts, setExistingShifts] = useState<Record<CellKey, string>>({});
 
-  useEffect(() => {
-    if (defaultDate) setDate(defaultDate);
-  }, [defaultDate]);
+  const refDate = defaultDate || new Date().toISOString().slice(0, 10);
+  const [weekOffset, setWeekOffset] = useState(0);
 
+  const weekDates = useMemo(() => {
+    const base = new Date(refDate + "T00:00:00");
+    base.setDate(base.getDate() + weekOffset * 7);
+    return getWeekDates(base.toISOString().slice(0, 10));
+  }, [refDate, weekOffset]);
+
+  const myDepartment = myProfile?.department;
+
+  // Load same-department profiles
   useEffect(() => {
-    if (!open) return;
+    if (!open || !myDepartment) return;
     const load = async () => {
-      setLoading(true);
       const { data } = await supabase
         .from("profiles")
         .select("id, user_id, display_name, department")
+        .eq("department", myDepartment)
         .order("display_name");
       if (data) setProfiles(data as Profile[]);
-      setLoading(false);
     };
     load();
-  }, [open]);
+  }, [open, myDepartment]);
 
-  const selectedShiftType = useMemo(
-    () => shiftTypes.find((s) => s.id === selectedShiftTypeId),
-    [shiftTypes, selectedShiftTypeId]
-  );
+  // Load existing shifts for the week
+  useEffect(() => {
+    if (!open || profiles.length === 0 || weekDates.length === 0) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from("roster_shifts")
+        .select("id, staff_name, date, shift_type_id, department")
+        .in("date", weekDates)
+        .eq("department", myDepartment || "");
 
-  const profilesByDept = useMemo(() => {
-    const groups: Map<string, Profile[]> = new Map();
-    profiles.forEach((p) => {
-      const dept = p.department || "Other";
-      if (!groups.has(dept)) groups.set(dept, []);
-      groups.get(dept)!.push(p);
+      const asgn: Record<CellKey, string> = {};
+      const existing: Record<CellKey, string> = {};
+
+      if (data) {
+        data.forEach((row: any) => {
+          // Match by staff_name to profile
+          const prof = profiles.find(
+            (p) => p.display_name === row.staff_name
+          );
+          if (prof && row.shift_type_id) {
+            const key = cellKey(prof.id, row.date);
+            asgn[key] = row.shift_type_id;
+            existing[key] = row.id;
+          }
+        });
+      }
+      setAssignments(asgn);
+      setExistingShifts(existing);
+    };
+    load();
+  }, [open, profiles, weekDates, myDepartment]);
+
+  const setCell = useCallback((profileId: string, date: string, shiftTypeId: string) => {
+    const key = cellKey(profileId, date);
+    const clearVal = shiftTypeId === "__clear__" ? "" : shiftTypeId;
+    setAssignments((prev) => {
+      if (!clearVal) {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      }
+      return { ...prev, [key]: clearVal };
     });
-    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [profiles]);
-
-  const selectedProfile = profiles.find((p) => p.id === selectedProfileId);
+  }, []);
 
   const handleSave = async () => {
-    if (!selectedProfile || !selectedShiftType || !user || !date) return;
-
+    if (!user || !myDepartment) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from("roster_shifts").insert({
-        user_id: user.id,
-        staff_name: selectedProfile.display_name || "Unknown",
-        date,
-        shift: selectedShiftType.code,
-        department: selectedProfile.department || "Other",
-        shift_type_id: selectedShiftType.id,
-        custom_start_time: selectedShiftType.is_editable_time && customStart ? customStart : null,
-        custom_end_time: selectedShiftType.is_editable_time && customEnd ? customEnd : null,
+      // Collect all existing ids to delete for this week+department
+      const existingIds = Object.values(existingShifts);
+      if (existingIds.length > 0) {
+        const { error: delErr } = await supabase
+          .from("roster_shifts")
+          .delete()
+          .in("id", existingIds);
+        if (delErr) throw delErr;
+      }
+
+      // Build insert rows
+      const rows: any[] = [];
+      Object.entries(assignments).forEach(([key, shiftTypeId]) => {
+        const [profileId, date] = key.split("__");
+        const prof = profiles.find((p) => p.id === profileId);
+        const st = shiftTypes.find((s) => s.id === shiftTypeId);
+        if (!prof || !st) return;
+        rows.push({
+          user_id: user.id,
+          staff_name: prof.display_name || "Unknown",
+          date,
+          shift: st.code,
+          department: myDepartment,
+          shift_type_id: shiftTypeId,
+        });
       });
 
-      if (error) throw error;
+      if (rows.length > 0) {
+        for (let i = 0; i < rows.length; i += 500) {
+          const { error } = await supabase.from("roster_shifts").insert(rows.slice(i, i + 500));
+          if (error) throw error;
+        }
+      }
 
-      toast.success("Vardiya kaydedildi");
-      setSelectedProfileId("");
-      setSelectedShiftTypeId("");
-      setCustomStart("");
-      setCustomEnd("");
+      toast.success(`${rows.length} vardiya kaydedildi`);
       onSaved();
     } catch (err: any) {
-      toast.error("Kayıt hatası: " + (err?.message || "Unknown"));
+      toast.error("Kayıt hatası: " + (err?.message || ""));
     } finally {
       setSaving(false);
     }
   };
 
-  const reset = () => {
-    setSelectedProfileId("");
-    setSelectedShiftTypeId("");
-    setCustomStart("");
-    setCustomEnd("");
-  };
+  const changedCount = useMemo(() => {
+    // Count cells that differ from existing
+    const allKeys = new Set([...Object.keys(assignments), ...Object.keys(existingShifts)]);
+    let count = 0;
+    allKeys.forEach((key) => {
+      const cur = assignments[key];
+      const had = existingShifts[key] ? true : false;
+      if (cur && !had) count++;
+      if (!cur && had) count++;
+    });
+    return count;
+  }, [assignments, existingShifts]);
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
-            Vardiya Ata
+            <CalendarDays className="h-5 w-5" />
+            Haftalık Vardiya Atama — {myDepartment || ""}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          {/* Date */}
-          <div className="space-y-1.5">
-            <Label>Tarih</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </div>
+        {/* Week navigation */}
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o - 1)}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium">{formatMonthLabel(weekDates)}</span>
+          <Button variant="ghost" size="sm" onClick={() => setWeekOffset((o) => o + 1)}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
 
-          {/* Staff select */}
-          <div className="space-y-1.5">
-            <Label>Personel</Label>
-            <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Personel seçin..." />
-              </SelectTrigger>
-              <SelectContent>
-                {profilesByDept.map(([dept, members]) => (
-                  <div key={dept}>
-                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{dept}</div>
-                    {members.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.display_name || p.user_id}
-                      </SelectItem>
-                    ))}
-                  </div>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Grid */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr>
+                <th className="text-left py-2 px-2 font-semibold text-muted-foreground min-w-[140px]">Personel</th>
+                {weekDates.map((d, i) => {
+                  const isWeekend = i >= 5;
+                  return (
+                    <th key={d} className={cn(
+                      "text-center py-2 px-1 font-medium min-w-[90px]",
+                      isWeekend ? "text-muted-foreground" : "text-foreground"
+                    )}>
+                      <div className="text-xs">{DAY_LABELS_TR[i]}</div>
+                      <div className="text-[10px] text-muted-foreground">{formatShort(d)}</div>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {profiles.map((prof) => (
+                <tr key={prof.id} className="border-t">
+                  <td className="py-1.5 px-2 font-medium whitespace-nowrap">
+                    {prof.display_name || "—"}
+                  </td>
+                  {weekDates.map((date) => {
+                    const key = cellKey(prof.id, date);
+                    const selectedId = assignments[key] || "";
+                    const st = shiftTypes.find((s) => s.id === selectedId);
+                    return (
+                      <td key={date} className="py-1 px-1">
+                        <Select
+                          value={selectedId}
+                          onValueChange={(val) => setCell(prof.id, date, val)}
+                        >
+                          <SelectTrigger className="h-8 text-xs px-1.5 w-full">
+                            {st ? (
+                              <ShiftPill shiftType={st} size="sm" showTime={false} />
+                            ) : (
+                              <span className="text-muted-foreground text-[10px]">—</span>
+                            )}
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__clear__">
+                              <span className="text-muted-foreground">Temizle</span>
+                            </SelectItem>
+                            {shiftTypes.map((s) => (
+                              <SelectItem key={s.id} value={s.id}>
+                                <div className="flex items-center gap-2">
+                                  <ShiftPill shiftType={s} size="sm" showTime={false} />
+                                  <span className="text-xs text-muted-foreground">{s.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+              {profiles.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="text-center py-8 text-muted-foreground text-sm">
+                    {myDepartment ? "Bu departmanda personel bulunamadı" : "Departman bilgisi yükleniyor..."}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-          {/* Shift type select */}
-          <div className="space-y-1.5">
-            <Label>Vardiya Tipi</Label>
-            <Select value={selectedShiftTypeId} onValueChange={setSelectedShiftTypeId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Vardiya seçin..." />
-              </SelectTrigger>
-              <SelectContent>
-                {shiftTypes.map((st) => (
-                  <SelectItem key={st.id} value={st.id}>
-                    <div className="flex items-center gap-2">
-                      <ShiftPill shiftType={st} size="sm" showTime={false} />
-                      <span className="text-xs text-muted-foreground">{st.label}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Custom time for editable shifts */}
-          {selectedShiftType?.is_editable_time && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Başlangıç</Label>
-                <Input
-                  type="time"
-                  value={customStart || selectedShiftType.start_time?.slice(0, 5) || ""}
-                  onChange={(e) => setCustomStart(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Bitiş</Label>
-                <Input
-                  type="time"
-                  value={customEnd || selectedShiftType.end_time?.slice(0, 5) || ""}
-                  onChange={(e) => setCustomEnd(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Preview */}
-          {selectedProfile && selectedShiftType && (
-            <div className="p-3 rounded-lg bg-muted/50 border text-sm">
-              <span className="font-medium">{selectedProfile.display_name}</span>
-              <span className="text-muted-foreground"> — {selectedProfile.department || "?"}</span>
-              <div className="mt-1">
-                <ShiftPill shiftType={selectedShiftType} size="md" customStart={customStart || null} customEnd={customEnd || null} />
-              </div>
-            </div>
-          )}
+        {/* Legend */}
+        <div className="flex flex-wrap gap-2 pt-2 border-t">
+          {shiftTypes.map((st) => (
+            <ShiftPill key={st.id} shiftType={st} size="sm" showTime={false} />
+          ))}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>İptal</Button>
-          <Button
-            onClick={handleSave}
-            disabled={!selectedProfileId || !selectedShiftTypeId || !date || saving}
-          >
+          <Button onClick={handleSave} disabled={saving}>
+            <Save className="h-4 w-4 mr-1.5" />
             {saving ? "Kaydediliyor..." : "Kaydet"}
           </Button>
         </DialogFooter>
