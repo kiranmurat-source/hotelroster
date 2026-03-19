@@ -16,10 +16,13 @@ import { ShiftPill, ShiftDot } from "@/components/ShiftPill";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { maskPhone } from "@/lib/privacy";
-import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Sparkles, Mail, Phone, Timer, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Sparkles, Mail, Phone, Timer, Plus, Activity, AlertTriangle, Info } from "lucide-react";
 import ManualShiftDialog from "@/components/ManualShiftDialog";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useWorkload, WorkloadResult } from "@/hooks/useWorkload";
+import { useHotelCalculations } from "@/hooks/useHotelCalculations";
+import { Progress } from "@/components/ui/progress";
 
 // Extended assignment type to hold shift_type_id
 interface RosterShift extends ShiftAssignment {
