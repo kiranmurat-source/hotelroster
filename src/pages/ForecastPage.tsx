@@ -106,6 +106,7 @@ const ForecastPage = () => {
     return { label: t("forecast.normal"), className: "bg-success/15 text-success" };
   };
 
+  const calcOccupancy = (roomNights: number, totalRooms: number) => totalRooms > 0 ? Math.round((roomNights / totalRooms) * 100) : 0;
   const calcGuests = (roomNights: number) => Math.round(roomNights * 1.8);
   const calcBreakfast = (guests: number) => Math.ceil(guests * 0.8);
 
