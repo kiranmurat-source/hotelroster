@@ -79,7 +79,7 @@ const RosterPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [modalDate, setModalDate] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  
+  const [manualShiftOpen, setManualShiftOpen] = useState(false);
 
   const { isManager } = useUserRole();
   const { user } = useAuth();
