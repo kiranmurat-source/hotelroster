@@ -29,15 +29,14 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { to: "/recognition", labelKey: "nav.recognition", icon: Star },
   { to: "/roster", labelKey: "nav.roster", icon: CalendarDays },
   { to: "/leave-requests", labelKey: "nav.leave", icon: CalendarOff, minRole: "manager" },
-  
-  { to: "/forecast", labelKey: "nav.forecast", icon: BarChart3 },
-  { to: "/staff", labelKey: "nav.staff", icon: Users, minRole: "manager" },
   { to: "/extra-hours", labelKey: "nav.extraHours", icon: Clock },
   { to: "/extra-staff", labelKey: "nav.extraStaff", icon: UserPlus, minRole: "manager" },
+  { to: "/forecast", labelKey: "nav.forecast", icon: BarChart3 },
+  { to: "/staff", labelKey: "nav.staff", icon: Users, minRole: "manager" },
   { to: "/reports", labelKey: "nav.reports", icon: FileText, minRole: "manager" },
-  { to: "/recognition", labelKey: "nav.recognition", icon: Star },
   { to: "/admin", labelKey: "nav.admin", icon: Shield, minRole: "admin" },
 ];
 

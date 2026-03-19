@@ -116,7 +116,7 @@ const Dashboard = () => {
                 </div>
               )}
               {staffRequests.slice(0, 4).map((req) => (
-                <div key={req.id} className="flex items-center justify-between py-2.5 border-b last:border-0">
+                <div key={req.id} className="flex items-center justify-between py-2.5 border-b last:border-0 cursor-pointer hover:bg-muted/50 rounded-md px-2 transition-colors" onClick={() => navigate("/extra-staff")}>
                   <div>
                     <p className="font-medium text-sm">{req.department} — {req.shift}</p>
                     <p className="text-xs text-muted-foreground">{req.number_of_staff} {t("common.staff")} · {req.date}</p>
