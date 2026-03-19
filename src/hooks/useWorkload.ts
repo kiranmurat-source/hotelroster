@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useShiftTypes } from "@/hooks/useShiftTypes";
-import { useHotelCalculations } from "@/hooks/useHotelCalculations";
 
 interface RosterShiftInput {
   shift_type_id?: string | null;
@@ -40,10 +39,16 @@ export const useWorkload = (
 ) => {
   const { settings } = useSettings();
   const { getById } = useShiftTypes();
-  const { calcIdealRoomsFTE, calcIdealFnbFTE, calcBreakfast, calcGuests } = useHotelCalculations();
 
   const roomsDepts = settings?.rooms_departments ?? ["Housekeeping", "Front Office", "Front Desk"];
   const fnbDepts = settings?.fnb_departments ?? ["F&B", "Kitchen"];
+
+  const hkRoomsPerFte = settings?.hk_rooms_per_fte ?? 17;
+  const hkSupervisorRatio = settings?.hk_supervisor_ratio ?? 40;
+  const fbBreakfastPerFte = settings?.fb_breakfast_covers_per_fte ?? 45;
+  const fbLunchPerFte = settings?.fb_lunch_covers_per_fte ?? 35;
+  const fbDinnerPerFte = settings?.fb_dinner_covers_per_fte ?? 35;
+  const foArrivalsPerFte = settings?.fo_arrivals_per_fte ?? 20;
 
   return useMemo(() => {
     const classifyShift = (a: RosterShiftInput): ShiftGroup => {
@@ -65,14 +70,14 @@ export const useWorkload = (
 
       if (code.startsWith("MID")) {
         const start = a.custom_start_time;
-        if (!start) return "sabah"; // default MID to morning
+        if (!start) return "sabah";
         const hour = parseInt(start.split(":")[0], 10);
         if (hour < 14) return "sabah";
         if (hour < 20) return "aksam";
         return "gece";
       }
 
-      return "sabah"; // fallback
+      return "sabah";
     };
 
     const groups: Record<"sabah" | "aksam" | "gece", { roomsActual: number; fnbActual: number }> = {
@@ -95,26 +100,31 @@ export const useWorkload = (
 
     const calcWorkload = (ideal: number, actual: number): number | null => {
       if (actual === 0) return null;
-      return Math.min(Math.round((ideal / actual) * 100), 150);
+      return Math.round((ideal / actual) * 100);
     };
 
-    const roomNights = forecast?.roomNights ?? 0;
+    // SABAH: HK cleans previous night's rooms
+    const prevRN = forecast?.prevDayRoomNights ?? 0;
+    const hkAttendant = prevRN > 0 ? Math.ceil(prevRN / hkRoomsPerFte) : 0;
+    const hkSupervisor = prevRN > 0 ? Math.ceil(prevRN / hkSupervisorRatio) : 0;
+    const sabahRoomsIdeal = hkAttendant + hkSupervisor;
+
     const breakfastCovers = forecast?.breakfastCovers ?? 0;
-    const lunchCovers = forecast?.lunchCovers ?? 0;
-    const dinnerCovers = forecast?.dinnerCovers ?? 0;
+    const sabahFnbIdeal = breakfastCovers > 0
+      ? Math.ceil(breakfastCovers / fbBreakfastPerFte)
+      : 0;
 
-    // SABAH: HK cleans rooms occupied the PREVIOUS night
-    const sabahRoomsIdeal = calcIdealRoomsFTE(forecast?.prevDayRoomNights ?? 0);
-    const sabahFnbIdeal = calcIdealFnbFTE(breakfastCovers, 0, 0);
-
-    // AKŞAM: FO handles today's arrivals
-    const foArrivalsPerFte = settings?.fo_arrivals_per_fte ?? 20;
+    // AKŞAM: FO handles arrivals
     const aksamRoomsIdeal = forecast?.arrivals
       ? Math.ceil(forecast.arrivals / foArrivalsPerFte)
       : 0;
-    const aksamFnbIdeal = calcIdealFnbFTE(0, lunchCovers, dinnerCovers);
 
-    // GECE: no workload calc
+    const lunchCovers = forecast?.lunchCovers ?? 0;
+    const dinnerCovers = forecast?.dinnerCovers ?? 0;
+    const lunchFte = lunchCovers > 0 ? Math.ceil(lunchCovers / fbLunchPerFte) : 0;
+    const dinnerFte = dinnerCovers > 0 ? Math.ceil(dinnerCovers / fbDinnerPerFte) : 0;
+    const aksamFnbIdeal = lunchFte + dinnerFte;
+
     const result: WorkloadResult = {
       sabah: {
         ...groups.sabah,
@@ -128,11 +138,13 @@ export const useWorkload = (
       },
       gece: {
         ...groups.gece,
-        roomsWorkload: null, // night is FO only
-        fnbWorkload: null, // no F&B at night
+        roomsWorkload: null,
+        fnbWorkload: null,
       },
     };
 
     return result;
-  }, [assignments, forecast, getById, roomsDepts, fnbDepts, calcIdealRoomsFTE, calcIdealFnbFTE, calcBreakfast, calcGuests]);
+  }, [assignments, forecast, getById, roomsDepts, fnbDepts,
+      hkRoomsPerFte, hkSupervisorRatio, fbBreakfastPerFte,
+      fbLunchPerFte, fbDinnerPerFte, foArrivalsPerFte]);
 };

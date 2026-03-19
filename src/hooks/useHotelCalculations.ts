@@ -10,14 +10,10 @@ export const useHotelCalculations = () => {
     Math.ceil(guests * (settings?.breakfast_capture_rate ?? 0.8));
 
   const calcLunch = (guests: number, excelValue?: number): number =>
-    (settings?.lunch_capture_rate ?? 0) > 0
-      ? Math.ceil(guests * settings!.lunch_capture_rate)
-      : (excelValue ?? 0);
+    Math.ceil(guests * (settings?.lunch_capture_rate ?? 0)) + (excelValue ?? 0);
 
   const calcDinner = (guests: number, excelValue?: number): number =>
-    (settings?.dinner_capture_rate ?? 0) > 0
-      ? Math.ceil(guests * settings!.dinner_capture_rate)
-      : (excelValue ?? 0);
+    Math.ceil(guests * (settings?.dinner_capture_rate ?? 0)) + (excelValue ?? 0);
 
   const calcOccupancy = (roomNights: number, totalRooms: number): number =>
     totalRooms > 0 ? Math.round((roomNights / totalRooms) * 100) : 0;
