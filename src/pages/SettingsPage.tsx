@@ -17,7 +17,7 @@ const SettingsPage = () => {
   }
 
   return (
-    <AppLayout title="Ayarlar">
+    <AppLayout>
       <div className="space-y-6">
         <Card>
           <CardHeader>
