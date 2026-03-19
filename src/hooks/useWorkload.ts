@@ -7,6 +7,7 @@ interface RosterShiftInput {
   custom_start_time?: string | null;
   department: string;
   shift: string;
+  position?: string | null;
 }
 
 interface ForecastDayInput {
@@ -39,18 +40,57 @@ export interface WorkloadResult {
 
 type ShiftGroup = "sabah" | "aksam" | "gece" | null;
 
-const isHkDept = (d: string) => {
-  const l = d.toLowerCase();
-  return l.includes("housekeeping") || l === "hk";
-};
+/** Classify a staff member into HK attendant, HK supervisor, FO, or F&B based on position + department */
+type StaffRole = "hk_attendant" | "hk_supervisor" | "fo" | "fnb" | "other";
 
-const isFoDept = (d: string) => {
-  const l = d.toLowerCase();
-  return l.includes("front") || l === "fo" || l.includes("reception") || l.includes("resepsiyon");
-};
+function classifyRole(dept: string, position: string | null | undefined, fnbDepts: string[]): StaffRole {
+  const pos = (position || "").toLowerCase().trim();
+  const deptLower = dept.toLowerCase();
 
-const isFnbDept = (d: string, fnbDepts: string[]) =>
-  fnbDepts.some((fd) => fd.toLowerCase() === d.toLowerCase());
+  // Position-based classification (highest priority)
+  if (pos) {
+    // HK Supervisor keywords
+    if (pos.includes("supervisor") || pos.includes("amiri") || pos.includes("amir") ||
+        pos.includes("gözetmen") || pos.includes("gozetmen") || pos.includes("gobernes") ||
+        pos.includes("kat şefi") || pos.includes("kat sefi")) {
+      if (isHkDept(deptLower)) return "hk_supervisor";
+    }
+    // HK Attendant keywords  
+    if (pos.includes("oda görevli") || pos.includes("oda gorevli") || pos.includes("maid") ||
+        pos.includes("housekeeper") || pos.includes("temizlik") || pos.includes("attendant") ||
+        pos.includes("kat hizmet")) {
+      return "hk_attendant";
+    }
+    // FO keywords
+    if (pos.includes("resepsiyon") || pos.includes("reception") || pos.includes("concierge") ||
+        pos.includes("konsiyerj") || pos.includes("bellboy") || pos.includes("bell") ||
+        pos.includes("front") || pos.includes("guest relation")) {
+      return "fo";
+    }
+    // F&B keywords
+    if (pos.includes("garson") || pos.includes("waiter") || pos.includes("waitress") ||
+        pos.includes("barmen") || pos.includes("bartender") || pos.includes("servis") ||
+        pos.includes("host") || pos.includes("sommelier") || pos.includes("captain") ||
+        pos.includes("f&b") || pos.includes("steward")) {
+      return "fnb";
+    }
+  }
+
+  // Department-based fallback
+  if (isHkDept(deptLower)) return "hk_attendant";
+  if (isFoDept(deptLower)) return "fo";
+  if (fnbDepts.some((fd) => fd.toLowerCase() === deptLower)) return "fnb";
+
+  return "other";
+}
+
+function isHkDept(d: string) {
+  return d.includes("housekeeping") || d === "hk" || d.includes("kat hizmet");
+}
+
+function isFoDept(d: string) {
+  return d.includes("front") || d === "fo" || d.includes("reception") || d.includes("resepsiyon");
+}
 
 export const useWorkload = (
   assignments: RosterShiftInput[],
@@ -98,20 +138,21 @@ export const useWorkload = (
       return "sabah";
     };
 
-    const counts: Record<"sabah" | "aksam" | "gece", { hk: number; fo: number; fnb: number }> = {
-      sabah: { hk: 0, fo: 0, fnb: 0 },
-      aksam: { hk: 0, fo: 0, fnb: 0 },
-      gece: { hk: 0, fo: 0, fnb: 0 },
+    const counts: Record<"sabah" | "aksam" | "gece", { hk_attendant: number; hk_supervisor: number; fo: number; fnb: number }> = {
+      sabah: { hk_attendant: 0, hk_supervisor: 0, fo: 0, fnb: 0 },
+      aksam: { hk_attendant: 0, hk_supervisor: 0, fo: 0, fnb: 0 },
+      gece: { hk_attendant: 0, hk_supervisor: 0, fo: 0, fnb: 0 },
     };
 
     for (const a of assignments) {
       const group = classifyShift(a);
       if (!group) continue;
 
-      if (isHkDept(a.department)) counts[group].hk++;
-      else if (isFoDept(a.department)) counts[group].fo++;
-
-      if (isFnbDept(a.department, fnbDepts)) counts[group].fnb++;
+      const role = classifyRole(a.department, a.position, fnbDepts);
+      if (role === "hk_attendant") counts[group].hk_attendant++;
+      else if (role === "hk_supervisor") counts[group].hk_supervisor++;
+      else if (role === "fo") counts[group].fo++;
+      else if (role === "fnb") counts[group].fnb++;
     }
 
     const calcWl = (ideal: number, actual: number): number | null => {
@@ -125,50 +166,57 @@ export const useWorkload = (
     const arrivals = forecast?.arrivals ?? 0;
 
     // ── SABAH ──
-    // HK: önceki gece satılan oda / HK oda kapasitesi
-    const hkIdeal = prevRN > 0 ? Math.ceil(prevRN / hkRoomsPerFte) : 0;
-    const hkDetail = prevRN > 0
-      ? `${prevRN} oda ÷ ${hkRoomsPerFte} = ${hkIdeal} ideal | Mevcut: ${counts.sabah.hk}`
+    // HK: önceki gece satılan oda / HK oda kapasitesi (attendant)
+    const hkAttIdeal = prevRN > 0 ? Math.ceil(prevRN / hkRoomsPerFte) : 0;
+    const hkAttActual = counts.sabah.hk_attendant;
+    const hkAttDetail = prevRN > 0
+      ? `${prevRN} oda ÷ ${hkRoomsPerFte} = ${hkAttIdeal} ideal | Mevcut: ${hkAttActual}`
       : null;
 
-    // HK Supervisor: çıkış / supervisor oranı (Housekeeping departmanı)
+    // HK Supervisor: çıkış / supervisor oranı
     const hkSupIdeal = departures > 0 ? Math.ceil(departures / hkSupervisorRatio) : 0;
-    const totalHkIdeal = hkIdeal + hkSupIdeal;
-    const hkFullDetail = prevRN > 0 || departures > 0
-      ? `${prevRN > 0 ? `${prevRN} oda ÷ ${hkRoomsPerFte} = ${hkIdeal} HK` : ""}${departures > 0 ? `${prevRN > 0 ? " + " : ""}${departures} çıkış ÷ ${hkSupervisorRatio} = ${hkSupIdeal} Sup` : ""} = ${totalHkIdeal} ideal | Mevcut: ${counts.sabah.hk}`
+    const hkSupActual = counts.sabah.hk_supervisor;
+    const hkSupDetail = departures > 0
+      ? `${departures} çıkış ÷ ${hkSupervisorRatio} = ${hkSupIdeal} ideal | Mevcut: ${hkSupActual}`
       : null;
 
     // FO Sabah: çıkış / resepsiyon kapasitesi
     const foSabahIdeal = departures > 0 ? Math.ceil(departures / foArrivalsPerFte) : 0;
+    const foSabahActual = counts.sabah.fo;
     const foSabahDetail = departures > 0
-      ? `${departures} çıkış ÷ ${foArrivalsPerFte} = ${foSabahIdeal} ideal | Mevcut: ${counts.sabah.fo}`
+      ? `${departures} çıkış ÷ ${foArrivalsPerFte} = ${foSabahIdeal} ideal | Mevcut: ${foSabahActual}`
       : null;
 
     // F&B Sabah: kahvaltı
     const breakfastCovers = forecast?.breakfastCovers ?? 0;
     const fnbSabahIdeal = breakfastCovers > 0 ? Math.ceil(breakfastCovers / fbBreakfastPerFte) : 0;
+    const fnbSabahActual = counts.sabah.fnb;
     const fnbSabahDetail = breakfastCovers > 0
-      ? `${breakfastCovers} kahvaltı ÷ ${fbBreakfastPerFte} = ${fnbSabahIdeal} ideal | Mevcut: ${counts.sabah.fnb}`
+      ? `${breakfastCovers} kahvaltı ÷ ${fbBreakfastPerFte} = ${fnbSabahIdeal} ideal | Mevcut: ${fnbSabahActual}`
       : null;
 
     const sabahLines: DeptLine[] = [];
-    if (totalHkIdeal > 0 || counts.sabah.hk > 0) {
-      sabahLines.push({ label: "HK", actual: counts.sabah.hk, ideal: totalHkIdeal, workload: calcWl(totalHkIdeal, counts.sabah.hk), detail: hkFullDetail });
+    if (hkAttIdeal > 0 || hkAttActual > 0) {
+      sabahLines.push({ label: "HK", actual: hkAttActual, ideal: hkAttIdeal, workload: calcWl(hkAttIdeal, hkAttActual), detail: hkAttDetail });
     }
-    if (foSabahIdeal > 0 || counts.sabah.fo > 0) {
-      sabahLines.push({ label: "FO", actual: counts.sabah.fo, ideal: foSabahIdeal, workload: calcWl(foSabahIdeal, counts.sabah.fo), detail: foSabahDetail });
+    if (hkSupIdeal > 0 || hkSupActual > 0) {
+      sabahLines.push({ label: "HK Sup", actual: hkSupActual, ideal: hkSupIdeal, workload: calcWl(hkSupIdeal, hkSupActual), detail: hkSupDetail });
     }
-    if (fnbSabahIdeal > 0 || counts.sabah.fnb > 0) {
-      sabahLines.push({ label: "F&B", actual: counts.sabah.fnb, ideal: fnbSabahIdeal, workload: calcWl(fnbSabahIdeal, counts.sabah.fnb), detail: fnbSabahDetail });
+    if (foSabahIdeal > 0 || foSabahActual > 0) {
+      sabahLines.push({ label: "FO", actual: foSabahActual, ideal: foSabahIdeal, workload: calcWl(foSabahIdeal, foSabahActual), detail: foSabahDetail });
+    }
+    if (fnbSabahIdeal > 0 || fnbSabahActual > 0) {
+      sabahLines.push({ label: "F&B", actual: fnbSabahActual, ideal: fnbSabahIdeal, workload: calcWl(fnbSabahIdeal, fnbSabahActual), detail: fnbSabahDetail });
     }
 
     // ── AKŞAM ──
     // FO Akşam: giriş / resepsiyon kapasitesi
     const foAksamIdeal = arrivals > 0 ? Math.ceil(arrivals / foArrivalsPerFte) : 0;
+    const foAksamActual = counts.aksam.fo;
     const foAksamDetail = arrivals > 0
-      ? `${arrivals} giriş ÷ ${foArrivalsPerFte} = ${foAksamIdeal} ideal | Mevcut: ${counts.aksam.fo}`
-      : counts.aksam.fo > 0
-      ? `Giriş verisi yok | Mevcut: ${counts.aksam.fo}`
+      ? `${arrivals} giriş ÷ ${foArrivalsPerFte} = ${foAksamIdeal} ideal | Mevcut: ${foAksamActual}`
+      : foAksamActual > 0
+      ? `Giriş verisi yok | Mevcut: ${foAksamActual}`
       : null;
 
     const lunchCovers = forecast?.lunchCovers ?? 0;
@@ -176,20 +224,21 @@ export const useWorkload = (
     const lunchFte = lunchCovers > 0 ? Math.ceil(lunchCovers / fbLunchPerFte) : 0;
     const dinnerFte = dinnerCovers > 0 ? Math.ceil(dinnerCovers / fbDinnerPerFte) : 0;
     const fnbAksamIdeal = lunchFte + dinnerFte;
+    const fnbAksamActual = counts.aksam.fnb;
 
     const aksamFnbParts: string[] = [];
     if (lunchCovers > 0) aksamFnbParts.push(`${lunchCovers} öğle ÷ ${fbLunchPerFte} = ${lunchFte}`);
     if (dinnerCovers > 0) aksamFnbParts.push(`${dinnerCovers} akşam ÷ ${fbDinnerPerFte} = ${dinnerFte}`);
     const fnbAksamDetail = aksamFnbParts.length > 0
-      ? `${aksamFnbParts.join(" + ")} = ${fnbAksamIdeal} ideal | Mevcut: ${counts.aksam.fnb}`
+      ? `${aksamFnbParts.join(" + ")} = ${fnbAksamIdeal} ideal | Mevcut: ${fnbAksamActual}`
       : null;
 
     const aksamLines: DeptLine[] = [];
-    if (foAksamIdeal > 0 || counts.aksam.fo > 0) {
-      aksamLines.push({ label: "FO", actual: counts.aksam.fo, ideal: foAksamIdeal, workload: calcWl(foAksamIdeal, counts.aksam.fo), detail: foAksamDetail });
+    if (foAksamIdeal > 0 || foAksamActual > 0) {
+      aksamLines.push({ label: "FO", actual: foAksamActual, ideal: foAksamIdeal, workload: calcWl(foAksamIdeal, foAksamActual), detail: foAksamDetail });
     }
-    if (fnbAksamIdeal > 0 || counts.aksam.fnb > 0) {
-      aksamLines.push({ label: "F&B", actual: counts.aksam.fnb, ideal: fnbAksamIdeal, workload: calcWl(fnbAksamIdeal, counts.aksam.fnb), detail: fnbAksamDetail });
+    if (fnbAksamIdeal > 0 || fnbAksamActual > 0) {
+      aksamLines.push({ label: "F&B", actual: fnbAksamActual, ideal: fnbAksamIdeal, workload: calcWl(fnbAksamIdeal, fnbAksamActual), detail: fnbAksamDetail });
     }
 
     const result: WorkloadResult = {
