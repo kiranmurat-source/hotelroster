@@ -308,6 +308,17 @@ const RosterPage = () => {
     });
   }, [selectedAssignments, resolveShiftType]);
 
+  // Group selected day assignments by department
+  const groupedByDepartment = useMemo(() => {
+    const groups: Map<string, RosterShift[]> = new Map();
+    (selectedAssignments as RosterShift[]).forEach((a) => {
+      const dept = a.department || "Other";
+      if (!groups.has(dept)) groups.set(dept, []);
+      groups.get(dept)!.push(a);
+    });
+    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [selectedAssignments]);
+
   const modalAssignments = modalDate
     ? (activeAssignments as RosterShift[]).filter((a) => a.date === modalDate)
     : [];
