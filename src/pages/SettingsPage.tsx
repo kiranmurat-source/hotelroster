@@ -210,6 +210,9 @@ const SettingsPage = () => {
               <Field label="HK Supervisor Oranı" helper="Oda / Supervisor">
                 <Input type="number" min={1} value={hkSupervisorRatio} onChange={(e) => setHkSupervisorRatio(Number(e.target.value))} className="h-9" />
               </Field>
+              <Field label="Resepsiyonist Kapasite" helper="Bir resepsiyonistin karşılayabileceği arrival sayısı / vardiya">
+                <Input type="number" min={1} step={1} value={foArrivalsPerFte} onChange={(e) => setFoArrivalsPerFte(Number(e.target.value))} className="h-9" />
+              </Field>
             </div>
           </CardContent>
         </Card>
