@@ -85,7 +85,7 @@ const SettingsPage = () => {
         fnb_departments: fnbArr,
         fo_arrivals_per_fte: foArrivalsPerFte,
         updated_at: new Date().toISOString(),
-        updated_by: user?.id || null,
+        updated_by: null,
       } as any)
       .eq("id", settings.id);
 
