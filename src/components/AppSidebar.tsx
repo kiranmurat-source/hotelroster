@@ -37,7 +37,7 @@ const navItems: NavItem[] = [
   { to: "/forecast", labelKey: "nav.forecast", icon: BarChart3 },
   { to: "/staff", labelKey: "nav.staff", icon: Users, minRole: "manager" },
   { to: "/reports", labelKey: "nav.reports", icon: FileText, minRole: "manager" },
-  { to: "/settings", labelKey: "nav.settings", icon: Settings, minRole: "admin" },
+  { to: "/settings", labelKey: "nav.settings", icon: Settings2, minRole: "admin" },
   { to: "/admin", labelKey: "nav.admin", icon: Shield, minRole: "admin" },
 ];
 
