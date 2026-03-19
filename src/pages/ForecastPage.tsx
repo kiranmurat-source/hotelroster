@@ -420,7 +420,7 @@ const ForecastPage = () => {
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{t("forecast.guests")}</span>
-                            <span className="font-medium">{calcGuests(day.roomNights)}</span>
+                            <span className="font-medium">{calcGuests(getRoomNights(day))}</span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">{t("forecast.breakfast")}</span>
