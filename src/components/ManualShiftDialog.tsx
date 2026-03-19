@@ -209,7 +209,7 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
           staff_name: prof.display_name || "Unknown",
           date,
           shift: st.code,
-          department: myDepartment,
+          department: activeDepartment,
           shift_type_id: shiftTypeId,
         });
       });
