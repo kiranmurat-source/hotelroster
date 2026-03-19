@@ -56,7 +56,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Nav & Sidebar
     "nav.dashboard": "Kontrol Paneli",
-    "nav.roster": "Vardiya Takvimi",
+    "nav.roster": "Vardiya Yönetimi",
     "nav.forecast": "Tahmin",
     "nav.staff": "Personel",
     "nav.extraHours": "Fazla Mesai",
