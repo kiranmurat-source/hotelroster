@@ -52,6 +52,7 @@ const App = () => (
                   <Route path="/recognition" element={<ProtectedRoute><RecognitionPage /></ProtectedRoute>} />
                   <Route path="/leave-requests" element={<ProtectedRoute requiredRole="manager"><LeaveRequestsPage /></ProtectedRoute>} />
                   
+                  <Route path="/settings" element={<ProtectedRoute requiredRole="admin"><SettingsPage /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

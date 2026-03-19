@@ -1,3 +1,4 @@
+import AppLayout from "@/components/AppLayout";
 import { useSettings } from "@/contexts/SettingsContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings } from "lucide-react";
