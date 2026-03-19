@@ -333,6 +333,23 @@ const RosterPage = () => {
     return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [selectedAssignments]);
 
+  // Workload calculation
+  const forecastDayInput = useMemo(() => {
+    if (!selectedDate || !forecast) return null;
+    const day = forecast.days.find((d) => d.date === selectedDate);
+    if (!day) return null;
+    return {
+      roomNights: day.roomNights,
+      breakfastCovers: calcBreakfast(calcGuests(day.roomNights)),
+      lunchCovers: day.lunchCovers || 0,
+      dinnerCovers: day.dinnerCovers || 0,
+    };
+  }, [selectedDate, forecast, calcBreakfast, calcGuests]);
+
+  const workload = useWorkload(
+    selectedAssignments as { shift_type_id?: string | null; custom_start_time?: string | null; department: string; shift: string }[],
+    forecastDayInput
+  );
   const modalAssignments = modalDate
     ? (activeAssignments as RosterShift[]).filter((a) => a.date === modalDate)
     : [];
