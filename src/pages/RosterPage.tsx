@@ -688,6 +688,29 @@ const RosterPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Manual shift dialog */}
+      <ManualShiftDialog
+        open={manualShiftOpen}
+        onOpenChange={setManualShiftOpen}
+        defaultDate={selectedDate || formatDate(year, month, today.getDate() <= daysInMonth ? today.getDate() : 1)}
+        onSaved={async () => {
+          const { data } = await supabase.from("roster_shifts").select("*, leave_requests(leave_type)");
+          if (data) {
+            setDbShifts(data.map((row: any) => ({
+              id: row.id,
+              staffId: row.staff_name,
+              date: row.date,
+              shift: row.shift,
+              department: row.department,
+              shift_type_id: row.shift_type_id,
+              custom_start_time: row.custom_start_time,
+              custom_end_time: row.custom_end_time,
+              leave_request_id: row.leave_request_id,
+              leave_type: row.leave_requests?.leave_type || null,
+            })));
+          }
+        }}
+      />
     </AppLayout>
   );
 };
