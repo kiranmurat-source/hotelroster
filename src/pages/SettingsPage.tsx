@@ -13,8 +13,9 @@ import { Settings, Save, X, Pencil } from "lucide-react";
 interface FieldConfig {
   key: keyof HotelSettings;
   label: string;
-  type: "text" | "number" | "percent";
+  type: "text" | "number" | "percent" | "select";
   group: string;
+  options?: { value: string; label: string }[];
 }
 
 const FIELDS: FieldConfig[] = [
