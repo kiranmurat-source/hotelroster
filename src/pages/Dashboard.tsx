@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
