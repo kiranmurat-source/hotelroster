@@ -83,6 +83,7 @@ const SettingsPage = () => {
         fb_dinner_covers_per_fte: fbDinner,
         rooms_departments: roomsArr,
         fnb_departments: fnbArr,
+        fo_arrivals_per_fte: foArrivalsPerFte,
         updated_at: new Date().toISOString(),
         updated_by: user?.id || null,
       } as any)
