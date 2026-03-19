@@ -46,7 +46,7 @@ export async function parseExcelForecast(data: ArrayBuffer): Promise<WeeklyForec
 
     const getCellValue = (colIdx: number | null): unknown => {
       if (colIdx === null) return null;
-      return row.getCell(colIdx + 1).value;
+      return row.getCell(colIdx).value;
     };
 
     let dateStr = "";
