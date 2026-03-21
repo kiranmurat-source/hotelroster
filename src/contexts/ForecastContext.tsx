@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { WeeklyForecast } from "@/lib/forecast-types";
 import { api } from "@/integrations/api/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 interface ForecastRecord {
@@ -31,46 +30,42 @@ const ForecastContext = createContext<ForecastContextType>({
 export const useForecast = () => useContext(ForecastContext);
 
 export const ForecastProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
   const [forecast, setForecast] = useState<WeeklyForecast | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentId, setCurrentId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user) {
-      setForecast(null);
-      setCurrentId(null);
-      setLoading(false);
-      return;
-    }
-
+  const loadForecast = useCallback(async () => {
     setLoading(true);
-    api.get<ForecastRecord[]>('/roster/forecast?limit=1')
-      .then((data) => {
-        if (data && data.length > 0) {
-          const rec = data[0];
-          setForecast({
-            weekLabel: rec.week_label,
-            startDate: rec.start_date,
-            endDate: rec.end_date,
-            days: rec.days,
-            uploadedAt: rec.uploaded_at,
-          });
-          setCurrentId(rec.id);
-        } else {
-          setForecast(null);
-          setCurrentId(null);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load forecast:", err);
+    try {
+      const data = await api.get<ForecastRecord[]>('/roster/forecast?limit=1');
+      if (data && data.length > 0) {
+        const rec = data[0];
+        setForecast({
+          weekLabel: rec.week_label,
+          startDate: rec.start_date,
+          endDate: rec.end_date,
+          days: rec.days,
+          uploadedAt: rec.uploaded_at,
+        });
+        setCurrentId(rec.id);
+      } else {
         setForecast(null);
-      })
-      .finally(() => setLoading(false));
-  }, [user]);
+        setCurrentId(null);
+      }
+    } catch (err) {
+      console.error("Failed to load forecast:", err);
+      setForecast(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // user bağımlılığı yok — direkt mount'ta yükle
+  useEffect(() => {
+    loadForecast();
+  }, [loadForecast]);
 
   const saveForecast = useCallback(async (f: WeeklyForecast) => {
-    if (!user) return;
     const data = await api.post<ForecastRecord>('/roster/forecast', {
       week_label: f.weekLabel,
       start_date: f.startDate,
@@ -80,7 +75,9 @@ export const ForecastProvider = ({ children }: { children: ReactNode }) => {
     });
     setForecast(f);
     setCurrentId(data.id);
-  }, [user]);
+    // Forecast kaydedilince yeniden yükle
+    await loadForecast();
+  }, [loadForecast]);
 
   const clearForecast = useCallback(async () => {
     if (!currentId) {

@@ -15,10 +15,16 @@ class ApiClient {
         'Content-Type': 'application/json',
         ...options.headers,
       },
+      redirect: 'manual', // 302'yi takip etme
     });
 
-    if (response.status === 401 || response.status === 302) {
-      window.location.href = `https://auth.khotelpartners.com/?rd=${encodeURIComponent(window.location.href)}`;
+    // 401 veya 0 (manual redirect) → Authelia'ya yönlendir
+    // Ama sadece window.location farklıysa — loop önleme
+    if (response.status === 401 || response.type === 'opaqueredirect') {
+      const authUrl = `https://auth.khotelpartners.com/?rd=${encodeURIComponent(window.location.href)}`;
+      if (!window.location.href.includes('auth.khotelpartners.com')) {
+        window.location.href = authUrl;
+      }
       throw new Error('Unauthorized');
     }
 

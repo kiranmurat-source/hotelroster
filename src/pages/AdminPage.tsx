@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import { api } from "@/integrations/api/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { UserPlus, Shield, Mail, Loader2, Save } from "lucide-react";
+import { UserPlus, Shield, Loader2, Trash2 } from "lucide-react";
 
 const DEPARTMENTS = ["Front Desk", "Housekeeping", "F&B", "Kitchen", "Maintenance", "Security", "Spa", "Management"] as const;
 const ROLES = ["staff", "manager", "admin"] as const;
@@ -27,94 +26,100 @@ interface UserWithRole {
 const AdminPage = () => {
   const { isAdmin } = useUserRole();
   const { t } = useLanguage();
-  const [email, setEmail] = useState("");
+
+  // Yeni kullanıcı formu
+  const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<string>("staff");
   const [department, setDepartment] = useState<string>("");
-  const [inviting, setInviting] = useState(false);
+  const [creating, setCreating] = useState(false);
+
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
-    const profiles = await api.get<any[]>("/roster/profiles");
-    const roles = await api.get<any[]>("/roster/profiles/me/roles");
-    const pErr = null; const rErr = null;
-
-    if (!pErr && !rErr && profiles && roles) {
-      const roleMap = new Map(roles.map((r) => [r.user_id, r.role]));
+    try {
+      const [profiles, allRoles] = await Promise.all([
+        api.get<any[]>("/roster/profiles"),
+        api.get<any[]>("/roster/users/roles"),
+      ]);
+      const roleMap = new Map((allRoles || []).map((r: any) => [r.user_id, r.role]));
       setUsers(
-        profiles.map((p) => ({
+        (profiles || []).map((p: any) => ({
           ...p,
           role: roleMap.get(p.user_id) || "staff",
         }))
       );
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingUsers(false);
     }
-    setLoadingUsers(false);
   };
 
   useEffect(() => {
     if (isAdmin) fetchUsers();
   }, [isAdmin]);
 
-  const handleInvite = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-
-    setInviting(true);
+    if (!username || !password || !email) return;
+    setCreating(true);
     try {
-      const res = { error: new Error("User invitation not yet implemented in VPS mode") };
-
-      if (res.error) throw new Error(res.error.message);
-      if (res.data?.error) throw new Error(res.data.error);
-
-      toast({ title: t("admin.inviteSent"), description: t("admin.inviteDesc2").replace("{email}", email).replace("{role}", role) });
-      setEmail("");
-      setDisplayName("");
-      setPassword("");
-      setRole("staff");
-      setDepartment("");
+      await api.post("/roster/users", {
+        username,
+        password,
+        display_name: displayName || username,
+        email,
+        role,
+        department: department || undefined,
+      });
+      toast({ title: "Kullanıcı oluşturuldu", description: `${username} başarıyla eklendi` });
+      setUsername(""); setDisplayName(""); setEmail(""); setPassword(""); setRole("staff"); setDepartment("");
       fetchUsers();
     } catch (err: any) {
-      toast({ title: t("admin.inviteFailed"), description: err.message, variant: "destructive" });
+      toast({ title: "Hata", description: err.message, variant: "destructive" });
     } finally {
-      setInviting(false);
+      setCreating(false);
+    }
+  };
+
+  const handleDelete = async (userId: string) => {
+    if (!confirm(`${userId} kullanıcısını silmek istediğinize emin misiniz?`)) return;
+    setDeletingId(userId);
+    try {
+      await api.delete(`/roster/users/${userId}`);
+      toast({ title: "Kullanıcı silindi" });
+      fetchUsers();
+    } catch (err: any) {
+      toast({ title: "Hata", description: err.message, variant: "destructive" });
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const handleUpdateDepartment = async (userId: string, newDept: string) => {
-    const result = await api.put(`/roster/profiles/${userId}`, { department: newDept }).catch(e => ({ error: e }));
-    const error = (result as any)?.error || null;
-    if (error) {
-      toast({ title: t("admin.updateFailed") || "Update failed", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await api.put(`/roster/profiles/${userId}`, { department: newDept });
       setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, department: newDept } : u)));
-      toast({ title: t("admin.updated") || "Updated" });
+      toast({ title: "Güncellendi" });
+    } catch (err: any) {
+      toast({ title: "Hata", description: err.message, variant: "destructive" });
     }
   };
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
-    // Upsert into user_roles
-    const delErr = null; // Role update handled by setRole endpoint
-    if (delErr) {
-      toast({ title: "Error", description: delErr.message, variant: "destructive" });
-      return;
+    try {
+      await api.post(`/roster/profiles/${userId}/role`, { role: newRole });
+      setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u)));
+      toast({ title: "Rol güncellendi" });
+    } catch (err: any) {
+      toast({ title: "Hata", description: err.message, variant: "destructive" });
     }
-    await api.post(`/roster/profiles/${userId}/role`, { role: newRole });
-    const insErr = null;
-    if (insErr) {
-      toast({ title: "Error", description: insErr.message, variant: "destructive" });
-      return;
-    }
-    setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u)));
-    toast({ title: t("admin.updated") || "Updated" });
-  };
-
-  const roleBadgeVariant = (r: string) => {
-    if (r === "admin") return "default";
-    if (r === "manager") return "default";
-    return "secondary";
   };
 
   if (!isAdmin) {
@@ -138,50 +143,50 @@ const AdminPage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" /> {t("admin.inviteTitle")}
+              <UserPlus className="h-5 w-5" /> Kullanıcı Oluştur
             </CardTitle>
-            <CardDescription>{t("admin.inviteDesc")}</CardDescription>
+            <CardDescription>Yeni personel hesabı ekle</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleInvite} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <form onSubmit={handleCreate} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="invite-email">{t("admin.email")}</Label>
-                <Input id="invite-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="staff@hotel.com" required />
+                <Label>Kullanıcı Adı</Label>
+                <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="ahmet.yilmaz" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="invite-name">{t("admin.displayName")}</Label>
-                <Input id="invite-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="John Doe" />
+                <Label>Ad Soyad</Label>
+                <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Ahmet Yılmaz" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="invite-password">{t("admin.password") || "Şifre"}</Label>
-                <Input id="invite-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 karakter" required minLength={6} />
+                <Label>E-posta</Label>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ahmet@hotel.com" required />
               </div>
               <div className="space-y-2">
-                <Label>{t("admin.role")}</Label>
+                <Label>Şifre</Label>
+                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 karakter" required minLength={6} />
+              </div>
+              <div className="space-y-2">
+                <Label>Rol</Label>
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {ROLES.map((r) => (
-                      <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>
-                    ))}
+                    {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>{t("admin.department")}</Label>
+                <Label>Departman</Label>
                 <Select value={department} onValueChange={setDepartment}>
-                  <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Seç..." /></SelectTrigger>
                   <SelectContent>
-                    {DEPARTMENTS.map((d) => (
-                      <SelectItem key={d} value={d}>{d}</SelectItem>
-                    ))}
+                    {DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="sm:col-span-2 lg:col-span-4">
-                <Button type="submit" disabled={inviting}>
-                  {inviting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
-                  {t("admin.sendInvite")}
+              <div className="sm:col-span-2 lg:col-span-3">
+                <Button type="submit" disabled={creating}>
+                  {creating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
+                  Kullanıcı Oluştur
                 </Button>
               </div>
             </form>
@@ -193,7 +198,7 @@ const AdminPage = () => {
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" /> {t("admin.allUsers")}
             </CardTitle>
-            <CardDescription>{t("admin.registeredUsers").replace("{count}", String(users.length))}</CardDescription>
+            <CardDescription>{users.length} kullanıcı</CardDescription>
           </CardHeader>
           <CardContent>
             {loadingUsers ? (
@@ -205,23 +210,24 @@ const AdminPage = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t("admin.name")}</TableHead>
-                      <TableHead>{t("admin.department")}</TableHead>
-                      <TableHead>{t("admin.role")}</TableHead>
-                      <TableHead>{t("admin.joined")}</TableHead>
+                      <TableHead>Ad Soyad</TableHead>
+                      <TableHead>Kullanıcı Adı</TableHead>
+                      <TableHead>Departman</TableHead>
+                      <TableHead>Rol</TableHead>
+                      <TableHead>Kayıt Tarihi</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {users.map((u) => (
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.display_name || "—"}</TableCell>
+                        <TableCell className="text-muted-foreground text-sm">{u.user_id}</TableCell>
                         <TableCell>
                           <Select value={u.department || ""} onValueChange={(v) => handleUpdateDepartment(u.user_id, v)}>
-                            <SelectTrigger className="h-8 w-[140px]"><SelectValue placeholder="Select..." /></SelectTrigger>
+                            <SelectTrigger className="h-8 w-[140px]"><SelectValue placeholder="Seç..." /></SelectTrigger>
                             <SelectContent>
-                              {DEPARTMENTS.map((d) => (
-                                <SelectItem key={d} value={d}>{d}</SelectItem>
-                              ))}
+                              {DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </TableCell>
@@ -229,14 +235,26 @@ const AdminPage = () => {
                           <Select value={u.role} onValueChange={(v) => handleUpdateRole(u.user_id, v)}>
                             <SelectTrigger className="h-8 w-[110px]"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              {ROLES.map((r) => (
-                                <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>
-                              ))}
+                              {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
-                          {new Date(u.created_at).toLocaleDateString()}
+                          {new Date(u.created_at).toLocaleDateString("tr-TR")}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(u.user_id)}
+                            disabled={deletingId === u.user_id}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            {deletingId === u.user_id
+                              ? <Loader2 className="h-4 w-4 animate-spin" />
+                              : <Trash2 className="h-4 w-4" />
+                            }
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
