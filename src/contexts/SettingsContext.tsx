@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 
 export interface HotelSettings {
   id: string;
@@ -42,15 +42,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchSettings = useCallback(async () => {
     setSettingsLoading(true);
-    const { data, error } = await supabase
-      .from("hotel_settings")
-      .select("*")
-      .single();
-
-    if (!error && data) {
-      setSettings(data as unknown as HotelSettings);
-    }
-    setSettingsLoading(false);
+    api.get<HotelSettings>('/roster/hotel-settings')
+      .then((data) => setSettings(data))
+      .catch(() => setSettings(null))
+      .finally(() => setSettingsLoading(false));
   }, []);
 
   useEffect(() => {

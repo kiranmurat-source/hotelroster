@@ -1,8 +1,18 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { WeeklyForecast } from "@/lib/forecast-types";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+interface ForecastRecord {
+  id: string;
+  user_id: string;
+  week_label: string;
+  start_date: string;
+  end_date: string;
+  days: any;
+  uploaded_at: string;
+}
 
 interface ForecastContextType {
   forecast: WeeklyForecast | null;
@@ -26,7 +36,6 @@ export const ForecastProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [currentId, setCurrentId] = useState<string | null>(null);
 
-  // Load latest forecast on mount / auth change
   useEffect(() => {
     if (!user) {
       setForecast(null);
@@ -35,57 +44,40 @@ export const ForecastProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const load = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("forecasts")
-        .select("*")
-        .order("uploaded_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Failed to load forecast:", error);
-      } else if (data) {
-        setForecast({
-          weekLabel: data.week_label,
-          startDate: data.start_date,
-          endDate: data.end_date,
-          days: data.days as any,
-          uploadedAt: data.uploaded_at,
-        });
-        setCurrentId(data.id);
-      } else {
+    setLoading(true);
+    api.get<ForecastRecord[]>('/roster/forecast?limit=1')
+      .then((data) => {
+        if (data && data.length > 0) {
+          const rec = data[0];
+          setForecast({
+            weekLabel: rec.week_label,
+            startDate: rec.start_date,
+            endDate: rec.end_date,
+            days: rec.days,
+            uploadedAt: rec.uploaded_at,
+          });
+          setCurrentId(rec.id);
+        } else {
+          setForecast(null);
+          setCurrentId(null);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load forecast:", err);
         setForecast(null);
-        setCurrentId(null);
-      }
-      setLoading(false);
-    };
-
-    load();
+      })
+      .finally(() => setLoading(false));
   }, [user]);
 
   const saveForecast = useCallback(async (f: WeeklyForecast) => {
     if (!user) return;
-
-    const { data, error } = await supabase
-      .from("forecasts")
-      .insert({
-        user_id: user.id,
-        week_label: f.weekLabel,
-        start_date: f.startDate,
-        end_date: f.endDate,
-        days: f.days as any,
-        uploaded_at: f.uploadedAt,
-      })
-      .select("id")
-      .single();
-
-    if (error) {
-      console.error("Failed to save forecast:", error);
-      throw error;
-    }
-
+    const data = await api.post<ForecastRecord>('/roster/forecast', {
+      week_label: f.weekLabel,
+      start_date: f.startDate,
+      end_date: f.endDate,
+      days: f.days,
+      uploaded_at: f.uploadedAt,
+    });
     setForecast(f);
     setCurrentId(data.id);
   }, [user]);
@@ -95,17 +87,7 @@ export const ForecastProvider = ({ children }: { children: ReactNode }) => {
       setForecast(null);
       return;
     }
-
-    const { error } = await supabase
-      .from("forecasts")
-      .delete()
-      .eq("id", currentId);
-
-    if (error) {
-      console.error("Failed to delete forecast:", error);
-      throw error;
-    }
-
+    await api.delete(`/roster/forecast/${currentId}`);
     setForecast(null);
     setCurrentId(null);
   }, [currentId]);

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +35,7 @@ const ChangePasswordPage = () => {
     setLoading(true);
 
     // Update password
-    const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
+    const pwError = new Error("Password change must be done through Authelia portal at auth.khotelpartners.com");
     if (pwError) {
       toast({ title: "Hata", description: pwError.message, variant: "destructive" });
       setLoading(false);
@@ -43,9 +43,7 @@ const ChangePasswordPage = () => {
     }
 
     // Clear the must_change_password flag
-    const { error: metaError } = await supabase.auth.updateUser({
-      data: { must_change_password: false },
-    });
+    const metaError = null;
 
     if (metaError) {
       console.error("Failed to clear must_change_password flag:", metaError);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 
 export interface ShiftTypeRecord {
   id: string;
@@ -18,18 +18,10 @@ export const useShiftTypes = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data, error } = await supabase
-        .from("shift_types")
-        .select("*")
-        .order("sort_order", { ascending: true });
-
-      if (!error && data) {
-        setShiftTypes(data as unknown as ShiftTypeRecord[]);
-      }
-      setLoading(false);
-    };
-    fetch();
+    api.get<ShiftTypeRecord[]>('/roster/shift-types')
+      .then((data) => setShiftTypes(data))
+      .catch(() => setShiftTypes([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const getById = (id: string) => shiftTypes.find((s) => s.id === id);

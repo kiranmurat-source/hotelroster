@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 import { useShiftTypes, ShiftTypeRecord } from "@/hooks/useShiftTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -109,10 +109,7 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
   useEffect(() => {
     if (!open || !isAdmin) return;
     const load = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("department")
-        .not("department", "is", null);
+      const data = await api.get<any[]>("/roster/profiles");
       if (data) {
         const depts = [...new Set(data.map((d: any) => d.department as string).filter(Boolean))].sort();
         setAllDepartments(depts);
@@ -127,12 +124,9 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
   useEffect(() => {
     if (!open || !activeDepartment) return;
     const load = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, user_id, display_name, department")
-        .eq("department", activeDepartment)
-        .order("display_name");
-      if (data) setProfiles(data as Profile[]);
+      const data = await api.get<any[]>("/roster/profiles");
+      const filtered = data?.filter((p: any) => p.department === activeDepartment) || [];
+      setProfiles(filtered as Profile[]);
     };
     load();
     setAssignments({});
@@ -143,17 +137,14 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
   useEffect(() => {
     if (!open || profiles.length === 0 || weekDates.length === 0) return;
     const load = async () => {
-      const { data } = await supabase
-        .from("roster_shifts")
-        .select("id, staff_name, date, shift_type_id, department")
-        .in("date", weekDates)
-        .eq("department", activeDepartment);
+      const data = await api.get<any[]>(`/roster/shifts?startDate=${weekDates[0]}&endDate=${weekDates[6]}`);
+      const deptData = data?.filter((r: any) => r.department === activeDepartment);
 
       const asgn: Record<CellKey, string> = {};
       const existing: Record<CellKey, string> = {};
 
-      if (data) {
-        data.forEach((row: any) => {
+      if (deptData) {
+        deptData.forEach((row: any) => {
           const prof = profiles.find(
             (p) => p.display_name === row.staff_name
           );
@@ -190,11 +181,9 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
       // Collect all existing ids to delete for this week+department
       const existingIds = Object.values(existingShifts);
       if (existingIds.length > 0) {
-        const { error: delErr } = await supabase
-          .from("roster_shifts")
-          .delete()
-          .in("id", existingIds);
-        if (delErr) throw delErr;
+        for (const id of existingIds) {
+          await api.delete(`/roster/shifts?id=${id}`);
+        }
       }
 
       // Build insert rows
@@ -216,8 +205,7 @@ const ManualShiftDialog = ({ open, onOpenChange, defaultDate, onSaved }: ManualS
 
       if (rows.length > 0) {
         for (let i = 0; i < rows.length; i += 500) {
-          const { error } = await supabase.from("roster_shifts").insert(rows.slice(i, i + 500));
-          if (error) throw error;
+          await api.post("/roster/shifts/bulk", rows.slice(i, i + 500));
         }
       }
 

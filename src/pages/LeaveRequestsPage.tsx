@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -74,8 +74,8 @@ const LeaveRequestsPage = () => {
   useEffect(() => {
     const load = async () => {
       const [profilesRes, leavesRes] = await Promise.all([
-        supabase.from("profiles").select("id, user_id, display_name, department"),
-        supabase.from("leave_requests").select("*").order("created_at", { ascending: false }),
+        api.get<any[]>("/roster/profiles"),
+        api.get<any[]>("/roster/leave"),
       ]);
 
       if (profilesRes.data) setProfiles(profilesRes.data as Profile[]);
@@ -117,31 +117,14 @@ const LeaveRequestsPage = () => {
 
     setSubmitting(true);
     try {
-      const { data: leaveData, error: leaveError } = await supabase
-        .from("leave_requests")
-        .insert({
-          staff_id: staffId,
-          department: profile.department || "",
-          leave_type: leaveType,
-          start_date: startDate,
-          end_date: endDate,
-          days_requested: daysRequested,
-          notes: notes || null,
-          status: "approved",
-          approved_by: profiles.find((p) => p.user_id === user.id)?.id || null,
-          approved_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+      const leaveData = await api.post<any>("/roster/leave", leavePayload);
+      const leaveError = null;
 
       if (leaveError) throw leaveError;
 
       // Get OFF shift type
-      const { data: offType } = await supabase
-        .from("shift_types")
-        .select("id")
-        .eq("code", "OFF")
-        .single();
+      const offTypeArr = await api.get<any[]>("/roster/shift-types");
+      const offType = offTypeArr?.find((s: any) => s.code === "OFF");
 
       // Create roster_shifts for each day
       const start = new Date(startDate + "T00:00:00");
@@ -162,7 +145,8 @@ const LeaveRequestsPage = () => {
       }
 
       if (rosterRows.length > 0) {
-        const { error: rosterError } = await supabase.from("roster_shifts").insert(rosterRows);
+        await api.post("/roster/shifts/bulk", rosterRows);
+        const rosterError = null;
         if (rosterError) console.error("Roster insert error:", rosterError);
       }
 
@@ -188,8 +172,9 @@ const LeaveRequestsPage = () => {
 
   const handleDelete = useCallback(async (id: string) => {
     try {
-      await supabase.from("roster_shifts").delete().eq("leave_request_id", id);
-      const { error } = await supabase.from("leave_requests").delete().eq("id", id);
+      // roster_shifts cleanup handled by backend cascade
+      await api.delete(`/roster/leave/${id}`);
+      const error = null;
       if (error) throw error;
       setLeaveRequests((prev) => prev.filter((r) => r.id !== id));
       toast.success(t("leave.deleted"));

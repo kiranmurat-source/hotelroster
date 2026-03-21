@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Department } from "@/lib/types";
 
@@ -21,23 +21,14 @@ export const useUserProfile = () => {
       return;
     }
 
-    const fetchProfile = async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("display_name, department, avatar_url")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!error && data) {
-        setProfile(data);
-      }
-      setLoading(false);
-    };
-
-    fetchProfile();
+    setProfile({
+      display_name: user.display_name,
+      department: user.department,
+      avatar_url: user.avatar_url,
+    });
+    setLoading(false);
   }, [user]);
 
   const userDepartment = profile?.department as Department | null;
-
   return { profile, loading, userDepartment };
 };

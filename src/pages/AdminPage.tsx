@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { UserPlus, Shield, Mail, Loader2, Save } from "lucide-react";
@@ -38,8 +38,9 @@ const AdminPage = () => {
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
-    const { data: profiles, error: pErr } = await supabase.from("profiles").select("user_id, display_name, department, created_at");
-    const { data: roles, error: rErr } = await supabase.from("user_roles").select("user_id, role");
+    const profiles = await api.get<any[]>("/roster/profiles");
+    const roles = await api.get<any[]>("/roster/profiles/me/roles");
+    const pErr = null; const rErr = null;
 
     if (!pErr && !rErr && profiles && roles) {
       const roleMap = new Map(roles.map((r) => [r.user_id, r.role]));
@@ -63,9 +64,7 @@ const AdminPage = () => {
 
     setInviting(true);
     try {
-      const res = await supabase.functions.invoke("invite-user", {
-        body: { email, password, role, display_name: displayName || email, department },
-      });
+      const res = { error: new Error("User invitation not yet implemented in VPS mode") };
 
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
@@ -85,7 +84,8 @@ const AdminPage = () => {
   };
 
   const handleUpdateDepartment = async (userId: string, newDept: string) => {
-    const { error } = await supabase.from("profiles").update({ department: newDept }).eq("user_id", userId);
+    const result = await api.put(`/roster/profiles/${userId}`, { department: newDept }).catch(e => ({ error: e }));
+    const error = (result as any)?.error || null;
     if (error) {
       toast({ title: t("admin.updateFailed") || "Update failed", description: error.message, variant: "destructive" });
     } else {
@@ -96,12 +96,13 @@ const AdminPage = () => {
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
     // Upsert into user_roles
-    const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
+    const delErr = null; // Role update handled by setRole endpoint
     if (delErr) {
       toast({ title: "Error", description: delErr.message, variant: "destructive" });
       return;
     }
-    const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole as any });
+    await api.post(`/roster/profiles/${userId}/role`, { role: newRole });
+    const insErr = null;
     if (insErr) {
       toast({ title: "Error", description: insErr.message, variant: "destructive" });
       return;

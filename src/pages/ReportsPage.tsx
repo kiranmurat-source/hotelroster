@@ -13,7 +13,7 @@ import { Department, ShiftType } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, FileDown, Clock, UserPlus, CalendarDays, Filter } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 
 const departments: Department[] = ["Front Desk", "Housekeeping", "F&B", "Kitchen", "Maintenance", "Security", "Spa", "Management"];
 
@@ -50,9 +50,9 @@ const ReportsPage = () => {
     if (!dateRange.start || !dateRange.end) return;
     const load = async () => {
       const [rRes, hRes, sRes] = await Promise.all([
-        supabase.from("roster_shifts").select("id, date, staff_name, department, shift").gte("date", dateRange.start).lte("date", dateRange.end),
-        supabase.from("extra_hours_requests").select("id, date, staff_name, department, hours, reason, status").gte("date", dateRange.start).lte("date", dateRange.end),
-        supabase.from("extra_staff_requests").select("id, date, department, shift, number_of_staff, reason, requested_by, status").gte("date", dateRange.start).lte("date", dateRange.end),
+        api.get<any[]>(`/roster/shifts?startDate=${dateRange.start}&endDate=${dateRange.end}`),
+        api.get<any[]>(`/roster/requests/hours`),
+        api.get<any[]>(`/roster/requests/staff`),
       ]);
       if (!rRes.error) setRosterData(rRes.data || []);
       if (!hRes.error) setHoursData(hRes.data || []);

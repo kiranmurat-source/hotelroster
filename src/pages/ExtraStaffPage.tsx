@@ -14,7 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 
 const departments: Department[] = ["Front Desk", "Housekeeping", "F&B", "Kitchen", "Maintenance", "Security", "Spa", "Management"];
 const shifts: ShiftType[] = ["Morning", "Afternoon", "Night"];
@@ -59,10 +59,8 @@ const ExtraStaffPage = () => {
   };
 
   const fetchRequests = async () => {
-    const { data, error } = await supabase
-      .from("extra_staff_requests")
-      .select("*")
-      .order("submitted_at", { ascending: false });
+    const data = await api.get<any[]>("/roster/requests/staff");
+      const error = null;
     if (error) {
       console.error("Error fetching extra staff requests:", error);
     } else {
@@ -85,7 +83,7 @@ const ExtraStaffPage = () => {
       toast.error(t("extraStaff.fillAll"));
       return;
     }
-    const { error } = await supabase.from("extra_staff_requests").insert({
+    await api.post("/roster/requests/staff", {
       department: department as string,
       date,
       shift: shift as string,
@@ -95,11 +93,6 @@ const ExtraStaffPage = () => {
       status: "pending",
       submitted_by: user.id,
     });
-    if (error) {
-      toast.error("Failed to submit request");
-      console.error(error);
-      return;
-    }
     setDepartment(""); setDate(""); setShift(""); setNumberOfStaff(""); setReason(""); setRequestedBy("");
     toast.success(t("extraStaff.submitted"));
     fetchRequests();
@@ -110,15 +103,7 @@ const ExtraStaffPage = () => {
       toast.error(t("permissions.cannotApprove"));
       return;
     }
-    const { error } = await supabase
-      .from("extra_staff_requests")
-      .update({ status })
-      .eq("id", id);
-    if (error) {
-      toast.error("Failed to update status");
-      console.error(error);
-      return;
-    }
+    await api.put(`/roster/requests/staff/${id}/status`, { status });
     toast.success(`${t("common." + status)}`);
     fetchRequests();
   };

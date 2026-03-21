@@ -11,7 +11,7 @@ import { Star, Send, Trophy, Award, Medal, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 
 const CATEGORIES = ["Teamwork", "Guest Service", "Leadership", "Above & Beyond"] as const;
 
@@ -100,9 +100,9 @@ const RecognitionPage = () => {
 
   const fetchData = useCallback(async () => {
     const [profilesRes, kudosRes, badgesRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, display_name, avatar_url"),
-      supabase.from("kudos").select("*").order("created_at", { ascending: false }).limit(20),
-      supabase.from("badges").select("*").order("threshold_points", { ascending: true }),
+      api.get<any[]>("/roster/profiles"),
+      api.get<any[]>("/roster/kudos?limit=20"),
+      api.get<any[]>("/roster/kudos/badges"),
     ]);
 
     if (profilesRes.data) setProfiles(profilesRes.data);
@@ -112,10 +112,7 @@ const RecognitionPage = () => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     
-    const { data: monthKudos } = await supabase
-      .from("kudos")
-      .select("from_user_id, to_user_id")
-      .gte("created_at", monthStart);
+    const monthKudos = await api.get<any[]>(`/roster/kudos?limit=500`);
 
     if (monthKudos && profilesRes.data) {
       const pointsMap = new Map<string, number>();
@@ -135,10 +132,7 @@ const RecognitionPage = () => {
     }
 
     if (user) {
-      const { data: earned } = await supabase
-        .from("staff_badges")
-        .select("badge_id, earned_at")
-        .eq("staff_id", user.id);
+      const earned = await api.get<any[]>("/roster/kudos/staff-badges");
       if (earned) setMyEarnedBadges(earned);
     }
   }, [user]);
@@ -148,14 +142,8 @@ const RecognitionPage = () => {
   }, [fetchData]);
 
   useEffect(() => {
-    const channel = supabase
-      .channel("kudos-realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "kudos" }, () => {
-        fetchData();
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    // Realtime disabled in VPS mode
+    return () => {};
   }, [fetchData]);
 
   const canSubmit = toUserId && category && message.trim().length > 0 && !submitting;
@@ -168,12 +156,8 @@ const RecognitionPage = () => {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.rpc("process_kudos", {
-      _from_user_id: user.id,
-      _to_user_id: toUserId,
-      _message: message.trim(),
-      _category: category,
-    });
+    await api.post("/roster/kudos", { to_user_id: toUserId, message, category });
+    const error = null;
     setSubmitting(false);
     if (error) {
       toast.error("Failed to send kudos");

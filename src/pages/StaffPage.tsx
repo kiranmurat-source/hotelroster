@@ -5,7 +5,7 @@ import { Mail, Phone, Inbox } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { maskPhone } from "@/lib/privacy";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 
 interface StaffProfile {
   id: string;
@@ -22,7 +22,8 @@ const StaffPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data, error } = await supabase.from("profiles").select("id, display_name, department, avatar_url, user_id");
+      const data = await api.get<any[]>("/roster/profiles");
+      const error = null;
       if (!error && data) setProfiles(data);
     };
     load();

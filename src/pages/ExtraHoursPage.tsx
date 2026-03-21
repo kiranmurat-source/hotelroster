@@ -14,7 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 
 const departments: Department[] = ["Front Desk", "Housekeeping", "F&B", "Kitchen", "Maintenance", "Security", "Spa", "Management"];
 
@@ -55,23 +55,16 @@ const ExtraHoursPage = () => {
   const [reason, setReason] = useState("");
 
   const fetchRequests = async () => {
-    const { data, error } = await supabase
-      .from("extra_hours_requests")
-      .select("*")
-      .order("submitted_at", { ascending: false });
-    if (error) {
-      console.error("Error fetching extra hours requests:", error);
-    } else {
-      setRequests(data || []);
-    }
+    const data = await api.get<any[]>("/roster/requests/hours");
+    setRequests(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchRequests();
     const loadProfiles = async () => {
-      const { data } = await supabase.from("profiles").select("id, user_id, display_name, department");
-      if (data) setProfiles(data);
+      const data2 = await api.get<any[]>("/roster/profiles");
+      if (data2) setProfiles(data2);
     };
     loadProfiles();
   }, []);
@@ -91,7 +84,7 @@ const ExtraHoursPage = () => {
       toast.error(t("extraHours.fillAll"));
       return;
     }
-    const { error } = await supabase.from("extra_hours_requests").insert({
+    await api.post("/roster/requests/hours", {
       staff_id: staffId,
       staff_name: staff.display_name || "Unknown",
       department: department as string,
@@ -101,11 +94,6 @@ const ExtraHoursPage = () => {
       status: "pending",
       submitted_by: user.id,
     });
-    if (error) {
-      toast.error("Failed to submit request");
-      console.error(error);
-      return;
-    }
     setStaffId(""); setDepartment(""); setDate(""); setHours(""); setReason("");
     toast.success(t("extraHours.submitted"));
     fetchRequests();
@@ -116,15 +104,7 @@ const ExtraHoursPage = () => {
       toast.error(t("permissions.cannotApprove"));
       return;
     }
-    const { error } = await supabase
-      .from("extra_hours_requests")
-      .update({ status })
-      .eq("id", id);
-    if (error) {
-      toast.error("Failed to update status");
-      console.error(error);
-      return;
-    }
+    await api.put(`/roster/requests/hours/${id}/status`, { status });
     toast.success(`${t("common." + status)}`);
     fetchRequests();
   };

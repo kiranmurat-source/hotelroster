@@ -8,7 +8,7 @@ import { Users, Clock, UserPlus, AlertCircle, Inbox } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 
 interface DashboardRequest {
   id: string;
@@ -41,9 +41,9 @@ const Dashboard = () => {
   useEffect(() => {
     const load = async () => {
       const [profilesRes, hoursRes, staffRes] = await Promise.all([
-        supabase.from("profiles").select("id, department"),
-        supabase.from("extra_hours_requests").select("id, staff_name, department, hours, date, status").order("submitted_at", { ascending: false }).limit(10),
-        supabase.from("extra_staff_requests").select("id, department, shift, number_of_staff, date, status").order("submitted_at", { ascending: false }).limit(10),
+        api.get<any[]>("/roster/profiles"),
+        api.get<any[]>("/roster/requests/hours"),
+        api.get<any[]>("/roster/requests/staff"),
       ]);
 
       if (!profilesRes.error && profilesRes.data) {

@@ -13,7 +13,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
 import { useShiftTypes, ShiftTypeRecord } from "@/hooks/useShiftTypes";
 import { ShiftPill, ShiftDot } from "@/components/ShiftPill";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 import { cn } from "@/lib/utils";
 import { maskPhone } from "@/lib/privacy";
 import { ChevronLeft, ChevronRight, Sun, Sunset, Moon, Coffee, Upload, Download, FileSpreadsheet, X, Sparkles, Mail, Phone, Timer, Plus, Activity, AlertTriangle, Info } from "lucide-react";
@@ -97,7 +97,8 @@ const RosterPage = () => {
   // Load saved roster shifts from database
   useEffect(() => {
     const loadShifts = async () => {
-      const shiftsRes = await supabase.from("roster_shifts").select("*, leave_requests(leave_type)");
+      const shiftsData = await api.get<any[]>('/roster/shifts');
+      const shiftsRes = { data: shiftsData, error: null };
 
       if (!shiftsRes.error && shiftsRes.data && shiftsRes.data.length > 0) {
         const assignments: RosterShift[] = shiftsRes.data.map((row: any) => ({
@@ -183,7 +184,7 @@ const RosterPage = () => {
     if (!user) return;
     setSaving(true);
     try {
-      await supabase.from("roster_shifts").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await api.delete("/roster/shifts?startDate=2000-01-01&endDate=2099-12-31");
 
       const rows = result.assignments.map((a) => ({
         user_id: user.id,
@@ -197,11 +198,10 @@ const RosterPage = () => {
 
       for (let i = 0; i < rows.length; i += 500) {
         const batch = rows.slice(i, i + 500);
-        const { error } = await supabase.from("roster_shifts").insert(batch);
-        if (error) throw error;
+        await api.post("/roster/shifts/bulk", batch);
       }
 
-      const { data } = await supabase.from("roster_shifts").select("*");
+      const data = await api.get<any[]>("/roster/shifts");
       if (data) {
         setDbShifts(data.map((row: any) => ({
           id: row.id,
@@ -425,7 +425,7 @@ const RosterPage = () => {
                 <Button variant="ghost" size="sm" onClick={async () => {
                   setUploadedRoster(null);
                   setDbShifts([]);
-                  await supabase.from("roster_shifts").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+                  await api.delete("/roster/shifts?startDate=2000-01-01&endDate=2099-12-31");
                   toast.info(t("roster.switchedBack"));
                 }}>
                   <X className="h-4 w-4 mr-1.5" />
@@ -798,7 +798,7 @@ const RosterPage = () => {
         onOpenChange={setManualShiftOpen}
         defaultDate={selectedDate || formatDate(year, month, today.getDate() <= daysInMonth ? today.getDate() : 1)}
         onSaved={async () => {
-          const { data } = await supabase.from("roster_shifts").select("*, leave_requests(leave_type)");
+          const data = await api.get<any[]>("/roster/shifts");
           if (data) {
             setDbShifts(data.map((row: any) => ({
               id: row.id,

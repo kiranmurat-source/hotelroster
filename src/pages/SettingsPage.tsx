@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/client";
 import { toast } from "sonner";
 import { Settings2, Save, Info } from "lucide-react";
 
@@ -66,10 +66,8 @@ const SettingsPage = () => {
     const roomsArr = roomsDepts.split(",").map(s => s.trim()).filter(Boolean);
     const fnbArr = fnbDepts.split(",").map(s => s.trim()).filter(Boolean);
 
-    const { error } = await supabase
-      .from("hotel_settings")
-      .update({
-        hotel_name: hotelName,
+    try {
+      await api.put("/roster/hotel-settings", {
         total_rooms: totalRooms,
         segment,
         guest_per_room: guestPerRoom,
@@ -84,18 +82,14 @@ const SettingsPage = () => {
         rooms_departments: roomsArr,
         fnb_departments: fnbArr,
         fo_arrivals_per_fte: foArrivalsPerFte,
-        updated_at: new Date().toISOString(),
-        updated_by: null,
-      } as any)
-      .eq("id", settings.id);
-
-    if (error) {
-      toast.error("Ayarlar kaydedilemedi: " + error.message);
-    } else {
+      });
       toast.success("Ayarlar başarıyla kaydedildi");
       refetchSettings();
+    } catch (err: any) {
+      toast.error("Ayarlar kaydedilemedi: " + (err?.message || ""));
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   if (settingsLoading) {
